@@ -8,8 +8,21 @@ import (
 	A MappingFunc accepts an `input` object, and should put its contents
 	into the `dest` interface by calling the relevant methods to place each
 	field as a map, or each row in an array.
+	Another MappingFunc is passed down for use to handle nested objects.
 */
-type MappingFunc func(dest Destination, input interface{})
+type MappingFunc func(
+	dispatch *Mapper,
+	dest Destination,
+	input interface{},
+)
+
+func Map(
+	dispatch *Mapper,
+	dest Destination,
+	input interface{},
+) {
+	dispatch.Map(dest, input)
+}
 
 /*
 

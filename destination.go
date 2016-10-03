@@ -15,16 +15,16 @@ package xlate
 */
 type Destination interface {
 	OpenMap()
-	WriteMapEntry(k string, v interface{})
+	WriteMapKey(k string)
 	CloseMap()
 
 	OpenArray()
-	WriteArrayEntry(v interface{})
 	CloseArray()
 
 	// add write funcs for bare types?  almost certainly
 	// after any of these, you're in a terminal state.
 
+	WriteNull()
 	WriteString(string)
 
 	// also essential to have a way to say "skipme" -- this is distinct from writing a nil
