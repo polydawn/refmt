@@ -2,6 +2,7 @@ package xlate
 
 import (
 	"fmt"
+	"reflect"
 )
 
 /*
@@ -25,4 +26,16 @@ type ErrNilMappingFunc struct {
 
 func (e ErrNilMappingFunc) Error() string {
 	return fmt.Sprintf("ErrNilMappingFunc {row:%#v}", e.Row)
+}
+
+/*
+	Error raised when calling `Map` with a type that has no registered
+	MappingFunc to handle it.
+*/
+type ErrMissingMappingFunc struct {
+	Type reflect.Type
+}
+
+func (e ErrMissingMappingFunc) Error() string {
+	return fmt.Sprintf("ErrMissingMappingFunc {type:%s}", e.Type.Name())
 }

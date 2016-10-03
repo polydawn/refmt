@@ -79,5 +79,10 @@ func processMapperSetup(ms MapperSetup) map[reflect.Type]MappingFunc {
 }
 
 func (m *Mapper) Map(dest Destination, input interface{}) {
-	// TODO run down the setup table for matches
+	rtInput := reflect.TypeOf(input)
+	handler, ok := m.mappings[rtInput]
+	if !ok {
+		panic(&ErrMissingMappingFunc{rtInput})
+	}
+	handler(m, dest, input)
 }
