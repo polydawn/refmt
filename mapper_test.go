@@ -1,6 +1,7 @@
 package xlate
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -121,6 +122,64 @@ func TestMapperBasics(t *testing.T) {
 		})
 		if !stringyEquality(tr.expectErr, err) {
 			t.Errorf("test %q FAILED:\n\texpected     %#v\n\terrored with %#v",
+				tr.title, tr.expectErr, err)
+		}
+		if !stringyEquality(tr.expect, tokDest.Tokens) {
+			t.Errorf("test %q FAILED:\n\texpected: %#v\n\tactual:   %#v",
+				tr.title, tr.expect, tokDest.Tokens)
+		}
+	}
+}
+
+func TestMapperInterfaceDispatch(t *testing.T) {
+	type Iface interface{}
+	type Top struct {
+		X Iface
+	}
+	type AA struct {
+		Y string
+	}
+	type BB struct {
+		Z string
+	}
+
+	fmt.Printf(";; %v -- %v\n", reflect.TypeOf(Iface(nil)), nil)
+	fmt.Printf(";; %v -- %v\n", reflect.TypeOf(Iface(BB{})), reflect.TypeOf(Iface(BB{})).Kind())
+	var fuk Iface
+	fmt.Printf(";; %v -- %v\n", reflect.TypeOf(fuk), nil)
+	fmt.Printf(";; %v -- %v\n", reflect.TypeOf(&fuk), reflect.TypeOf(&fuk).Kind())
+	fmt.Printf(";; %v -- %v\n", reflect.TypeOf(&fuk).Elem(), reflect.TypeOf(&fuk).Elem().Kind())
+
+	type testRow struct {
+		title     string
+		thing     interface{}
+		mapper    *Mapper
+		expect    tok.Tokens
+		expectErr error
+	}
+	for _, tr := range []testRow{{
+		title: "test a single thing at its zero value",
+		thing: Top{AA{"whee"}},
+		mapper: NewMapper(MapperSetup{
+			{Top{}, func(dispatch *Mapper, dest Destination, input interface{}) {
+				dispatch.Map(dest, Iface(input.(Top).X))
+			}},
+			//{Iface(nil), Map_Wildcard_toString},
+			{AA{}, Map_Wildcard_toString},
+		}),
+		expect: tok.Tokens{
+			{tok.TokenKind_ValString, "{}"},
+		},
+	}} {
+		tokDest := tok.NewDestination()
+		err := capturePanics(func() {
+			tr.mapper.Map(
+				tokDest,
+				tr.thing,
+			)
+		})
+		if !stringyEquality(tr.expectErr, err) {
+			t.Errorf("test %q FAILED:\n\texpected     %#v\n\terrored with %v",
 				tr.title, tr.expectErr, err)
 		}
 		if !stringyEquality(tr.expect, tokDest.Tokens) {
