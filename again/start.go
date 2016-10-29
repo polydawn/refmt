@@ -46,11 +46,11 @@ func turnBothCranks(tokenSrc TokenSrc, tokenSink TokenSink) error {
 */
 type Token interface{}
 
-const (
-	Token_MapOpen  = '{'
-	Token_MapClose = '}'
-	Token_ArrOpen  = '['
-	Token_ArrClose = ']'
+var (
+	Token_MapOpen  Token = '{'
+	Token_MapClose Token = '}'
+	Token_ArrOpen  Token = '['
+	Token_ArrClose Token = ']'
 )
 
 type TokenSrc interface {
@@ -91,11 +91,18 @@ func (vr *VarUnmarshalDriver) Step(tok *Token) (done bool, err error) {
 	nSteps := len(vr.stepStack) - 1
 	step := vr.stepStack[nSteps]
 	done, err = step(vr, tok)
-	if nSteps == 1 {
-		return // that's all folks
-	}
+	fmt.Printf(":: step tok=%c done=%v err=%#v\n", *tok, done, err)
+	// If the step errored: out, entirely.
 	if err != nil {
 		return true, err
+	}
+	// If the step wasn't done, return same status.
+	if !done {
+		return false, nil
+	}
+	// If it WAS done, pop next, or if stack empty, we're entirely done.
+	if nSteps == 0 {
+		return // that's all folks
 	}
 	vr.stepStack = vr.stepStack[0:nSteps]
 	return false, nil
@@ -127,12 +134,12 @@ func (vr *VarUnmarshalDriver) Recurse(tok *Token, v interface{}, continueWith Va
 
 // used at initialization to figure out the first step given the type of var
 func stepFor(v interface{}) VarUnmarshalStep {
-	switch v.(type) {
+	switch v2 := v.(type) {
 	// For total wildcards:
 	//  Return a machine that will pick between a literal or `map[string]interface{}`
 	//  or `[]interface{}` based on the next token.
 	case *interface{}:
-		return wildcardStep(v)
+		return newWildcardDecoderMachine(v2)
 	// For single literals:
 	//  we have a single machine that handles all these.
 	case *string, *[]byte,
@@ -156,31 +163,49 @@ func stepFor(v interface{}) VarUnmarshalStep {
 	}
 }
 
-func wildcardStep(target interface{}) VarUnmarshalStep {
-	return func(vr *VarUnmarshalDriver, tok *Token) (done bool, err error) {
-		// If it's a special state, start an object.
-		//  (Or, blow up if its a special state that's silly).
-		switch *tok {
-		case Token_MapOpen:
-			// Fill in our wildcard ref with a blank map,
-			//  and make a new machine for it; hand off everything.
-			target = make(map[string]interface{})
-			dec := &wildcardMapDecoderMachine{}
-			dec.Reset(target)
-			return dec.Step(vr, tok)
-		case Token_ArrOpen:
-			// TODO same as maps, but with a machine for arrays
-			panic("NYI")
-		case Token_MapClose:
-			return true, fmt.Errorf("unexpected mapClose; expected start of value")
-		case Token_ArrClose:
-			return true, fmt.Errorf("unexpected arrClose; expected start of value")
-		default:
-			// If it wasn't the start of composite, shell out to the machine for literals.
-			dec := &literalDecoderMachine{}
-			dec.Reset(target)
-			return dec.Step(vr, tok)
-		}
+type wildcardDecoderMachine struct {
+	target *interface{}
+	step   VarUnmarshalStep // actual machine, once we've demuxed with the first token.
+}
+
+func newWildcardDecoderMachine(target *interface{}) VarUnmarshalStep {
+	dm := &wildcardDecoderMachine{target: target}
+	dm.step = dm.step_demux
+	return dm.Step
+}
+
+func (dm *wildcardDecoderMachine) Step(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
+	return dm.step(driver, tok)
+}
+
+func (dm *wildcardDecoderMachine) step_demux(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
+	// If it's a special state, start an object.
+	//  (Or, blow up if its a special state that's silly).
+	switch *tok {
+	case Token_MapOpen:
+		// Fill in our wildcard ref with a blank map,
+		//  and make a new machine for it; hand off everything.
+		mp := make(map[string]interface{})
+		*(dm.target) = mp
+		dec := &wildcardMapDecoderMachine{}
+		dec.Reset(mp)
+		dm.step = dec.Step
+		return dm.step(driver, tok)
+
+	case Token_ArrOpen:
+		// TODO same as maps, but with a machine for arrays
+		panic("NYI")
+	case Token_MapClose:
+		return true, fmt.Errorf("unexpected mapClose; expected start of value")
+	case Token_ArrClose:
+		return true, fmt.Errorf("unexpected arrClose; expected start of value")
+	default:
+		// If it wasn't the start of composite, shell out to the machine for literals.
+		dec := &literalDecoderMachine{}
+		dec.Reset(dm.target)
+		// Don't bother to replace our internal step func
+		//  because literal machines are never multi-call.
+		return dec.Step(driver, tok)
 	}
 }
 
