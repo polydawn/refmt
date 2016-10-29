@@ -72,24 +72,61 @@ func NewJsonEncoder(w io.Writer /* optional *JsonSchemaNotes */) TokenSink { ret
 
 func NewVarTokenizer(v interface{} /* TODO visitmagicks */) TokenSrc { return nil }
 func NewVarReceiver(v interface{} /* TODO visitmagicks */) TokenSink {
-	vr := &varReceiver{}
-	vr.step = vr.stepFor(v)
+	vr := &VarUnmarshalDriver{}
+	vr.stepStack = []VarUnmarshalStep{
+		stepFor(v),
+	}
 	return vr
 }
 
-type varReceiver struct {
-	step func(*Token) (done bool, err error)
-	done bool
-	err  error
+//
+// VarUnmarshal
+//
+
+type VarUnmarshalDriver struct {
+	stepStack []VarUnmarshalStep
 }
 
-func (vr *varReceiver) Step(tok *Token) (done bool, err error) {
-	return vr.step(tok)
+func (vr *VarUnmarshalDriver) Step(tok *Token) (done bool, err error) {
+	nSteps := len(vr.stepStack) - 1
+	step := vr.stepStack[nSteps]
+	done, err = step(vr, tok)
+	if nSteps == 1 {
+		return // that's all folks
+	}
+	if err != nil {
+		return true, err
+	}
+	vr.stepStack = vr.stepStack[0:nSteps]
+	return false, nil
+}
+
+type VarUnmarshalStep func(*VarUnmarshalDriver, *Token) (done bool, err error)
+
+/*
+	Fills `v`,
+	first looking up the machine for that type just like it's a new top-level object,
+	then pushing the first step with `tok` (the upstream tends to have peeked at it
+	in order to decide what to do, but if recursing, it belongs to the next obj),
+	then continuing to use this new machine until it returns a done status,
+	then finally setting the overall next step to `continueWith`.
+
+	In other words, your decoder machine calls this when it wants to deal with
+	an object, and by the time we call back to your `continueWith` state,
+	that object will be filled and the stream ready for you to continue.
+
+	The unmarshal driver keeps a stack of `continueWith` step funcs
+	to support "recursion".  Your calls will never actually see increases in
+	goroutine stack depth.
+*/
+func (vr *VarUnmarshalDriver) Recurse(tok *Token, v interface{}, continueWith VarUnmarshalStep) error {
+	vr.stepStack = append(vr.stepStack, continueWith) // FIXME replace something
+	// TODO call something
+	return nil
 }
 
 // used at initialization to figure out the first step given the type of var
-//
-func (vr *varReceiver) stepFor(v interface{}) func(*Token) (done bool, err error) {
+func stepFor(v interface{}) VarUnmarshalStep {
 	switch v.(type) {
 	// For total wildcards:
 	//  Return a machine that will pick between a literal or `map[string]interface{}`
@@ -119,8 +156,8 @@ func (vr *varReceiver) stepFor(v interface{}) func(*Token) (done bool, err error
 	}
 }
 
-func wildcardStep(target interface{}) func(*Token) (bool, error) {
-	return func(tok *Token) (done bool, err error) {
+func wildcardStep(target interface{}) VarUnmarshalStep {
+	return func(vr *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 		// If it's a special state, start an object.
 		//  (Or, blow up if its a special state that's silly).
 		switch *tok {
@@ -130,7 +167,7 @@ func wildcardStep(target interface{}) func(*Token) (bool, error) {
 			target = make(map[string]interface{})
 			dec := &wildcardMapDecoderMachine{}
 			dec.Reset(target)
-			return dec.Step(tok)
+			return dec.Step(vr, tok)
 		case Token_ArrOpen:
 			// TODO same as maps, but with a machine for arrays
 			panic("NYI")
@@ -142,14 +179,14 @@ func wildcardStep(target interface{}) func(*Token) (bool, error) {
 			// If it wasn't the start of composite, shell out to the machine for literals.
 			dec := &literalDecoderMachine{}
 			dec.Reset(target)
-			return dec.Step(tok)
+			return dec.Step(vr, tok)
 		}
 	}
 }
 
 type wildcardMapDecoderMachine struct {
 	target map[string]interface{}
-	step   func(*Token) (done bool, err error)
+	step   VarUnmarshalStep
 	key    string // The key consumed by the prev `step_AcceptKey`.
 }
 
@@ -159,11 +196,11 @@ func (dm *wildcardMapDecoderMachine) Reset(target interface{}) {
 	dm.key = ""
 }
 
-func (dm *wildcardMapDecoderMachine) Step(tok *Token) (done bool, err error) {
-	return dm.step(tok)
+func (dm *wildcardMapDecoderMachine) Step(vr *VarUnmarshalDriver, tok *Token) (done bool, err error) {
+	return dm.step(vr, tok)
 }
 
-func (dm *wildcardMapDecoderMachine) step_Initial(tok *Token) (done bool, err error) {
+func (dm *wildcardMapDecoderMachine) step_Initial(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	// If it's a special state, start an object.
 	//  (Or, blow up if its a special state that's silly).
 	switch *tok {
@@ -181,7 +218,7 @@ func (dm *wildcardMapDecoderMachine) step_Initial(tok *Token) (done bool, err er
 		panic(fmt.Errorf("unexpected literal of type %T; expected start of map", *tok))
 	}
 }
-func (dm *wildcardMapDecoderMachine) step_AcceptKey(tok *Token) (done bool, err error) {
+func (dm *wildcardMapDecoderMachine) step_AcceptKey(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	switch *tok {
 	case Token_MapOpen:
 		return true, fmt.Errorf("unexpected mapOpen; expected map key")
@@ -212,16 +249,14 @@ func (dm *wildcardMapDecoderMachine) mustAcceptKey(k string) error {
 	return nil
 }
 
-func (dm *wildcardMapDecoderMachine) step_AcceptValue(tok *Token) (done bool, err error) {
-	/*
-		driver.Fill(
-			tok, // still meant for next person and the real step is to come; we just had to figure out types, here.
-			dm.Addr(dm.key),
-			dm.step_postValue(), // driver returns to us after the value is done by calling this.
-			    // may actually be that we stash that stepfunc, and give driver more general self pointer and Resume func in interface.
-		)
-	*/
-	return false, nil // TODO
+func (dm *wildcardMapDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
+	var v interface{}
+	dm.target[dm.key] = v
+	return false, driver.Recurse(
+		tok,
+		&v,
+		dm.step_AcceptKey,
+	)
 }
 
 type literalDecoderMachine struct {
@@ -232,7 +267,7 @@ func (dm *literalDecoderMachine) Reset(target interface{}) {
 	dm.target = target
 }
 
-func (dm *literalDecoderMachine) Step(tok *Token) (done bool, err error) {
+func (dm *literalDecoderMachine) Step(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	var ok bool
 	switch v2 := dm.target.(type) {
 	case *string:
@@ -303,11 +338,11 @@ func HandleMe(vreal interface{}) (
 type Atlas struct{}
 
 type atlasDecoderMachine struct {
-	val      reflect.Value // We're filling this.
-	atl      *Atlas        // Our directions.
-	step     func(*Token)  // The next step.
-	key      string        // The key consumed by the prev `step_AcceptKey`.
-	keysDone []string      // List of keys we've completed already (repeats aren't wanted).
+	val      reflect.Value    // We're filling this.
+	atl      *Atlas           // Our directions.
+	step     VarUnmarshalStep // The next step.
+	key      string           // The key consumed by the prev `step_AcceptKey`.
+	keysDone []string         // List of keys we've completed already (repeats aren't wanted).
 }
 
 func NewAtlasDecoderMachine(into reflect.Value, atl *Atlas) *atlasDecoderMachine {
@@ -326,75 +361,69 @@ func (dm *atlasDecoderMachine) Reset(into reflect.Value) {
 	dm.keysDone = dm.keysDone[0:0]
 }
 
-func (dm *atlasDecoderMachine) step_Initial(tok *Token) {
+func (dm *atlasDecoderMachine) step_Initial(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	switch *tok {
 	case Token_MapOpen:
 		// Great.  Consumed.
 		dm.step = dm.step_AcceptKey
+		return false, nil
 	case Token_ArrOpen:
-		panic("unexpected arrOpen; expected start of struct")
+		return true, fmt.Errorf("unexpected arrOpen; expected start of struct")
 	case Token_MapClose:
-		panic("unexpected mapClose; expected start of struct")
+		return true, fmt.Errorf("unexpected mapClose; expected start of struct")
 	case Token_ArrClose:
-		panic("unexpected arrClose; expected start of struct")
+		return true, fmt.Errorf("unexpected arrClose; expected start of struct")
 	default:
-		panic(fmt.Errorf("unexpected literal of type %T; expected start of struct", *tok))
+		return true, fmt.Errorf("unexpected literal of type %T; expected start of struct", *tok)
 	}
 }
 
-func (dm *atlasDecoderMachine) step_AcceptKey(tok *Token) {
+func (dm *atlasDecoderMachine) step_AcceptKey(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	switch *tok {
 	case Token_MapOpen:
-		panic("unexpected mapOpen; expected map key")
+		return true, fmt.Errorf("unexpected mapOpen; expected map key")
 	case Token_ArrOpen:
-		panic("unexpected arrOpen; expected map key")
+		return true, fmt.Errorf("unexpected arrOpen; expected map key")
 	case Token_MapClose:
-		dm.handleEnd()
+		return true, dm.handleEnd()
 	case Token_ArrClose:
-		panic("unexpected arrClose; expected map key")
+		return true, fmt.Errorf("unexpected arrClose; expected map key")
 	}
 	switch k := (*tok).(type) {
 	case *string:
 		dm.key = *k
-		dm.mustAcceptKey(*k)
-		//dm.step = dm.step_AcceptValue
-		// actually we might wanna just push up our plea now --
-		//  this saves us from having to see and forward the token at all,
-		//  and makes the pattern of fab-var-filler, ret step func(token) consistent.
-		//  if you *really* wanted to implement a breakout for known prims, you could still do that branch here.
-		//  HANG ON, nope: keep it in the value step and keep the tok passdown.
-		//   do it for parity with arrays, which must have that step
-		//   and accept that token during it so they can check for end there.
-		/*
-			driver.Fill(
-				tok, // still meant for next person and the real step is to come; we just had to figure out types, here.
-				dm.Addr(dm.key),
-				dm.step_postValue(), // driver returns to us after the value is done by calling this.
-				    // may actually be that we stash that stepfunc, and give driver more general self pointer and Resume func in interface.
-			)
-		*/
+		if err = dm.mustAcceptKey(*k); err != nil {
+			return true, err
+		}
+		dm.step = dm.step_AcceptValue
+		return false, nil
 	default:
-		panic(fmt.Errorf("unexpected literal of type %T; expected start of struct", *tok))
+		return true, fmt.Errorf("unexpected literal of type %T; expected start of struct", *tok)
 	}
 }
-func (dm *atlasDecoderMachine) mustAcceptKey(k string) {
+func (dm *atlasDecoderMachine) mustAcceptKey(k string) error {
 	for _, x := range dm.keysDone {
 		if x == k {
-			panic(fmt.Errorf("repeated key %q", k))
+			return fmt.Errorf("repeated key %q", k)
 		}
 	}
 	dm.keysDone = append(dm.keysDone, k)
+	return nil
 }
 func (dm *atlasDecoderMachine) addr(k string) interface{} {
 	_ = dm.atl
 	return nil // TODO
-	// n.b. this is one of the spots where i can't decide if &thing or reflect.Value is better
-	// but either way we may want to define a `Slot` type alias to make it readable
 }
 
-func (dm *atlasDecoderMachine) step_AcceptValue(tok *Token) {
+func (dm *atlasDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
+	return false, driver.Recurse(
+		tok,
+		dm.addr(dm.key),
+		dm.step_AcceptKey,
+	)
 }
 
-func (dm *atlasDecoderMachine) handleEnd() {
-	// TODO check for all filled, etc.  then set terminal states.
+func (dm *atlasDecoderMachine) handleEnd() error {
+	// TODO check for all filled, etc.
+	return nil
 }
