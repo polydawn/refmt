@@ -16,7 +16,21 @@ func TestWow(t *testing.T) {
 	vr = NewVarReceiver(&v2)
 	stepShouldContinue(t, vr, &Token_MapOpen)
 	stepShouldDone(t, vr, &Token_MapClose)
-	assert(t, "map and recurse test", map[string]interface{}{}, v2)
+	assert(t, "map and recurse test",
+		map[string]interface{}{},
+		v2)
+
+	var v3 interface{}
+	vr = NewVarReceiver(&v3)
+	stepShouldContinue(t, vr, &Token_MapOpen)
+	tok = "key"
+	stepShouldContinue(t, vr, &tok)
+	tok = 6
+	stepShouldContinue(t, vr, &tok)
+	stepShouldDone(t, vr, &Token_MapClose)
+	assert(t, "map and recurse test",
+		map[string]interface{}{"key": 6},
+		v3)
 }
 
 func stringyEquality(x, y interface{}) bool {

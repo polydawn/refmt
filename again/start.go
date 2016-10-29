@@ -126,10 +126,11 @@ type VarUnmarshalStep func(*VarUnmarshalDriver, *Token) (done bool, err error)
 	to support "recursion".  Your calls will never actually see increases in
 	goroutine stack depth.
 */
-func (vr *VarUnmarshalDriver) Recurse(tok *Token, v interface{}, continueWith VarUnmarshalStep) error {
-	vr.stepStack = append(vr.stepStack, continueWith) // FIXME replace something
-	// TODO call something
-	return nil
+func (vr *VarUnmarshalDriver) Recurse(tok *Token, v interface{}, _ VarUnmarshalStep) error {
+	//vr.stepStack = append(vr.stepStack, continueWith) // FIXME replace something... actually you might not need this
+	vr.stepStack = append(vr.stepStack, stepFor(v))
+	_, err := vr.Step(tok)
+	return err
 }
 
 // used at initialization to figure out the first step given the type of var
@@ -240,7 +241,7 @@ func (dm *wildcardMapDecoderMachine) step_Initial(_ *VarUnmarshalDriver, tok *To
 	case Token_ArrClose:
 		return true, fmt.Errorf("unexpected arrClose; expected start of map")
 	default:
-		panic(fmt.Errorf("unexpected literal of type %T; expected start of map", *tok))
+		return true, fmt.Errorf("unexpected literal of type %T; expected start of map", *tok)
 	}
 }
 func (dm *wildcardMapDecoderMachine) step_AcceptKey(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
@@ -256,15 +257,15 @@ func (dm *wildcardMapDecoderMachine) step_AcceptKey(_ *VarUnmarshalDriver, tok *
 		return true, fmt.Errorf("unexpected arrClose; expected map key")
 	}
 	switch k := (*tok).(type) {
-	case *string:
-		if err = dm.mustAcceptKey(*k); err != nil {
+	case string:
+		if err = dm.mustAcceptKey(k); err != nil {
 			return true, err
 		}
-		dm.key = *k
+		dm.key = k
 		dm.step = dm.step_AcceptValue
 		return false, nil
 	default:
-		panic(fmt.Errorf("unexpected literal of type %T; expected start of struct", *tok))
+		return true, fmt.Errorf("unexpected literal of type %T; expected key string or end of map", *tok)
 	}
 }
 func (dm *wildcardMapDecoderMachine) mustAcceptKey(k string) error {
@@ -276,12 +277,14 @@ func (dm *wildcardMapDecoderMachine) mustAcceptKey(k string) error {
 
 func (dm *wildcardMapDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	var v interface{}
-	dm.target[dm.key] = v
-	return false, driver.Recurse(
+	dm.step = dm.step_AcceptKey
+	driver.Recurse(
 		tok,
 		&v,
-		dm.step_AcceptKey,
+		nil, // TODO you didn't need this
 	)
+	dm.target[dm.key] = v // FIXME srsly tho.  this not fly, you need continuation for complexes
+	return false, nil
 }
 
 type literalDecoderMachine struct {
@@ -305,6 +308,10 @@ func (dm *literalDecoderMachine) Step(_ *VarUnmarshalDriver, tok *Token) (done b
 		panic("TODO")
 	case *uint, *uint8, *uint16, *uint32, *uint64:
 		panic("TODO")
+	case *interface{}:
+		// TODO may want to whitelist tok types here are indeed prim literals as a san check
+		*v2 = *tok
+		ok = true
 	default:
 		panic(fmt.Errorf("cannot unmarshall into unhandled type %T", dm.target))
 	}
