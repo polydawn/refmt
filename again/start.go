@@ -55,12 +55,12 @@ const (
 
 type TokenSrc interface {
 	Step(fillme *Token) (done bool, err error)
-	Reset()
+	//Reset()
 }
 
 type TokenSink interface {
 	Step(consume *Token) (done bool, err error)
-	Reset()
+	//Reset()
 }
 
 //
@@ -71,12 +71,20 @@ func NewJsonDecoder(r io.Reader /* optional *JsonSchemaNotes */) TokenSrc  { ret
 func NewJsonEncoder(w io.Writer /* optional *JsonSchemaNotes */) TokenSink { return nil }
 
 func NewVarTokenizer(v interface{} /* TODO visitmagicks */) TokenSrc { return nil }
-func NewVarReceiver(v interface{} /* TODO visitmagicks */) TokenSink { return nil }
+func NewVarReceiver(v interface{} /* TODO visitmagicks */) TokenSink {
+	vr := &varReceiver{}
+	vr.step = vr.stepFor(v)
+	return vr
+}
 
 type varReceiver struct {
 	step func(*Token) (done bool, err error)
 	done bool
 	err  error
+}
+
+func (vr *varReceiver) Step(tok *Token) (done bool, err error) {
+	return vr.step(tok)
 }
 
 // used at initialization to figure out the first step given the type of var
@@ -231,7 +239,9 @@ func (dm *literalDecoderMachine) Step(tok *Token) (done bool, err error) {
 		*v2, ok = (*tok).(string)
 	case *[]byte:
 		panic("TODO")
-	case *int, *int8, *int16, *int32, *int64:
+	case *int:
+		*v2, ok = (*tok).(int)
+	case *int8, *int16, *int32, *int64:
 		panic("TODO")
 	case *uint, *uint8, *uint16, *uint32, *uint64:
 		panic("TODO")
