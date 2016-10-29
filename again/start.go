@@ -104,6 +104,7 @@ func (vr *VarUnmarshalDriver) Step(tok *Token) (done bool, err error) {
 	if nSteps == 0 {
 		return // that's all folks
 	}
+	fmt.Printf(":: popped step from stack\n")
 	vr.stepStack = vr.stepStack[0:nSteps]
 	return false, nil
 }
@@ -129,6 +130,7 @@ type VarUnmarshalStep func(*VarUnmarshalDriver, *Token) (done bool, err error)
 func (vr *VarUnmarshalDriver) Recurse(tok *Token, v interface{}, _ VarUnmarshalStep) error {
 	//vr.stepStack = append(vr.stepStack, continueWith) // FIXME replace something... actually you might not need this
 	vr.stepStack = append(vr.stepStack, stepFor(v))
+	fmt.Printf(":: recursin'\n")
 	_, err := vr.Step(tok)
 	return err
 }
@@ -284,6 +286,7 @@ func (dm *wildcardMapDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriver
 		nil, // TODO you didn't need this
 	)
 	dm.target[dm.key] = v // FIXME srsly tho.  this not fly, you need continuation for complexes
+	// actually apparently this works, but i don't entirely understand why.
 	return false, nil
 }
 
