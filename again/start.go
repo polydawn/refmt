@@ -370,17 +370,15 @@ func HandleMe(vreal interface{}) (
 	return nil, nil, nil
 }
 
-type Atlas struct{}
-
 type atlasDecoderMachine struct {
 	val      reflect.Value    // We're filling this.
-	atl      *Atlas           // Our directions.
+	atl      Atlas            // Our directions.
 	step     VarUnmarshalStep // The next step.
 	key      string           // The key consumed by the prev `step_AcceptKey`.
 	keysDone []string         // List of keys we've completed already (repeats aren't wanted).
 }
 
-func NewAtlasDecoderMachine(into reflect.Value, atl *Atlas) *atlasDecoderMachine {
+func NewAtlasDecoderMachine(into reflect.Value, atl Atlas) *atlasDecoderMachine {
 	// TODO this return type should prob have some interface that covers it sufficiently.
 	dm := &atlasDecoderMachine{
 		atl: atl,
