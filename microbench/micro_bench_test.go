@@ -53,6 +53,8 @@ func Benchmark_ReflectSetValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		slot_rav.Set(val_rv)
 	}
+	_ = slot
+	_ = slot_rav
 }
 
 // Just setting something through an address, full types.
@@ -65,6 +67,7 @@ func Benchmark_DirectSetValue(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		*slotAddr_v = val
 	}
+	_ = slot
 }
 
 // Fit the address of a primitive into an `interface{}`, then type-switch
@@ -85,6 +88,7 @@ func Benchmark_DirectInterfacedSetValue(b *testing.B) {
 			*v2 = val
 		}
 	}
+	_ = slot
 }
 
 // Use a func to get that `interface{}` that's a pointer.
@@ -105,4 +109,5 @@ func Benchmark_FuncedDirectInterfacedSetValue(b *testing.B) {
 			*v2 = val
 		}
 	}
+	_ = slot
 }
