@@ -52,6 +52,46 @@ var atlForTypeA = []AtlasField{
 		FieldName: FieldName{"Delta"}},
 }
 
+func altAtl(v interface{}) map[string]interface{} {
+	x := v.(*typeA)
+	// the problem here is... you see how this is:
+	//  - not easy to mix with the others
+	//  - not significantly shorter than much at all
+	// the plus sides are small:
+	//  - just one func call overhead for the whole struct (major nice)
+	//  - just one cast line
+	//  - it *is* compile time checked (but so are individual addrfuncs)
+	// this also turns out to be orthangonal to anything like derived fields;
+	//  those still require before/after funcs with someone holding the temp vars.
+	//
+	// we could make this an option though, for merge-overriding the rest.
+	// would substantially complicate things though.
+	return map[string]interface{}{
+		"alpha": &(x.Alpha),
+		"beta":  &(x.Beta),
+		"gamma": &(x.Gamma.Msg),
+		"delta": &(x.Delta),
+	}
+}
+
+// ...
+var _ = struct {
+	Name      string
+	TypeThunk interface{}
+	FieldRef  interface{}
+}{
+	"huh",
+	typeA{},
+	typeA{}.Gamma.Msg, // no.
+	// no, we don't have the technology for this.
+	// you'd have to get an addressable instance of the type first,
+	// then the path to its field.  THEN we could check the addrs for sameness.
+	// but that's:
+	//  - not a one-liner, not even close
+	//  - pretty heavy magic that's likely to alarm a gopher
+	//  - not well defined for anything with pointer hops in the midst of it
+}
+
 type Atlas interface {
 	Fields() []string
 	Addr(fieldName string) interface{}
