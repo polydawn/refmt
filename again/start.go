@@ -91,7 +91,7 @@ func (vr *VarUnmarshalDriver) Step(tok *Token) (done bool, err error) {
 	nSteps := len(vr.stepStack) - 1
 	step := vr.stepStack[nSteps]
 	done, err = step(vr, tok)
-	fmt.Printf(":: step tok=%c done=%v err=%#v\n", *tok, done, err)
+	//fmt.Printf(":: step tok=%c done=%v err=%#v\n", *tok, done, err)
 	// If the step errored: out, entirely.
 	if err != nil {
 		return true, err
@@ -104,7 +104,7 @@ func (vr *VarUnmarshalDriver) Step(tok *Token) (done bool, err error) {
 	if nSteps == 0 {
 		return // that's all folks
 	}
-	fmt.Printf(":: popped step from stack\n")
+	//fmt.Printf(":: popped step from stack\n")
 	vr.stepStack = vr.stepStack[0:nSteps]
 	return false, nil
 }
@@ -130,7 +130,7 @@ type VarUnmarshalStep func(*VarUnmarshalDriver, *Token) (done bool, err error)
 func (vr *VarUnmarshalDriver) Recurse(tok *Token, v interface{}, _ VarUnmarshalStep) error {
 	//vr.stepStack = append(vr.stepStack, continueWith) // FIXME replace something... actually you might not need this
 	vr.stepStack = append(vr.stepStack, stepFor(v))
-	fmt.Printf(":: recursin'\n")
+	//fmt.Printf(":: recursin'\n")
 	_, err := vr.Step(tok)
 	return err
 }
