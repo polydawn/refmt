@@ -2,48 +2,101 @@ package again
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 )
 
+type slotter interface {
+	Slot() interface{} // Returns `&slot` -- the slot's type info is intact, but shadowed.
+}
+
+type slotForInt struct{ slot int }
+type slotForString struct{ slot string }
+type slotForIface struct{ slot interface{} }
+type slotForSliceOfIface struct{ slot []interface{} }
+type slotForMapOfStringToIface struct{ slot map[string]interface{} }
+
+func (s *slotForInt) Slot() interface{}                { return &s.slot }
+func (s *slotForString) Slot() interface{}             { return &s.slot }
+func (s *slotForIface) Slot() interface{}              { return &s.slot }
+func (s *slotForSliceOfIface) Slot() interface{}       { return &s.slot }
+func (s *slotForMapOfStringToIface) Slot() interface{} { return &s.slot }
+
 func TestWow(t *testing.T) {
-	var v int
-	vr := NewVarReceiver(&v)
-	stepShouldDone(t, vr, 4)
-	assert(t, "simple literal test", 4, v)
+	tt := []struct {
+		title    string
+		slotter  slotter
+		tokenSeq []Token
+		expect   interface{}
+	}{
+		{
+			title:   "simple literal",
+			slotter: &slotForInt{},
+			tokenSeq: []Token{
+				4,
+			},
+			expect: 4,
+		},
+		{
+			title:   "empty map into wildcard",
+			slotter: &slotForIface{},
+			tokenSeq: []Token{
+				Token_MapOpen,
+				Token_MapClose,
+			},
+			expect: map[string]interface{}{},
+		},
+		{
+			title:   "simple flat map into wildcard",
+			slotter: &slotForIface{},
+			tokenSeq: []Token{
+				Token_MapOpen,
+				"key", 6,
+				Token_MapClose,
+			},
+			expect: map[string]interface{}{"key": 6},
+		},
+		{
+			title:   "map with nested map into wildcard",
+			slotter: &slotForIface{},
+			tokenSeq: []Token{
+				Token_MapOpen,
+				"k1",
+				Token_MapOpen,
+				"k2", "vvv",
+				Token_MapClose,
+				Token_MapClose,
+			},
+			expect: map[string]interface{}{"k1": map[string]interface{}{"k2": "vvv"}},
+		},
+	}
+	for _, tr := range tt {
+		// Create var receiver, aimed at the slotter.
+		sink := NewVarReceiver(tr.slotter.Slot())
 
-	fmt.Printf("---\n")
-	var v2 interface{}
-	vr = NewVarReceiver(&v2)
-	stepShouldContinue(t, vr, Token_MapOpen)
-	stepShouldDone(t, vr, Token_MapClose)
-	assert(t, "map and recurse test",
-		map[string]interface{}{},
-		v2)
+		// Run steps.
+		var done bool
+		var err error
+		for n, tok := range tr.tokenSeq {
+			done, err = sink.Step(&tok)
+			if err != nil {
+				t.Errorf("step %d (inputting %#v) errored: %s", n, tok, err)
+			}
+			if done && n != len(tr.tokenSeq)-1 {
+				t.Errorf("done early! on step %d out of %d tokens", n, len(tr.tokenSeq))
+			}
+		}
+		if !done {
+			t.Errorf("still not done after %d tokens!", len(tr.tokenSeq))
+		}
 
-	fmt.Printf("---\n")
-	var v3 interface{}
-	vr = NewVarReceiver(&v3)
-	stepShouldContinue(t, vr, Token_MapOpen)
-	stepShouldContinue(t, vr, "key")
-	stepShouldContinue(t, vr, 6)
-	stepShouldDone(t, vr, Token_MapClose)
-	assert(t, "map and recurse test",
-		map[string]interface{}{"key": 6},
-		v3)
-
-	fmt.Printf("---\n")
-	var v4 interface{}
-	vr = NewVarReceiver(&v4)
-	stepShouldContinue(t, vr, Token_MapOpen)
-	stepShouldContinue(t, vr, "k1")
-	stepShouldContinue(t, vr, Token_MapOpen)
-	stepShouldContinue(t, vr, "k2")
-	stepShouldContinue(t, vr, "vvv")
-	stepShouldContinue(t, vr, Token_MapClose)
-	stepShouldDone(t, vr, Token_MapClose)
-	assert(t, "map and recurse test",
-		map[string]interface{}{"k1": map[string]interface{}{"k2": "vvv"}},
-		v4)
+		// Get value back out.  Some reflection required to get around pointers.
+		v := reflect.ValueOf(tr.slotter.Slot()).Elem().Interface()
+		if !stringyEquality(tr.expect, v) {
+			t.Errorf("test %q FAILED:\n\texpected: %#v\n\tactual:   %#v",
+				tr.title, tr.expect, v)
+		}
+	}
 }
 
 func stringyEquality(x, y interface{}) bool {
@@ -54,25 +107,5 @@ func assert(t *testing.T, title string, expect, actual interface{}) {
 	if !stringyEquality(expect, actual) {
 		t.Errorf("test %q FAILED:\n\texpected  %#v\n\tactual    %#v",
 			title, expect, actual)
-	}
-}
-
-func stepShouldContinue(t *testing.T, sink TokenSink, tok Token) {
-	done, err := sink.Step(&tok)
-	if err != nil {
-		t.Errorf("step errored: %s", err)
-	}
-	if done {
-		t.Errorf("expected step not to be done")
-	}
-}
-
-func stepShouldDone(t *testing.T, sink TokenSink, tok Token) {
-	done, err := sink.Step(&tok)
-	if err != nil {
-		t.Errorf("step errored: %s", err)
-	}
-	if !done {
-		t.Errorf("expected step be done")
 	}
 }
