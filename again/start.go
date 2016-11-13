@@ -196,8 +196,15 @@ func (dm *wildcardDecoderMachine) step_demux(driver *VarUnmarshalDriver, tok *To
 		return dm.step(driver, tok)
 
 	case Token_ArrOpen:
-		// TODO same as maps, but with a machine for arrays
-		panic("NYI")
+		// Similar to maps, but a step more complex: we make a new slot for a *pointer*
+		//  to a slice, because slices get new addresses when they grow (whereas by
+		//   comparison, maps hide their internal growth).
+		dec := &wildcardSliceDecoderMachine{}
+		// *(dm.target) = someSlice // No such step!  Array machine does this at end.
+		dec.Reset(dm.target)
+		dm.step = dec.Step
+		return dm.step(driver, tok)
+
 	case Token_MapClose:
 		return true, fmt.Errorf("unexpected mapClose; expected start of value")
 	case Token_ArrClose:
@@ -288,6 +295,62 @@ func (dm *wildcardMapDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriver
 	dm.target[dm.key] = v // FIXME srsly tho.  this not fly, you need continuation for complexes
 	// actually apparently this works, but i don't entirely understand why.
 	return false, nil
+}
+
+type wildcardSliceDecoderMachine struct {
+	target *interface{}  // We still need this wildcard form to set into at the end.
+	slice  []interface{} // This is our working reference (changes, because `append()`).
+	step   VarUnmarshalStep
+}
+
+func (dm *wildcardSliceDecoderMachine) Reset(target interface{}) {
+	dm.target = target.(*interface{})
+	dm.step = dm.step_Initial
+}
+func (dm *wildcardSliceDecoderMachine) Step(vr *VarUnmarshalDriver, tok *Token) (done bool, err error) {
+	return dm.step(vr, tok)
+}
+func (dm *wildcardSliceDecoderMachine) step_Initial(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
+	// If it's a special state, start an object.
+	//  (Or, blow up if its a special state that's silly).
+	switch *tok {
+	case Token_MapOpen:
+		return true, fmt.Errorf("unexpected mapOpen; expected start of array")
+	case Token_ArrOpen:
+		// Great.  Consumed.
+		dm.step = dm.step_AcceptValue
+		return false, nil
+	case Token_MapClose:
+		return true, fmt.Errorf("unexpected mapClose; expected start of array")
+	case Token_ArrClose:
+		return true, fmt.Errorf("unexpected arrClose; expected start of array")
+	default:
+		return true, fmt.Errorf("unexpected literal of type %T; expected start of array", *tok)
+	}
+}
+func (dm *wildcardSliceDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
+	// Either form of open token are valid, but
+	// - an arrClose is ours
+	// - and a mapClose is clearly invalid.
+	switch *tok {
+	case Token_MapClose:
+		// no special checks for ends of wildcard slice; no such thing as incomplete.
+		return false, fmt.Errorf("unexpected mapClose; expected array value or end of array")
+	case Token_ArrClose:
+		// Finishing step: push our current slice ref all the way to original target.
+		*(dm.target) = dm.slice
+		return true, nil
+	}
+	// Handle it the complex way.
+	var v interface{}
+	driver.Recurse(
+		tok,
+		&v,
+		nil, // TODO you didn't need this
+	)
+	dm.slice = append(dm.slice, v) // FIXME srsly tho.  this not fly, you need continuation for complexes
+	return false, nil
+	// Step simply remains `step_AcceptValue` -- arrays don't have much state machine.
 }
 
 type literalDecoderMachine struct {

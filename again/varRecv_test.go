@@ -69,6 +69,18 @@ func TestWow(t *testing.T) {
 			},
 			expect: map[string]interface{}{"k1": map[string]interface{}{"k2": "vvv"}},
 		},
+		{
+			title:   "array into wildcard",
+			slotter: &slotForIface{},
+			tokenSeq: []Token{
+				Token_ArrOpen,
+				"v1",
+				"v2",
+				3,
+				Token_ArrClose,
+			},
+			expect: []interface{}{"v1", "v2", 3},
+		},
 	}
 	for _, tr := range tt {
 		// Create var receiver, aimed at the slotter.
