@@ -176,11 +176,9 @@ func newWildcardDecoderMachine(target *interface{}) VarUnmarshalStep {
 	dm.step = dm.step_demux
 	return dm.Step
 }
-
 func (dm *wildcardDecoderMachine) Step(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	return dm.step(driver, tok)
 }
-
 func (dm *wildcardDecoderMachine) step_demux(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	// If it's a special state, start an object.
 	//  (Or, blow up if its a special state that's silly).
@@ -230,11 +228,9 @@ func (dm *wildcardMapDecoderMachine) Reset(target interface{}) {
 	dm.step = dm.step_Initial
 	dm.key = ""
 }
-
 func (dm *wildcardMapDecoderMachine) Step(vr *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	return dm.step(vr, tok)
 }
-
 func (dm *wildcardMapDecoderMachine) step_Initial(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	// If it's a special state, start an object.
 	//  (Or, blow up if its a special state that's silly).
@@ -283,7 +279,6 @@ func (dm *wildcardMapDecoderMachine) mustAcceptKey(k string) error {
 	}
 	return nil
 }
-
 func (dm *wildcardMapDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	var v interface{}
 	dm.step = dm.step_AcceptKey
@@ -360,7 +355,6 @@ type literalDecoderMachine struct {
 func (dm *literalDecoderMachine) Reset(target interface{}) {
 	dm.target = target
 }
-
 func (dm *literalDecoderMachine) Step(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
 	var ok bool
 	switch v2 := dm.target.(type) {
