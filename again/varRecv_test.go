@@ -130,6 +130,45 @@ func TestWow(t *testing.T) {
 			},
 			expect: []interface{}{"v1", map[string]interface{}{"k2": "vvv"}, 3},
 		},
+		{
+			title:   "complex deeply nested structure into wildcard",
+			slotter: &slotForIface{},
+			tokenSeq: []Token{
+				Token_MapOpen,
+				"k1",
+				Token_ArrOpen,
+				"v1",
+				Token_MapOpen,
+				Token_MapClose,
+				3,
+				Token_ArrOpen,
+				14,
+				15,
+				Token_MapOpen,
+				"k9", "v10",
+				Token_MapClose,
+				Token_ArrOpen,
+				Token_ArrClose,
+				Token_ArrOpen,
+				16,
+				Token_ArrClose,
+				Token_ArrClose,
+				Token_ArrClose,
+				Token_MapClose,
+			},
+			expect: map[string]interface{}{"k1": []interface{}{
+				"v1",
+				map[string]interface{}{},
+				3,
+				[]interface{}{
+					14,
+					15,
+					map[string]interface{}{"k9": "v10"},
+					[]interface{}(nil), // REVIEW: this behavior is questionable.  the type is right; a nil here may be... rude.
+					[]interface{}{16},
+				},
+			}},
+		},
 	}
 	for _, tr := range tt {
 		// Create var receiver, aimed at the slotter.
