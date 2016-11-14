@@ -35,3 +35,26 @@ func Benchmark_JsonUnmarshalTinyMap(b *testing.B) {
 		json.Unmarshal(byt, &v)
 	}
 }
+
+func Benchmark_VarRecvLongArray(b *testing.B) {
+	forceN(b)
+	var v interface{}
+	x := []Token{
+		Token_ArrOpen, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, Token_ArrClose,
+	}
+	for i := 0; i < b.N; i++ {
+		sink := NewVarReceiver(&v)
+		for j := 0; j < len(x); j++ {
+			sink.Step(&x[j])
+		}
+	}
+}
+
+func Benchmark_JsonUnmarshalLongArray(b *testing.B) {
+	forceN(b)
+	var v interface{}
+	byt := []byte(`[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]`)
+	for i := 0; i < b.N; i++ {
+		json.Unmarshal(byt, &v)
+	}
+}
