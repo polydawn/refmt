@@ -287,7 +287,7 @@ func (dm *wildcardMapDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriver
 		&v,
 		nil, // TODO you didn't need this
 	)
-	dm.target[dm.key] = v // FIXME srsly tho.  this not fly, you need continuation for complexes
+	dm.target[dm.key] = v // FIXME srsly tho.  this not fly, you need continuation for complexes // oddly just arrays.  also oddly, we were able to dodge it with arrays... we can't do the same here because we can't address into map values.
 	// actually apparently this works, but i don't entirely understand why.
 	return false, nil
 }
@@ -338,12 +338,12 @@ func (dm *wildcardSliceDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriv
 	}
 	// Handle it the complex way.
 	var v interface{}
+	dm.slice = append(dm.slice, v) // FIXME srsly tho.  this not fly, you need continuation for complexes // yep it finally matters here
 	driver.Recurse(
 		tok,
-		&v,
-		nil, // TODO you didn't need this
+		&dm.slice[len(dm.slice)-1],
+		nil, // TODO you didn't need this // yes we do
 	)
-	dm.slice = append(dm.slice, v) // FIXME srsly tho.  this not fly, you need continuation for complexes
 	return false, nil
 	// Step simply remains `step_AcceptValue` -- arrays don't have much state machine.
 }
