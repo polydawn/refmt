@@ -1,0 +1,20 @@
+#!/bin/bash
+set -euo pipefail
+
+### Normalize path -- all work should be relative to this script's location.
+## Set up gopath -- also relative to this dir, so we work in isolation.
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+export GOPATH="$PWD/.gopath/"
+
+profPath="$GOPATH/tmp/prof/" ; mkdir -p "$profPath"
+go test -i "$@" &&
+go test \
+	-run=XXX -bench=. \
+	-o "$profPath/bench.bin" \
+	-cpuprofile="$profPath/cpu.pprof" \
+	"$@"
+# go tool pprof --text .gopath/tmp/prof/bench.bin .gopath/tmp/prof/cpu.pprof
+
+### Beware the dangers of trying to read pprof on a benchmark.
+### The run counts will direly confuse any attempt to read absolutes,
+###  or get meaning out of any paths hit by more than one test.
