@@ -220,7 +220,8 @@ func (dm *wildcardDecoderMachine) step_demux(driver *VarUnmarshalDriver, tok *To
 type wildcardMapDecoderMachine struct {
 	target map[string]interface{}
 	step   VarUnmarshalStep
-	key    string // The key consumed by the prev `step_AcceptKey`.
+	key    string      // The key consumed by the prev `step_AcceptKey`.
+	tmp    interface{} // A slot to we hand out as a ref to fill during recursions.
 }
 
 func (dm *wildcardMapDecoderMachine) Reset(target interface{}) {
@@ -250,6 +251,13 @@ func (dm *wildcardMapDecoderMachine) step_Initial(_ *VarUnmarshalDriver, tok *To
 	}
 }
 func (dm *wildcardMapDecoderMachine) step_AcceptKey(_ *VarUnmarshalDriver, tok *Token) (done bool, err error) {
+	// First, save any refs from the last value.
+	//  (This is fiddly: the delay comes mostly from the handling of slices, which may end up re-allocating
+	//   themselves during their decoding.)
+	if dm.key != "" {
+		dm.target[dm.key] = dm.tmp
+	}
+	// Now switch on tokens.
 	switch *tok {
 	case Token_MapOpen:
 		return true, fmt.Errorf("unexpected mapOpen; expected map key")
@@ -280,14 +288,13 @@ func (dm *wildcardMapDecoderMachine) mustAcceptKey(k string) error {
 	return nil
 }
 func (dm *wildcardMapDecoderMachine) step_AcceptValue(driver *VarUnmarshalDriver, tok *Token) (done bool, err error) {
-	var v interface{}
 	dm.step = dm.step_AcceptKey
 	driver.Recurse(
 		tok,
-		&v,
+		&dm.tmp,
 		nil, // TODO you didn't need this
 	)
-	dm.target[dm.key] = v // FIXME srsly tho.  this not fly, you need continuation for complexes // oddly just arrays.  also oddly, we were able to dodge it with arrays... we can't do the same here because we can't address into map values.
+	//dm.target[dm.key] = v // FIXME srsly tho.  this not fly, you need continuation for complexes // oddly just arrays.  also oddly, we were able to dodge it with arrays... we can't do the same here because we can't address into map values.
 	// actually apparently this works, but i don't entirely understand why.
 	return false, nil
 }
