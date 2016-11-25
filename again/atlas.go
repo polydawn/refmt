@@ -71,4 +71,16 @@ type AtlasField struct {
 	OmitEmpty bool
 }
 
+/*
+	Returns a reference to a field.
+	(If the field is type `T`, the returned `interface{}` contains a `*T`.)
+*/
+func (af AtlasField) Grab(obj interface{}) interface{} {
+	if af.AddrFunc != nil {
+		return af.AddrFunc(obj)
+	}
+	// TODO use fieldRoute
+	panic("atlasfield not fully filled out")
+}
+
 type FieldName []string
