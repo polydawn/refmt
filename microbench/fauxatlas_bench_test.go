@@ -53,6 +53,11 @@ func (fr FieldRoute) TraverseToValue(v reflect.Value) reflect.Value {
 	return v
 }
 
+type RackRow struct {
+	Name string
+	Addr interface{}
+}
+
 var atlForTypeA_funcy = []AtlasField{
 	{Name: "alpha", AddrFunc: func(v interface{}) interface{} { return &(v.(*typeA).Alpha) }},
 	{Name: "beta", AddrFunc: func(v interface{}) interface{} { return &(v.(*typeA).Beta) }},
@@ -72,6 +77,15 @@ var atlForTypeA_glommed = func(v interface{}) map[string]interface{} {
 		"beta":  &(x.Beta),
 		"gamma": &(x.Gamma.Msg),
 		"delta": &(x.Delta),
+	}
+}
+var atlForTypeA_racked = func(v interface{}) []RackRow {
+	x := v.(*typeA)
+	return []RackRow{
+		{"alpha", &(v.(*typeA).Alpha)},
+		{"beta", &(v.(*typeA).Beta)},
+		{"gamma", &(v.(*typeA).Gamma.Msg)},
+		{"delta", &(x.Delta)},
 	}
 }
 
@@ -142,6 +156,39 @@ func Benchmark_WalkStructReadViaGlommed(b *testing.B) {
 		glom := atlForTypeA_glommed(&val)
 		for _, addr := range glom {
 			switch v2 := addr.(type) {
+			case *interface{}:
+				*dumpRef = *v2
+			case *string:
+				*dumpRef = *v2
+			}
+		}
+	}
+	_ = dump
+}
+
+// GC on:  367 ns/op
+// GC off: 217 ns/op
+// Mem:    176 B/op   4 allocs/op
+// Commentary:
+//  - Somewhat surprisingly, still slower than funcy.
+//  - One more alloc than funcy; one less than glommed.  Also, same as fieldroutes.  Shows in time.
+//  - Does score well for clarity.
+//  - Those four allocs -- know where they come from?  The addr grabbing.
+//    (I don't entirely understand how the AddrFunc approach is immune to this, but
+//    evidentally that escape analysis there is key to that technique's efficiency.)
+func Benchmark_WalkStructReadViaRacked(b *testing.B) {
+	var dump interface{}
+	var dumpRef = &dump
+	var val = typeA{
+		"str1",
+		"str2",
+		typeB{"str3"},
+		4,
+	}
+	for i := 0; i < b.N; i++ {
+		rack := atlForTypeA_racked(&val)
+		for _, row := range rack {
+			switch v2 := row.Addr.(type) {
 			case *interface{}:
 				*dumpRef = *v2
 			case *string:
