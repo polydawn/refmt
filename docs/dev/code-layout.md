@@ -1,6 +1,19 @@
 code layout
 ===========
 
+Package layout
+--------------
+
+- `xlate` -- main package.  All major interface types and helpful factory methods.
+  - `json` -- `json.Serializer` and `json.Deserializer`
+  - `cbor` -- `cbor.Serializer` and `cbor.Deserializer`
+  - `obj` -- `obj.Marshaller` and `obj.Unmarshaller`
+    - `atlas` -- types for describing how to `obj.*arshaller`s should visit complex types.
+  - `tok` -- token handling utils.  Many exported values, for use in sibling packages, but not often seen by users.
+
+(Experienced go developers will probably already have noticed that putting core interfaces and factory methods in the same package is usually going to run aground on the no-cyclic-imports rule.
+Fortunately, all of the concrete types the json/cbor/etc packages must import fit cleanly under the `tok` package.)
+
 -----------
 User-facing
 -----------
@@ -26,6 +39,13 @@ then processing the token stream into the desired result format.
 
 `TokenSource` and `TokenSink` describe how to produce and process token streams, respectively.
 Listing their implementations effectively lists every format that xlate can convert to and from.
+
+`Token`s the interal lingua franca of xlate.
+A handful of special tokens signal the beginning and ending of maps and arrays.
+All other values are their own tokens -- we simply use the address of the real data
+(only primitives, of course; it's a stream, not a tree, after all).
+Using the address of the real data avoids unnecessary memcopy operations, and
+makes serialization a choice rather than a requirement.
 
 - **TokenSource** *interface*
 
