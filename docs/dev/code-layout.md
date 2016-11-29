@@ -1,9 +1,66 @@
 code layout
 ===========
 
+-----------
+User-facing
+-----------
+
+- example code
+  ```
+  xlate.NewJsonEncoder(stdout).Marshal(123)
+  ```
+  - Creates a `TokenSourceDriver` as the `TokenSource` for walking the object (`123`)
+  - Uses a `WildcardEncodeMachine`, which delegates to a `LiteralEncodeMachine`
+  - Uses a `JsonSerializer` as the `TokenSink`.
+
+-----------------------
+Token stream interfaces
+-----------------------
+
+Xlate handles every translation by converting things into a token stream,
+then processing the token stream into the desired result format.
+
+`TokenSource` and `TokenSink` describe how to produce and process token streams, respectively.
+Listing their implementations effectively lists every format that xlate can convert to and from.
+
+- **TokenSource** *interface*
+
+  Anything that emits a stream of tokens.
+
+  Call a `TokenSource` repeatedly; each call will yield a token into the memory provided
+  (and typically cause the concrete implementation to advance the `TokenSource`'s internal state by single step, as appropriate).
+  Errors or end-of-stream are indicated by the return codes.
+
+  - *Implementations*:
+    - **JsonDeserializer** -- constructed with an `io.Reader`, from which (hopefully-)json-formatted bytes will be consumed and converted into tokens.
+    - **CborDeserializer** -- constructed with an `io.Reader`, from which (hopefully-)cbor-formatted bytes will be consumed and converted into tokens.
+    - **TokenSourceDriver** -- constructed with a reference to any object, which will be visited and all fields emitted one by one as tokens.
+
+- **TokenSink** *interface*
+
+  Anything that consumes a stream of tokens.
+
+  Call a `TokenSink` repeatedly; each call will copy the token content into its new home
+  (whatever that may be, whether a serial byte stream or a complex in-memory layout).
+  Errors and expected end-of-stream are indicated by the return codes.
+
+    - **JsonSerializer** -- constructed with an `io.Writer`, to which json-formatted bytes are flushed as each token is received.
+    - **CborSerializer** -- constructed with an `io.Writer`, to which cbor-formatted bytes are flushed as each token is received.
+    - **TokenSinkDriver** -- constructed with a reference to any object (or empty `interface{}`), which will be populated based on tokens received.
+
+---------------------------
+Object/Token morphism tools
+---------------------------
+
+These interfaces compose to make `TokenSource`s and `TokenSink`s that operate on in-memory data.
+working smoothly with the golang type system.
+
+Users will rarely interact with any of these directly.
+
 - **TokenSourceDriver** *struct*
 
-  Top-level control for a system that emits tokens.
+  Top-level control for a system that walks in-memory structures and emits tokens
+  describing the object it's observing.
 
   Both decoding (deserializing binary formats)
   and marshalling (visiting an in-memory structure and preparing it for serialization)
@@ -40,7 +97,8 @@ code layout
 
 - **TokenSinkDriver** *struct*
 
-  Top-level control for a system that consumes tokens.  The inverse of `TokenSourceDriver`.
+  Top-level control for a system that walks in-memory structures and consumes tokens,
+  populating the in-memory fields.  The inverse of `TokenSourceDriver`.
 
   Both encoding (serializing data into a binary format)
   and unmarshalling (visiting an in-memory structure and populating its fields)
