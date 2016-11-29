@@ -5,13 +5,17 @@ code layout
 User-facing
 -----------
 
-- example code
+- example code:
   ```
   xlate.NewJsonEncoder(stdout).Marshal(123)
   ```
-  - Creates a `TokenSourceDriver` as the `TokenSource` for walking the object (`123`)
-  - Uses a `WildcardEncodeMachine`, which delegates to a `LiteralEncodeMachine`
-  - Uses a `JsonSerializer` as the `TokenSink`.
+  - Creates a `TokenSourceDriver` as the `TokenSource` for walking the object (`123`).
+  - Creates a `JsonSerializer` as the `TokenSink` outputting to `stdout`.
+  - Both are placed into a `TokenPump`, which powers the rest of the transaction.
+  - The `TokenSourceDriver` sees the type of object it was given and immediately delegates to a `LiteralEncodeMachine`.
+  - The `LiteralEncodeMachine` steps once, yields a token (it's an `int`), and reports done.  There are no other stacked machines, so the `TokenSourceDriver` overall reports done.
+  - The `JsonSerializer`, invoked and given a token by the `TokenPump`, writes the number to `stdout`.  The `JsonSerializer` knows that it just wrote a literal type, and since it's not deep in an object tree that's the end of a json entity, so it reports done.
+  - The `TokenPump` sees both sides finished in unison, and returns done, with no error!
 
 -----------------------
 Token stream interfaces
@@ -47,6 +51,15 @@ Listing their implementations effectively lists every format that xlate can conv
     - **JsonSerializer** -- constructed with an `io.Writer`, to which json-formatted bytes are flushed as each token is received.
     - **CborSerializer** -- constructed with an `io.Writer`, to which cbor-formatted bytes are flushed as each token is received.
     - **TokenSinkDriver** -- constructed with a reference to any object (or empty `interface{}`), which will be populated based on tokens received.
+
+- **TokenPump** *struct*
+
+  Joins a `TokenSource` and `TokenSink`, advancing them in lock-step, and looping until they're complete.
+
+  The `TokenPump` will return one of:
+    - an error, if any step function of either the source or sink returns an error;
+    - an error if the sink expects to be done while the source is continuing;
+    - or a done bool with nil error, if both the source and sink become done during the same step.
 
 ---------------------------
 Object/Token morphism tools
