@@ -41,15 +41,25 @@ func (d *UnmarshalDriver) Step(tok *tok.Token) (bool, error) {
 	return false, nil
 }
 
+func (d *UnmarshalDriver) Recurse(tok *tok.Token, target interface{}) error {
+	// Push the current machine onto the stack (we'll resume it when the new one is done),
+	// and pick a machine to start in on our next item to cover.
+	d.stack = append(d.stack, d.step)
+	d.step = pickUnmarshalMachine(target) // TODO caller should be able to override this
+	// Immediately make a step (we're still the delegate in charge of someone else's step).
+	_, err := d.Step(tok)
+	return err
+}
+
 // Picks an unmarshal machine, returning the custom impls for any
 // common/primitive types, and advanced machines where structs get involved.
 func pickUnmarshalMachine(v interface{}) UnmarshalMachine {
-	switch v.(type) {
+	switch v2 := v.(type) {
 	// For total wildcards:
 	//  Return a machine that will pick between a literal or `map[string]interface{}`
 	//  or `[]interface{}` based on the next token.
 	case *interface{}:
-		panic("TODO")
+		return newWildcardDecoderMachine(v2)
 	// For single literals:
 	//  we have a single machine that handles all these.
 	case *string, *[]byte,

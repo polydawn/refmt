@@ -6,6 +6,14 @@ import (
 	"github.com/polydawn/go-xlate/tok"
 )
 
+/*
+	An UnmarshalMachine which unpacks a single literal of some primitive type.
+	It supports `int`, `string`, `bool`, and so on.
+
+	The `target` slot must be a address of such a primitive type, or,
+	the address of an `interface{}` slot, which will be filled with whatever
+	type of token primitive comes along.
+*/
 type UnmarshalMachineLiteral struct {
 	target interface{}
 }
