@@ -16,3 +16,11 @@ type TokenPump struct {
 	TokenSource
 	TokenSink
 }
+
+func (p TokenPump) Run() {
+	// TODO
+}
+
+func (p TokenPump) step() {
+	// TODO
+}
