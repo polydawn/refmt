@@ -37,6 +37,10 @@ type Entry struct {
 	fieldRoute fieldRoute                    // autoatlas fills these.
 	AddrFunc   func(interface{}) interface{} // custom user function.
 
+	// Optionally, specify exactly what should handle the field value:
+	// TODO this is one of {Atlas, func()(Atlas), or TokenSourceMachine|TokenSinkMachine}
+	//  the latter is certainly the most correct, but also pretty wicked to export publicly
+
 	// If true, marshalling will skip this field if its the zero value.
 	// (If you need more complex behavior -- for example, a definition of
 	// "empty" other than the type's zero value -- this is not for you.
