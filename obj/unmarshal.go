@@ -1,7 +1,7 @@
 package obj
 
 import (
-	"github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/go-xlate/tok"
 )
 
 /*
@@ -19,9 +19,9 @@ type UnmarshalDriver struct {
 	step  UnmarshalMachine
 }
 
-type UnmarshalMachine func(*UnmarshalDriver, *tok.Token) (done bool, err error)
+type UnmarshalMachine func(*UnmarshalDriver, *Token) (done bool, err error)
 
-func (d *UnmarshalDriver) Step(tok *tok.Token) (bool, error) {
+func (d *UnmarshalDriver) Step(tok *Token) (bool, error) {
 	done, err := d.step(d, tok)
 	// If the step errored: out, entirely.
 	if err != nil {
@@ -41,7 +41,7 @@ func (d *UnmarshalDriver) Step(tok *tok.Token) (bool, error) {
 	return false, nil
 }
 
-func (d *UnmarshalDriver) Recurse(tok *tok.Token, target interface{}) error {
+func (d *UnmarshalDriver) Recurse(tok *Token, target interface{}) error {
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	// and pick a machine to start in on our next item to cover.
 	d.stack = append(d.stack, d.step)
