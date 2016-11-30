@@ -9,7 +9,7 @@ type TokenSource interface {
 }
 
 type TokenSink interface {
-	Step(consume tok.Token) (done bool, err error)
+	Step(consume *tok.Token) (done bool, err error)
 }
 
 type TokenPump struct {
