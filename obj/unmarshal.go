@@ -41,6 +41,19 @@ func (d *UnmarshalDriver) Step(tok *Token) (bool, error) {
 	return false, nil
 }
 
+/*
+	Fills `v`,
+	first looking up the machine for that type just like it's a new top-level object,
+	then pushing the first step with `tok` (the upstream tends to have peeked at it
+	in order to decide what to do, but if recursing, it belongs to the next obj),
+	then saving this new machine: the driver will then continuing stepping the
+	new machine it returns a done status, at which point we'll finally
+	"return" by popping back to the last machine on the stack.
+
+	In other words, your UnmarshalMachine calls this when it wants to deal
+	with an object, and by the time we call back to your machine again,
+	that object will be filled and the stream ready for you to continue.
+*/
 func (d *UnmarshalDriver) Recurse(tok *Token, target interface{}) error {
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	// and pick a machine to start in on our next item to cover.
