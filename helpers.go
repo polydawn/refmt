@@ -3,6 +3,7 @@ package xlate
 import (
 	"io"
 
+	"github.com/polydawn/go-xlate/json"
 	"github.com/polydawn/go-xlate/obj"
 )
 
@@ -17,7 +18,7 @@ type JsonEncoder struct {
 func (d *JsonEncoder) Marshal(v interface{}) {
 	TokenPump{
 		nil, // todo get the rest of obj.NewMarshaller(v) in place
-		nil, // todo get the whole json package in place
+		json.NewSerializer(d.wr),
 	}.Run()
 }
 
