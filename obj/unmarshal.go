@@ -42,7 +42,7 @@ func (d *UnmarshalDriver) Step(tok *Token) (bool, error) {
 }
 
 /*
-	Fills `v`,
+	Fills `target`,
 	first looking up the machine for that type just like it's a new top-level object,
 	then pushing the first step with `tok` (the upstream tends to have peeked at it
 	in order to decide what to do, but if recursing, it belongs to the next obj),
@@ -72,7 +72,7 @@ func pickUnmarshalMachine(v interface{}) UnmarshalMachine {
 	//  Return a machine that will pick between a literal or `map[string]interface{}`
 	//  or `[]interface{}` based on the next token.
 	case *interface{}:
-		return newWildcardDecoderMachine(v2)
+		return newUnmarshalMachineWildcard(v2)
 	// For single literals:
 	//  we have a single machine that handles all these.
 	case *string, *[]byte,

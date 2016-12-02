@@ -11,7 +11,7 @@ type UnmarshalMachineWildcard struct {
 	step   UnmarshalMachine // actual machine, once we've demuxed with the first token.
 }
 
-func newWildcardDecoderMachine(target *interface{}) UnmarshalMachine {
+func newUnmarshalMachineWildcard(target *interface{}) UnmarshalMachine {
 	m := &UnmarshalMachineWildcard{target: target}
 	m.step = m.step_demux
 	return m.Step
