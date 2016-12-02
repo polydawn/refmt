@@ -1,10 +1,10 @@
 package obj
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
+	. "github.com/polydawn/go-xlate/testutil"
 	"github.com/polydawn/go-xlate/tok"
 )
 
@@ -194,20 +194,6 @@ func TestUnmarshaller(t *testing.T) {
 
 		// Get value back out.  Some reflection required to get around pointers.
 		v := reflect.ValueOf(tr.slotter.Slot()).Elem().Interface()
-		if !stringyEquality(tr.expect, v) {
-			t.Errorf("test %q FAILED:\n\texpected: %#v\n\tactual:   %#v",
-				tr.title, tr.expect, v)
-		}
-	}
-}
-
-func stringyEquality(x, y interface{}) bool {
-	return fmt.Sprintf("%#v", x) == fmt.Sprintf("%#v", y)
-}
-
-func assert(t *testing.T, title string, expect, actual interface{}) {
-	if !stringyEquality(expect, actual) {
-		t.Errorf("test %q FAILED:\n\texpected  %#v\n\tactual    %#v",
-			title, expect, actual)
+		Assert(t, tr.title, tr.expect, v)
 	}
 }
