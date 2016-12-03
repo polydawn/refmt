@@ -46,8 +46,8 @@ func (x atlasGenField_byName) Less(i, j int) bool {
 	if x[i].Name != x[j].Name {
 		return x[i].Name < x[j].Name
 	}
-	if len(x[i].fieldRoute) != len(x[j].fieldRoute) {
-		return len(x[i].fieldRoute) < len(x[j].fieldRoute)
+	if len(x[i].FieldRoute) != len(x[j].FieldRoute) {
+		return len(x[i].FieldRoute) < len(x[j].FieldRoute)
 	}
 	if x[i].tag != x[j].tag {
 		return x[i].tag
@@ -55,7 +55,7 @@ func (x atlasGenField_byName) Less(i, j int) bool {
 	return atlasGenField_byFieldRoute(x).Less(i, j)
 }
 
-// atlasGenField_byFieldRoute sorts field by fieldRoute sequence
+// atlasGenField_byFieldRoute sorts field by FieldRoute sequence
 // (e.g., roughly source declaration order within each type).
 type atlasGenField_byFieldRoute []atlasGenField
 
@@ -64,15 +64,15 @@ func (x atlasGenField_byFieldRoute) Len() int { return len(x) }
 func (x atlasGenField_byFieldRoute) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
 
 func (x atlasGenField_byFieldRoute) Less(i, j int) bool {
-	for k, xik := range x[i].fieldRoute {
-		if k >= len(x[j].fieldRoute) {
+	for k, xik := range x[i].FieldRoute {
+		if k >= len(x[j].FieldRoute) {
 			return false
 		}
-		if xik != x[j].fieldRoute[k] {
-			return xik < x[j].fieldRoute[k]
+		if xik != x[j].FieldRoute[k] {
+			return xik < x[j].FieldRoute[k]
 		}
 	}
-	return len(x[i].fieldRoute) < len(x[j].fieldRoute)
+	return len(x[i].FieldRoute) < len(x[j].FieldRoute)
 }
 
 // exploreFields returns a list of fields that StructAtlas should recognize for the given type.
@@ -117,9 +117,9 @@ func exploreFields(t reflect.Type, tagName string) []atlasGenField {
 				if !isValidTag(name) {
 					name = ""
 				}
-				route := make([]int, len(f.fieldRoute)+1)
-				copy(route, f.fieldRoute)
-				route[len(f.fieldRoute)] = i
+				route := make([]int, len(f.FieldRoute)+1)
+				copy(route, f.FieldRoute)
+				route[len(f.FieldRoute)] = i
 
 				ft := sf.Type
 				if ft.Name() == "" && ft.Kind() == reflect.Ptr {
@@ -136,7 +136,7 @@ func exploreFields(t reflect.Type, tagName string) []atlasGenField {
 					fields = append(fields, atlasGenField{
 						Entry: Entry{
 							Name:       name,
-							fieldRoute: route,
+							FieldRoute: route,
 							OmitEmpty:  opts.Contains("omitempty"),
 						},
 						tag: tagged,
@@ -158,7 +158,7 @@ func exploreFields(t reflect.Type, tagName string) []atlasGenField {
 					next = append(next, atlasGenField{
 						Entry: Entry{
 							Name:       ft.Name(),
-							fieldRoute: route,
+							FieldRoute: route,
 						},
 						typ: ft,
 					})
@@ -213,10 +213,10 @@ func dominantField(fields []atlasGenField) (atlasGenField, bool) {
 	// The fields are sorted in increasing index-length order. The winner
 	// must therefore be one with the shortest index length. Drop all
 	// longer entries, which is easy: just truncate the slice.
-	length := len(fields[0].fieldRoute)
+	length := len(fields[0].FieldRoute)
 	tagged := -1 // Index of first tagged field.
 	for i, f := range fields {
-		if len(f.fieldRoute) > length {
+		if len(f.FieldRoute) > length {
 			fields = fields[:i]
 			break
 		}

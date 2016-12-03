@@ -34,7 +34,7 @@ type Entry struct {
 	// *One* of the following:
 
 	FieldName  FieldName                     // look up the fields by string name.
-	fieldRoute fieldRoute                    // autoatlas fills these.
+	FieldRoute FieldRoute                    // autoatlas fills these.
 	AddrFunc   func(interface{}) interface{} // custom user function.
 
 	// Optionally, specify exactly what should handle the field value:
@@ -50,24 +50,24 @@ type Entry struct {
 
 type FieldName []string
 
-type fieldRoute []int
+type FieldRoute []int
 
 func (ent *Entry) init() {
 	// Validate reference options: only one may be used.
-	// If it's a FieldName though, generate a fieldRoute for faster use.
+	// If it's a FieldName though, generate a FieldRoute for faster use.
 	switch {
-	case ent.fieldRoute != nil:
+	case ent.FieldRoute != nil:
 		if ent.FieldName != nil || ent.AddrFunc != nil {
-			panic(ErrEntryInvalid{"if fieldRoute is used, no other field selectors may be specified"})
+			panic(ErrEntryInvalid{"if FieldRoute is used, no other field selectors may be specified"})
 		}
 	case ent.FieldName != nil:
-		if ent.fieldRoute != nil || ent.AddrFunc != nil {
+		if ent.FieldRoute != nil || ent.AddrFunc != nil {
 			panic(ErrEntryInvalid{"if FieldName is used, no other field selectors may be specified"})
 		}
-		// TODO transform `FieldName` to a `fieldRoute`
+		// TODO transform `FieldName` to a `FieldRoute`
 		// FIXME needs type info to reflect on, which isn't currently at hand
 	case ent.AddrFunc != nil:
-		if ent.fieldRoute != nil || ent.FieldName != nil {
+		if ent.FieldRoute != nil || ent.FieldName != nil {
 			panic(ErrEntryInvalid{"if AddrFunc is used, no other field selectors may be specified"})
 		}
 	default:
@@ -83,10 +83,10 @@ func (ent Entry) Grab(v interface{}) interface{} {
 	if ent.AddrFunc != nil {
 		return ent.AddrFunc(v)
 	}
-	return ent.fieldRoute.TraverseToValue(reflect.ValueOf(v)).Interface()
+	return ent.FieldRoute.TraverseToValue(reflect.ValueOf(v)).Interface()
 }
 
-func (fr fieldRoute) TraverseToValue(v reflect.Value) reflect.Value {
+func (fr FieldRoute) TraverseToValue(v reflect.Value) reflect.Value {
 	for _, i := range fr {
 		if v.Kind() == reflect.Ptr {
 			if v.IsNil() {
