@@ -9,7 +9,7 @@ import (
 type UnmarshalMachineSliceWildcard struct {
 	target *interface{}  // We still need this wildcard form to set into at the end.
 	slice  []interface{} // This is our working reference (changes, because `append()`).
-	step   UnmarshalMachine
+	step   unmarshalMachineStep
 }
 
 func (m *UnmarshalMachineSliceWildcard) Reset(target interface{}) {

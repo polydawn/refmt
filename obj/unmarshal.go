@@ -19,10 +19,15 @@ type UnmarshalDriver struct {
 	step  UnmarshalMachine
 }
 
-type UnmarshalMachine func(*UnmarshalDriver, *Token) (done bool, err error)
+type UnmarshalMachine interface {
+	Step(*UnmarshalDriver, *Token) (done bool, err error)
+}
+
+// for convenience in declaring fields of state machines with internal step funcs
+type unmarshalMachineStep func(*UnmarshalDriver, *Token) (done bool, err error)
 
 func (d *UnmarshalDriver) Step(tok *Token) (bool, error) {
-	done, err := d.step(d, tok)
+	done, err := d.step.Step(d, tok)
 	// If the step errored: out, entirely.
 	if err != nil {
 		return true, err
@@ -78,7 +83,7 @@ func pickUnmarshalMachine(v interface{}) UnmarshalMachine {
 	case *string, *[]byte,
 		*int, *int8, *int16, *int32, *int64,
 		*uint, *uint8, *uint16, *uint32, *uint64:
-		return UnmarshalMachineLiteral{v}.Step
+		return UnmarshalMachineLiteral{v}
 	// Anything that has real type info:
 	//  Look up what kind of machine to use, based on the type info, and use it.
 	default:

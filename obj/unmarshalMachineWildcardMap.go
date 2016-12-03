@@ -8,7 +8,7 @@ import (
 
 type UnmarshalMachineMapStringWildcard struct {
 	target map[string]interface{}
-	step   UnmarshalMachine
+	step   unmarshalMachineStep
 	key    string      // The key consumed by the prev `step_AcceptKey`.
 	tmp    interface{} // A slot to we hand out as a ref to fill during recursions.
 }

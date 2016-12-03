@@ -7,18 +7,20 @@ import (
 )
 
 type UnmarshalMachineWildcard struct {
-	target *interface{}
-	step   UnmarshalMachine // actual machine, once we've demuxed with the first token.
+	target   *interface{}
+	delegate UnmarshalMachine // actual machine, once we've demuxed with the first token.
 }
 
 func newUnmarshalMachineWildcard(target *interface{}) UnmarshalMachine {
 	m := &UnmarshalMachineWildcard{target: target}
-	m.step = m.step_demux
-	return m.Step
+	return m
 }
 
 func (m *UnmarshalMachineWildcard) Step(driver *UnmarshalDriver, tok *Token) (done bool, err error) {
-	return m.step(driver, tok)
+	if m.delegate == nil {
+		return m.step_demux(driver, tok)
+	}
+	return m.delegate.Step(driver, tok)
 }
 
 func (m *UnmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, tok *Token) (done bool, err error) {
@@ -32,8 +34,8 @@ func (m *UnmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, tok *Toke
 		*(m.target) = mp
 		dec := &UnmarshalMachineMapStringWildcard{}
 		dec.Reset(mp)
-		m.step = dec.Step
-		return m.step(driver, tok)
+		m.delegate = dec
+		return m.delegate.Step(driver, tok)
 
 	case Token_ArrOpen:
 		// Similar to maps, but a step more complex: we make a new slot for a *pointer*
@@ -42,8 +44,8 @@ func (m *UnmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, tok *Toke
 		dec := &UnmarshalMachineSliceWildcard{}
 		// *(m.target) = someSlice // No such step!  Array machine does this at end.
 		dec.Reset(m.target)
-		m.step = dec.Step
-		return m.step(driver, tok)
+		m.delegate = dec
+		return m.delegate.Step(driver, tok)
 
 	case Token_MapClose:
 		return true, fmt.Errorf("unexpected mapClose; expected start of value")
