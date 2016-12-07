@@ -1,8 +1,6 @@
 package obj
 
 import (
-	"reflect"
-
 	. "github.com/polydawn/go-xlate/tok"
 )
 
@@ -70,32 +68,4 @@ func (d *MarshalDriver) Recurse(tok *Token, target interface{}) error {
 	// Immediately make a step (we're still the delegate in charge of someone else's step).
 	_, err := d.Step(tok)
 	return err
-}
-
-// Picks an unmarshal machine, returning the custom impls for any
-// common/primitive types, and advanced machines where structs get involved.
-func pickMarshalMachine(v interface{}) MarshalMachine {
-	switch reflect.TypeOf(v).Kind() {
-	case reflect.Slice, reflect.Array:
-		return nil // TODO
-	case reflect.Map:
-		switch v2 := v.(type) {
-		case map[string]interface{}:
-			_ = v2
-			return nil // TODO special
-		default:
-			return nil // TODO
-		}
-	case reflect.Interface, reflect.Ptr:
-		return nil // TODO unwrap
-	case reflect.Struct:
-		// FIXME  which.  one.
-		mach := &UnmarshalMachineStructAtlas{}
-		mach.init()
-		return mach
-	case reflect.Func:
-		panic("no func plz")
-	default:
-		panic("unreachable (kind)")
-	}
 }
