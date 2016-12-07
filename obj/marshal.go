@@ -8,27 +8,30 @@ import (
 	Returns a `TokenSource` that will walk over structures in memory,
 	emitting tokens representing values and fields as it visits them.
 */
-func NewMarshaler(v interface{} /* TODO visitmagicks */) *MarshalDriver {
+func NewMarshaler(s *Suite, v interface{}) *MarshalDriver {
 	d := &MarshalDriver{
-		step: pickMarshalMachine(v),
+		suite: s,
+		step:  s.pickMarshalMachine(v),
 	}
 	return d
 }
 
 type MarshalDriver struct {
+	suite *Suite
 	stack []MarshalMachine
 	step  MarshalMachine
 }
 
 type MarshalMachine interface {
-	Step(*MarshalDriver, *Token) (done bool, err error)
+	Reset(*Suite, interface{}) error
+	Step(*MarshalDriver, *Suite, *Token) (done bool, err error)
 }
 
 // for convenience in declaring fields of state machines with internal step funcs
 type marshalMachineStep func(*MarshalDriver, *Token) (done bool, err error)
 
 func (d *MarshalDriver) Step(tok *Token) (bool, error) {
-	done, err := d.step.Step(d, tok)
+	done, err := d.step.Step(d, d.suite, tok)
 	// If the step errored: out, entirely.
 	if err != nil {
 		return true, err
@@ -60,11 +63,12 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	with an object, and by the time we call back to your machine again,
 	that object will be traversed and the stream ready for you to continue.
 */
-func (d *MarshalDriver) Recurse(tok *Token, target interface{}) error {
+func (d *MarshalDriver) Recurse(tok *Token, target interface{}, nextMach MarshalMachine) error {
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
-	// and pick a machine to start in on our next item to cover.
 	d.stack = append(d.stack, d.step)
-	d.step = pickMarshalMachine(target) // TODO caller should be able to override this
+	// Initialize the machine for this new target value.
+	nextMach.Reset(d.suite, target)
+	d.step = nextMach
 	// Immediately make a step (we're still the delegate in charge of someone else's step).
 	_, err := d.Step(tok)
 	return err

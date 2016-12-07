@@ -13,33 +13,33 @@ type MarshalMachineSliceWildcard struct {
 	MarshalMachineArrayWildcard
 }
 
-func (m *MarshalMachineSliceWildcard) Step(d *MarshalDriver, tok *Token) (done bool, err error) {
+func (m *MarshalMachineSliceWildcard) Step(d *MarshalDriver, s *Suite, tok *Token) (done bool, err error) {
 	if m.index < 0 {
 		if m.target_rv.IsNil() {
 			*tok = nil
 			return true, nil
 		}
 	}
-	return m.MarshalMachineArrayWildcard.Step(d, tok)
+	return m.MarshalMachineArrayWildcard.Step(d, s, tok)
 }
 
 type MarshalMachineArrayWildcard struct {
 	target_rv reflect.Value
+	valueMach MarshalMachine
 	started   bool
 	index     int
 	length    int
 }
 
-func (m *MarshalMachineArrayWildcard) Reset(valp interface{}) {
+func (m *MarshalMachineArrayWildcard) Reset(s *Suite, valp interface{}) error {
 	m.target_rv = reflect.ValueOf(*(valp).(*interface{}))
-	// TODO we should choose an encoder machine here!  and this is why drivers must allow that dictation.
-	// Primitives should be iterable in the step here directly, too.
-	// Somewhat bizarrely, this means... reset should take a driver?!  either that or it has to go in the first step.
+	m.valueMach = s.marshalMachineForType(m.target_rv.Type().Elem())
 	m.index = -1
 	m.length = m.target_rv.Len()
+	return nil
 }
 
-func (m *MarshalMachineArrayWildcard) Step(d *MarshalDriver, tok *Token) (done bool, err error) {
+func (m *MarshalMachineArrayWildcard) Step(d *MarshalDriver, s *Suite, tok *Token) (done bool, err error) {
 	if m.index < 0 {
 		*tok = Token_ArrOpen
 		m.index++
@@ -53,7 +53,7 @@ func (m *MarshalMachineArrayWildcard) Step(d *MarshalDriver, tok *Token) (done b
 	if m.index > m.length {
 		return true, fmt.Errorf("invalid state: value already consumed")
 	}
-	d.Recurse(tok, m.target_rv.Index(m.index))
+	d.Recurse(tok, m.target_rv.Index(m.index).Interface(), m.valueMach)
 	m.index++
 	return false, nil
 }

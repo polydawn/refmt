@@ -10,14 +10,17 @@ import (
 
 type MarshalMachineMapWildcard struct {
 	target_rv reflect.Value
+	valueMach MarshalMachine
 	keys      []wildcardMapStringyKey
 	index     int
 	value     bool
 }
 
-func (m *MarshalMachineMapWildcard) Reset(valp interface{}) error {
+func (m *MarshalMachineMapWildcard) Reset(s *Suite, valp interface{}) error {
 	m.target_rv = reflect.ValueOf(*(valp).(*interface{}))
-	// TODO we should choose an encoder machine here!  and this is why drivers must allow that dictation.
+
+	// Pick machinery for handling the value types.
+	m.valueMach = s.marshalMachineForType(m.target_rv.Type().Elem())
 
 	// Enumerate all the keys (must do this up front, one way or another),
 	// flip them into strings,
@@ -43,7 +46,7 @@ func (m *MarshalMachineMapWildcard) Reset(valp interface{}) error {
 	return nil
 }
 
-func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, tok *Token) (done bool, err error) {
+func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *Suite, tok *Token) (done bool, err error) {
 	if m.index < 0 {
 		if m.target_rv.IsNil() {
 			*tok = nil
@@ -65,7 +68,7 @@ func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, tok *Token) (done boo
 	if m.value {
 		valp := m.target_rv.MapIndex(m.keys[m.index].rv).Interface()
 		m.index++
-		return false, d.Recurse(tok, &valp)
+		return false, d.Recurse(tok, &valp, s.pickMarshalMachine(&valp))
 	}
 	*tok = &(m.keys[m.index].s)
 	return false, nil

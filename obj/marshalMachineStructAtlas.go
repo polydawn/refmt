@@ -12,17 +12,18 @@ type UnmarshalMachineStructAtlas struct {
 	value  bool        // Progress marker
 }
 
-func (m *UnmarshalMachineStructAtlas) init() {
-
+func (m *UnmarshalMachineStructAtlas) Reset(s *Suite, target interface{}) error {
+	return nil
 }
 
-func (m *UnmarshalMachineStructAtlas) Step(driver *MarshalDriver, tok *Token) (done bool, err error) {
+func (m *UnmarshalMachineStructAtlas) Step(driver *MarshalDriver, s *Suite, tok *Token) (done bool, err error) {
 	if m.idx >= len(m.atlas.Fields) {
 		panic("incorrect usage: entire struct already walked")
 	}
 	entry := m.atlas.Fields[m.idx]
+	valp := entry.Grab(m.target)
 	if m.value {
-		driver.Recurse(tok, entry.Grab(m.target))
+		driver.Recurse(tok, valp, s.pickMarshalMachine(valp))
 	} else {
 		*tok = entry.Name
 	}

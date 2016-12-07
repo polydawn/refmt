@@ -52,7 +52,7 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 		var err error
 		var tok Token
 		for n := 0; n < len(tr.expect); n++ {
-			done, err = machine.Step(nil, &tok) // FIXME that this nil will bust if it tries to recurse... which is always
+			done, err = machine.Step(nil, nil, &tok) // FIXME really need suite objs now
 			tokens = append(tokens, tok)
 			if err != nil {
 				t.Errorf("step %d (yielded %#v) errored: %s", n, tok, err)

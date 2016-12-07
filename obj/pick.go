@@ -1,19 +1,36 @@
 package obj
 
 import (
+	"fmt"
 	"reflect"
 )
+
+type Suite struct {
+	mappings map[reflect.Type]MarshalMachine
+}
 
 /*
 	Picks an unmarshal machine, returning the custom impls for any
 	common/primitive types, and advanced machines where structs get involved.
-*/
-func pickMarshalMachine(valp interface{}) MarshalMachine {
-	// future: if we wanted to support a function on a type that indicates custom behavior,
-	//  this would be the place to do that check, via `val_rt.Implements(markerType)`.
 
+	The argument should be the address of the actual value of interest.
+*/
+func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
 	val_rt := reflect.TypeOf(*(valp).(*interface{}))
-	switch val_rt.Kind() {
+	return s.marshalMachineForType(val_rt)
+}
+
+/*
+	Like `pickMarshalMachine`, but requiring only the reflect type info.
+	This is useable when you only have the type info available (rather than an instance);
+	this comes up when for example looking up the machine to use for all values
+	in a slice based on the slice type info.
+
+	(Using an instance may be able to take faster, non-reflective paths for
+	primitive values.)
+*/
+func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
+	switch rt.Kind() {
 	case reflect.Bool:
 		return &MarshalMachineLiteral{}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
@@ -43,16 +60,14 @@ func pickMarshalMachine(valp interface{}) MarshalMachine {
 		//  so it can have state for cache.
 		return &MarshalMachineMapWildcard{}
 	case reflect.Ptr:
-		panic("TODO")
+		panic("TODO ptr")
 	case reflect.Struct:
-		panic("TODO")
+		panic("TODO struct")
 	case reflect.Interface:
-		panic("TODO")
+		panic("TODO iface")
+	case reflect.Func:
+		panic("TODO func") // hey, if we can find it in the suite
 	default:
-		panic("TODO")
+		panic(fmt.Errorf("excursion %s", rt.Kind()))
 	}
-}
-
-type Suite struct {
-	mappings map[reflect.Type]MarshalMachine // i want to know if i can reuse them!  i hope i can.  why wouldn't i?
 }
