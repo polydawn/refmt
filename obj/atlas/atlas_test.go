@@ -2,10 +2,18 @@ package atlas
 
 import (
 	"fmt"
+	"reflect"
 	"testing"
 
 	. "github.com/polydawn/go-xlate/testutil"
 )
+
+func TestReflectWorksLikeIThinkItDoes(t *testing.T) {
+	type Fwee string
+	Assert(t, "typedefs of primitives Kind() as the prim", reflect.String, reflect.TypeOf(Fwee("")).Kind())
+	Assert(t, "typedefs of primitives have Type().Name()", "Fwee", reflect.TypeOf(Fwee("")).Name())
+	Assert(t, "primitives also have Type().Name()", "string", reflect.TypeOf("").Name())
+}
 
 func TestAtlasAddrFunc(t *testing.T) {
 	type BB struct {
@@ -49,10 +57,8 @@ func TestAtlasFieldRoute(t *testing.T) {
 		Y: BB{},
 	}
 	xp := atl.Fields[0].Grab(&aa)
-	// FIXME / REVIEW: the real type of this field returned by `Grab` differing
-	//  when using the reflect path is... poor.
-	Assert(t, "addrfunc yields UNINFORMATIVE ptr type", "*interface {}", fmt.Sprintf("%T", xp))
-	Assert(t, "addrfunc yields readable reference", "qwer", *xp.(*interface{}))
-	*xp.(*interface{}) = "zxcv"
-	Assert(t, "addrfunc yields writable reference", "zxcv", *xp.(*interface{}))
+	Assert(t, "addrfunc yields informative ptr type", "*string", fmt.Sprintf("%T", xp))
+	Assert(t, "addrfunc yields readable reference", "qwer", *xp.(*string))
+	*xp.(*string) = "zxcv"
+	Assert(t, "addrfunc yields writable reference", "zxcv", *xp.(*string))
 }

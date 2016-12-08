@@ -83,8 +83,8 @@ func (ent Entry) Grab(v interface{}) interface{} {
 	if ent.AddrFunc != nil {
 		return ent.AddrFunc(v)
 	}
-	r := ent.FieldRoute.TraverseToValue(reflect.ValueOf(v)).Interface()
-	return &r
+	field_rv := ent.FieldRoute.TraverseToValue(reflect.ValueOf(v))
+	return field_rv.Addr().Interface()
 }
 
 func (fr FieldRoute) TraverseToValue(v reflect.Value) reflect.Value {
