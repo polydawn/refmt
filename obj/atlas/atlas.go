@@ -83,7 +83,11 @@ func (ent Entry) Grab(v interface{}) interface{} {
 	if ent.AddrFunc != nil {
 		return ent.AddrFunc(v)
 	}
-	field_rv := ent.FieldRoute.TraverseToValue(reflect.ValueOf(v))
+	v_rv := reflect.ValueOf(v)
+	//if !v_rv.CanAddr() {
+	//	panic("values for atlas traversal must be addressable")
+	//}
+	field_rv := ent.FieldRoute.TraverseToValue(v_rv)
 	return field_rv.Addr().Interface()
 }
 
