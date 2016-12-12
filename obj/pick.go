@@ -16,7 +16,7 @@ type Suite struct {
 	The argument should be the address of the actual value of interest.
 */
 func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
-	val_rt := reflect.TypeOf(*(valp).(*interface{}))
+	val_rt := reflect.ValueOf(valp).Elem().Type()
 	return s.marshalMachineForType(val_rt)
 }
 
@@ -60,9 +60,10 @@ func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
 		//  so it can have state for cache.
 		return &MarshalMachineMapWildcard{}
 	case reflect.Ptr:
-		panic("TODO ptr")
+		// REVIEW: doing this once, fine.  but unbounded?  questionable.
+		return s.marshalMachineForType(rt.Elem())
 	case reflect.Struct:
-		panic("TODO struct")
+		return &UnmarshalMachineStructAtlas{}
 	case reflect.Interface:
 		panic("TODO iface")
 	case reflect.Func:
