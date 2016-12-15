@@ -1,0 +1,26 @@
+inputs:
+	"/":
+		type: "tar"
+		hash: "aLMH4qK1EdlPDavdhErOs0BPxqO0i6lUaeRE4DuUmnNMxhHtF56gkoeSulvwWNqT"
+		silo: "http+ca://repeatr.s3.amazonaws.com/assets/"
+	"/app/go":
+		type: "tar"
+		hash: "vUiZJyyvBQ_3HXXfl_fgPJsC8leuIEuMkB0Pd-L60yvKyqot2u6sslD2l9ouwJ8O"
+		silo: "https://storage.googleapis.com/golang/go1.6.3.linux-amd64.tar.gz"
+action:
+	command:
+		- "/bin/bash"
+		- "-c"
+		- |
+			set -euo pipefail
+			export GOROOT=/app/go/go
+			export PATH=$PATH:/app/go/go/bin
+
+			export GOPATH=$PWD/.gopath/
+			go fmt
+			go build -v
+			go test -v ./...
+outputs:
+	"/task":
+		type: "tar"
+		#silo: "file+ca:///tmp/lol/"
