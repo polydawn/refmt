@@ -139,6 +139,19 @@ func TestJsonSerializer(t *testing.T) {
 			},
 			`[[[]]]`,
 		},
+		{
+			"maps nested in maps",
+			[]Token{
+				Token_MapOpen,
+				"k",
+				Token_MapOpen,
+				"k2",
+				"v2",
+				Token_MapClose,
+				Token_MapClose,
+			},
+			`{"k":{"k2":"v2"}}`,
+		},
 	}
 	for _, tr := range tt {
 		// Set it up.
