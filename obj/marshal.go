@@ -13,6 +13,7 @@ func NewMarshaler(s *Suite, v interface{}) *MarshalDriver {
 		suite: s,
 		step:  s.pickMarshalMachine(v),
 	}
+	d.step.Reset(s, v)
 	return d
 }
 

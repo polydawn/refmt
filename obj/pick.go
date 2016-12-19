@@ -16,6 +16,8 @@ type Suite struct {
 	The argument should be the address of the actual value of interest.
 */
 func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
+	// TODO : we can use type switches to do some primitives efficiently here
+	//  before we turn to the reflective path.
 	val_rt := reflect.ValueOf(valp).Elem().Type()
 	return s.marshalMachineForType(val_rt)
 }
