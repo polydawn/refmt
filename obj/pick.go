@@ -9,17 +9,35 @@ type Suite struct {
 	mappings map[reflect.Type]MarshalMachine
 }
 
+func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
+	mach := s.maybePickMarshalMachine(valp)
+	if mach == nil {
+		panic(fmt.Errorf("no machine available in suite for type %T", valp))
+	}
+	return mach
+}
+
 /*
 	Picks an unmarshal machine, returning the custom impls for any
 	common/primitive types, and advanced machines where structs get involved.
 
 	The argument should be the address of the actual value of interest.
+
+	Returns nil if there is no marshal machine in the suite for this type.
 */
-func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
+func (s *Suite) maybePickMarshalMachine(valp interface{}) MarshalMachine {
 	// TODO : we can use type switches to do some primitives efficiently here
 	//  before we turn to the reflective path.
 	val_rt := reflect.ValueOf(valp).Elem().Type()
-	return s.marshalMachineForType(val_rt)
+	return s.maybeMarshalMachineForType(val_rt)
+}
+
+func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
+	mach := s.maybeMarshalMachineForType(rt)
+	if mach == nil {
+		panic(fmt.Errorf("no machine available in suite for type %s", rt.Name()))
+	}
+	return mach
 }
 
 /*
@@ -30,8 +48,10 @@ func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
 
 	(Using an instance may be able to take faster, non-reflective paths for
 	primitive values.)
+
+	Returns nil if there is no marshal machine in the suite for this type.
 */
-func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
+func (s *Suite) maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
 	switch rt.Kind() {
 	case reflect.Bool:
 		return &MarshalMachineLiteral{}
@@ -63,9 +83,9 @@ func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
 		return &MarshalMachineMapWildcard{}
 	case reflect.Ptr:
 		// REVIEW: doing this once, fine.  but unbounded?  questionable.
-		return s.marshalMachineForType(rt.Elem())
+		return s.maybeMarshalMachineForType(rt.Elem())
 	case reflect.Struct:
-		return &UnmarshalMachineStructAtlas{}
+		return s.mappings[rt]
 	case reflect.Interface:
 		panic("TODO iface")
 	case reflect.Func:
