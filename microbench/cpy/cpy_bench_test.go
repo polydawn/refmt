@@ -62,3 +62,51 @@ func Benchmark_CopyByRef(b *testing.B) {
 		b.Error("final value of valB wrong")
 	}
 }
+
+// Sanity check: strings are not noticably different:
+//
+//	Benchmark_CopyByValue-8                 30000000                45.5 ns/op
+//	Benchmark_CopyByRef-8                   2000000000               0.59 ns/op
+//	Benchmark_CopyByValue_String-8          20000000                72.3 ns/op
+//	Benchmark_CopyByRef_String-8            2000000000               0.60 ns/op
+func Benchmark_CopyByValue_String(b *testing.B) {
+	type Alias interface{}
+	var slot Alias
+	type StructA struct {
+		field string
+	}
+	type StructB struct {
+		field string
+	}
+	valA := StructA{"alksjdlkjweoihgowihehgioijerg"}
+	valB := StructB{}
+
+	for i := 0; i < b.N; i++ {
+		slot = valA.field
+		valB.field = slot.(string)
+	}
+	if valB.field != valA.field {
+		b.Error("final value of valB wrong")
+	}
+}
+
+func Benchmark_CopyByRef_String(b *testing.B) {
+	type Alias interface{}
+	var slot Alias
+	type StructA struct {
+		field string
+	}
+	type StructB struct {
+		field string
+	}
+	valA := StructA{"alksjdlkjweoihgowihehgioijerg"}
+	valB := StructB{}
+
+	for i := 0; i < b.N; i++ {
+		slot = &(valA.field)
+		valB.field = *(slot.(*string))
+	}
+	if valB.field != valA.field {
+		b.Error("final value of valB wrong")
+	}
+}
