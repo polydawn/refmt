@@ -6,7 +6,10 @@
 */
 package atlas
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type Atlas struct {
 	Fields []Entry
@@ -83,10 +86,16 @@ func (ent Entry) Grab(v interface{}) interface{} {
 	if ent.AddrFunc != nil {
 		return ent.AddrFunc(v)
 	}
-	v_rv := reflect.ValueOf(v)
-	//if !v_rv.CanAddr() {
-	//	panic("values for atlas traversal must be addressable")
-	//}
+	if ent.FieldRoute == nil {
+		panic(fmt.Errorf("atlas.Entry not initialized"))
+	}
+	// Jump through the defacto first pointer.
+	// We're about to check if our traversal will be able to return an addressable field;
+	//  but we don't care if the *pointer* itself we have here is addressable.
+	v_rv := reflect.ValueOf(v).Elem()
+	if !v_rv.CanAddr() {
+		panic(fmt.Errorf("values for atlas traversal must be addressable"))
+	}
 	field_rv := ent.FieldRoute.TraverseToValue(v_rv)
 	return field_rv.Addr().Interface()
 }
