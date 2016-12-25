@@ -45,6 +45,7 @@ func TestMarshaller(t *testing.T) {
 			},
 			suite: &Suite{map[reflect.Type]MarshalMachine{
 				reflect.TypeOf(NN{}): NewMarshalMachineStructAtlas(atlas.Atlas{
+					Type: reflect.TypeOf(NN{}),
 					Fields: []atlas.Entry{
 						{Name: "F", FieldName: atlas.FieldName{"F"}},
 						{Name: "X", FieldName: atlas.FieldName{"X"}},

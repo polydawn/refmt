@@ -12,11 +12,12 @@ import (
 )
 
 type Atlas struct {
-	// REVIEW : I think we're going to need to have the reflect.Type here.
-	// I've been trying to resist mandating it's use, but...
-	// Having it will make it possible to do better sanity checking in a LOT of places,
-	// and it also seems to be sometimes quite necessary during *some* init paths.
+	// The type this atlas describes.
+	Type reflect.Type
 
+	// An slice of descriptions of each field in the type.
+	// Each entry specifies the name by which each field should be referenced
+	// when serialized, and defines a way to get an address to the field.
 	Fields []Entry
 
 	// A validation function which will be called for the whole value
@@ -61,12 +62,12 @@ type FieldName []string
 type FieldRoute []int
 
 func (atl *Atlas) Init() {
-	for _, f := range atl.Fields {
-		f.init()
+	for i, _ := range atl.Fields {
+		atl.Fields[i].init(atl.Type)
 	}
 }
 
-func (ent *Entry) init() {
+func (ent *Entry) init(rt reflect.Type) {
 	// Validate reference options: only one may be used.
 	// If it's a FieldName though, generate a FieldRoute for faster use.
 	switch {
@@ -74,12 +75,24 @@ func (ent *Entry) init() {
 		if ent.FieldName != nil || ent.AddrFunc != nil {
 			panic(ErrEntryInvalid{"if FieldRoute is used, no other field selectors may be specified"})
 		}
+		if len(ent.FieldRoute) == 0 {
+			panic(ErrEntryInvalid{"FieldRoute cannot be length zero (would be inf recursion)"})
+		}
 	case ent.FieldName != nil:
 		if ent.FieldRoute != nil || ent.AddrFunc != nil {
 			panic(ErrEntryInvalid{"if FieldName is used, no other field selectors may be specified"})
 		}
-		// TODO transform `FieldName` to a `FieldRoute`
-		// FIXME needs type info to reflect on, which isn't currently at hand
+		if len(ent.FieldName) == 0 {
+			panic(ErrEntryInvalid{"FieldName cannot be length zero (would be inf recursion)"})
+		}
+		// transform `FieldName` to a `FieldRoute`.
+		for _, fn := range ent.FieldName {
+			f, ok := rt.FieldByName(fn)
+			if !ok {
+				panic(ErrStructureMismatch{rt.Name(), "does not have field named " + fn})
+			}
+			ent.FieldRoute = append(ent.FieldRoute, f.Index...)
+		}
 	case ent.AddrFunc != nil:
 		if ent.FieldRoute != nil || ent.FieldName != nil {
 			panic(ErrEntryInvalid{"if AddrFunc is used, no other field selectors may be specified"})
