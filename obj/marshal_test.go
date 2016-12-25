@@ -47,7 +47,12 @@ func TestMarshaller(t *testing.T) {
 				// FIXME review the increasingly inconsistent use of ptr or not.
 				// our machinery for machine picking strips ptrs on the reflect path,
 				// causing it to always look up the fully indirected value, and that's rather odd.
-				reflect.TypeOf(NN{}): NewMarshalMachineStructAtlas(atlas.Atlas{}),
+				reflect.TypeOf(NN{}): NewMarshalMachineStructAtlas(atlas.Atlas{
+					Fields: []atlas.Entry{
+						{Name: "F", FieldName: atlas.FieldName{"F"}},
+						{Name: "X", FieldName: atlas.FieldName{"X"}},
+					},
+				}),
 			}},
 			expectSeq: []Token{
 				Token_MapOpen,

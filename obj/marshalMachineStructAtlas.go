@@ -36,13 +36,14 @@ func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *Suite, tok *T
 		m.index++
 		return false, nil
 	}
-	if m.index == len(m.atlas.Fields) {
+	nEntries := len(m.atlas.Fields)
+	if m.index == nEntries {
 		*tok = Token_MapClose
 		m.index++
 		return true, nil
 	}
-	if m.index > len(m.atlas.Fields) {
-		return true, fmt.Errorf("invalid state: entire struct already consumed")
+	if m.index > nEntries {
+		return true, fmt.Errorf("invalid state: entire struct (%d fields) already consumed", nEntries)
 	}
 
 	entry := m.atlas.Fields[m.index]

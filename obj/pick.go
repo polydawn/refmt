@@ -49,6 +49,9 @@ func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
 	(Using an instance may be able to take faster, non-reflective paths for
 	primitive values.)
 
+	In contrast to the method that takes a `valp interface{}`, this type info
+	is understood to already be dereferenced.
+
 	Returns nil if there is no marshal machine in the suite for this type.
 */
 func (s *Suite) maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
