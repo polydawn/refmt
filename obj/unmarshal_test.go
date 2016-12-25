@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	. "github.com/polydawn/go-xlate/testutil"
-	"github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/go-xlate/tok"
 )
 
 type slotter interface {
@@ -28,135 +28,135 @@ func TestUnmarshaller(t *testing.T) {
 	tt := []struct {
 		title    string
 		slotter  slotter
-		tokenSeq []tok.Token
+		tokenSeq []Token
 		expect   interface{}
 	}{
 		{
 			title:   "simple literal",
 			slotter: &slotForInt{},
-			tokenSeq: []tok.Token{
-				4,
+			tokenSeq: []Token{
+				TokInt(4),
 			},
 			expect: 4,
 		},
 		{
 			title:   "empty map into wildcard",
 			slotter: &slotForIface{},
-			tokenSeq: []tok.Token{
-				tok.Token_MapOpen,
-				tok.Token_MapClose,
+			tokenSeq: []Token{
+				Token_MapOpen,
+				Token_MapClose,
 			},
 			expect: map[string]interface{}{},
 		},
 		{
 			title:   "simple flat map into wildcard",
 			slotter: &slotForIface{},
-			tokenSeq: []tok.Token{
-				tok.Token_MapOpen,
-				"key", 6,
-				tok.Token_MapClose,
+			tokenSeq: []Token{
+				Token_MapOpen,
+				TokStr("key"), TokInt(6),
+				Token_MapClose,
 			},
 			expect: map[string]interface{}{"key": 6},
 		},
 		{
 			title:   "map with nested map into wildcard",
 			slotter: &slotForIface{},
-			tokenSeq: []tok.Token{
-				tok.Token_MapOpen,
-				"k1",
-				tok.Token_MapOpen,
-				"k2", "vvv",
-				tok.Token_MapClose,
-				tok.Token_MapClose,
+			tokenSeq: []Token{
+				Token_MapOpen,
+				TokStr("k1"),
+				Token_MapOpen,
+				TokStr("k2"), TokStr("vvv"),
+				Token_MapClose,
+				Token_MapClose,
 			},
 			expect: map[string]interface{}{"k1": map[string]interface{}{"k2": "vvv"}},
 		},
 		{
 			title:   "array into wildcard",
 			slotter: &slotForIface{},
-			tokenSeq: []tok.Token{
-				tok.Token_ArrOpen,
-				"v1",
-				"v2",
-				3,
-				tok.Token_ArrClose,
+			tokenSeq: []Token{
+				Token_ArrOpen,
+				TokStr("v1"),
+				TokStr("v2"),
+				TokInt(3),
+				Token_ArrClose,
 			},
 			expect: []interface{}{"v1", "v2", 3},
 		},
 		{
 			title:   "map with nested array into wildcard",
 			slotter: &slotForIface{},
-			tokenSeq: []tok.Token{
-				tok.Token_MapOpen,
-				"k1",
-				tok.Token_ArrOpen,
-				"v1",
-				"v2",
-				3,
-				tok.Token_ArrClose,
-				tok.Token_MapClose,
+			tokenSeq: []Token{
+				Token_MapOpen,
+				TokStr("k1"),
+				Token_ArrOpen,
+				TokStr("v1"),
+				TokStr("v2"),
+				TokInt(3),
+				Token_ArrClose,
+				Token_MapClose,
 			},
 			expect: map[string]interface{}{"k1": []interface{}{"v1", "v2", 3}},
 		},
 		{
 			title:   "arrays with nested arrays into wildcard",
 			slotter: &slotForIface{},
-			tokenSeq: []tok.Token{
-				tok.Token_ArrOpen,
-				"v1",
-				tok.Token_ArrOpen,
-				"v1",
-				tok.Token_ArrOpen,
-				"v1",
-				"v2",
-				3,
-				tok.Token_ArrClose,
-				3,
-				tok.Token_ArrClose,
-				3,
-				tok.Token_ArrClose,
+			tokenSeq: []Token{
+				Token_ArrOpen,
+				TokStr("v1"),
+				Token_ArrOpen,
+				TokStr("v1"),
+				Token_ArrOpen,
+				TokStr("v1"),
+				TokStr("v2"),
+				TokInt(3),
+				Token_ArrClose,
+				TokInt(3),
+				Token_ArrClose,
+				TokInt(3),
+				Token_ArrClose,
 			},
 			expect: []interface{}{"v1", []interface{}{"v1", []interface{}{"v1", "v2", 3}, 3}, 3},
 		},
 		{
 			title:   "arrays with nested map into wildcard",
 			slotter: &slotForIface{},
-			tokenSeq: []tok.Token{
-				tok.Token_ArrOpen,
-				"v1",
-				tok.Token_MapOpen,
-				"k2", "vvv",
-				tok.Token_MapClose,
-				3,
-				tok.Token_ArrClose,
+			tokenSeq: []Token{
+				Token_ArrOpen,
+				TokStr("v1"),
+				Token_MapOpen,
+				TokStr("k2"), TokStr("vvv"),
+				Token_MapClose,
+				TokInt(3),
+				Token_ArrClose,
 			},
 			expect: []interface{}{"v1", map[string]interface{}{"k2": "vvv"}, 3},
 		},
 		{
 			title:   "complex deeply nested structure into wildcard",
 			slotter: &slotForIface{},
-			tokenSeq: []tok.Token{
-				tok.Token_MapOpen,
-				"k1",
-				tok.Token_ArrOpen,
-				"v1",
-				tok.Token_MapOpen,
-				tok.Token_MapClose,
-				3,
-				tok.Token_ArrOpen,
-				14,
-				15,
-				tok.Token_MapOpen,
-				"k9", "v10",
-				tok.Token_MapClose,
-				tok.Token_ArrOpen,
-				tok.Token_ArrClose,
-				tok.Token_ArrOpen,
-				16,
-				tok.Token_ArrClose,
-				tok.Token_ArrClose,
-				tok.Token_ArrClose,
-				tok.Token_MapClose,
+			tokenSeq: []Token{
+				Token_MapOpen,
+				TokStr("k1"),
+				Token_ArrOpen,
+				TokStr("v1"),
+				Token_MapOpen,
+				Token_MapClose,
+				TokInt(3),
+				Token_ArrOpen,
+				TokInt(14),
+				TokInt(15),
+				Token_MapOpen,
+				TokStr("k9"), TokStr("v10"),
+				Token_MapClose,
+				Token_ArrOpen,
+				Token_ArrClose,
+				Token_ArrOpen,
+				TokInt(16),
+				Token_ArrClose,
+				Token_ArrClose,
+				Token_ArrClose,
+				Token_MapClose,
 			},
 			expect: map[string]interface{}{"k1": []interface{}{
 				"v1",
@@ -182,7 +182,7 @@ func TestUnmarshaller(t *testing.T) {
 		for n, tok := range tr.tokenSeq {
 			done, err = sink.Step(&tok)
 			if err != nil {
-				t.Errorf("step %d (inputting %#v) errored: %s", n, tok, err)
+				t.Errorf("step %d (inputting %s) errored: %s", n, TokenToString(tok), err)
 			}
 			if done && n != len(tr.tokenSeq)-1 {
 				t.Errorf("done early! on step %d out of %d tokens", n, len(tr.tokenSeq))

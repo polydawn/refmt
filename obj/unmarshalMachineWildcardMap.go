@@ -62,11 +62,11 @@ func (m *UnmarshalMachineMapStringWildcard) step_AcceptKey(_ *UnmarshalDriver, t
 		return true, fmt.Errorf("unexpected arrClose; expected map key")
 	}
 	switch k := (*tok).(type) {
-	case string:
-		if err = m.mustAcceptKey(k); err != nil {
+	case *string:
+		if err = m.mustAcceptKey(*k); err != nil {
 			return true, err
 		}
-		m.key = k
+		m.key = *k
 		m.step = m.step_AcceptValue
 		return false, nil
 	default:
