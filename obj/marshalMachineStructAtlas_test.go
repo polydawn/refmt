@@ -16,7 +16,7 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 		expect []Token
 	}{{
 		title: "struct of several primitives",
-		value: struct {
+		value: &struct {
 			X int
 			y int
 			z string
@@ -42,17 +42,20 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 	for _, tr := range tt {
 		// Setup
 		var tokens []Token
-		machine := UnmarshalMachineStructAtlas{
+		machine := MarshalMachineStructAtlas{
 			target: tr.value,
 			atlas:  tr.atlas,
 		}
+		// Placeholders required for recursing on.
+		suite := &Suite{}
+		driver := NewMarshaler(suite, &tr.value)
 
 		// Run steps.
 		var done bool
 		var err error
 		var tok Token
 		for n := 0; n < len(tr.expect); n++ {
-			done, err = machine.Step(nil, nil, &tok) // FIXME really need suite objs now
+			done, err = machine.Step(driver, suite, &tok)
 			tokens = append(tokens, tok)
 			if err != nil {
 				t.Errorf("step %d (yielded %#v) errored: %s", n, tok, err)

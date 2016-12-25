@@ -6,9 +6,18 @@
 */
 package atlas
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 type Atlas struct {
+	// The type this atlas describes.
+	Type reflect.Type
+
+	// An slice of descriptions of each field in the type.
+	// Each entry specifies the name by which each field should be referenced
+	// when serialized, and defines a way to get an address to the field.
 	Fields []Entry
 
 	// A validation function which will be called for the whole value
@@ -52,7 +61,13 @@ type FieldName []string
 
 type FieldRoute []int
 
-func (ent *Entry) init() {
+func (atl *Atlas) Init() {
+	for i, _ := range atl.Fields {
+		atl.Fields[i].init(atl.Type)
+	}
+}
+
+func (ent *Entry) init(rt reflect.Type) {
 	// Validate reference options: only one may be used.
 	// If it's a FieldName though, generate a FieldRoute for faster use.
 	switch {
@@ -60,12 +75,24 @@ func (ent *Entry) init() {
 		if ent.FieldName != nil || ent.AddrFunc != nil {
 			panic(ErrEntryInvalid{"if FieldRoute is used, no other field selectors may be specified"})
 		}
+		if len(ent.FieldRoute) == 0 {
+			panic(ErrEntryInvalid{"FieldRoute cannot be length zero (would be inf recursion)"})
+		}
 	case ent.FieldName != nil:
 		if ent.FieldRoute != nil || ent.AddrFunc != nil {
 			panic(ErrEntryInvalid{"if FieldName is used, no other field selectors may be specified"})
 		}
-		// TODO transform `FieldName` to a `FieldRoute`
-		// FIXME needs type info to reflect on, which isn't currently at hand
+		if len(ent.FieldName) == 0 {
+			panic(ErrEntryInvalid{"FieldName cannot be length zero (would be inf recursion)"})
+		}
+		// transform `FieldName` to a `FieldRoute`.
+		for _, fn := range ent.FieldName {
+			f, ok := rt.FieldByName(fn)
+			if !ok {
+				panic(ErrStructureMismatch{rt.Name(), "does not have field named " + fn})
+			}
+			ent.FieldRoute = append(ent.FieldRoute, f.Index...)
+		}
 	case ent.AddrFunc != nil:
 		if ent.FieldRoute != nil || ent.FieldName != nil {
 			panic(ErrEntryInvalid{"if AddrFunc is used, no other field selectors may be specified"})
@@ -83,10 +110,16 @@ func (ent Entry) Grab(v interface{}) interface{} {
 	if ent.AddrFunc != nil {
 		return ent.AddrFunc(v)
 	}
-	v_rv := reflect.ValueOf(v)
-	//if !v_rv.CanAddr() {
-	//	panic("values for atlas traversal must be addressable")
-	//}
+	if ent.FieldRoute == nil {
+		panic(fmt.Errorf("atlas.Entry not initialized"))
+	}
+	// Jump through the defacto first pointer.
+	// We're about to check if our traversal will be able to return an addressable field;
+	//  but we don't care if the *pointer* itself we have here is addressable.
+	v_rv := reflect.ValueOf(v).Elem()
+	if !v_rv.CanAddr() {
+		panic(fmt.Errorf("values for atlas traversal must be addressable"))
+	}
 	field_rv := ent.FieldRoute.TraverseToValue(v_rv)
 	return field_rv.Addr().Interface()
 }

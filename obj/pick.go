@@ -6,7 +6,40 @@ import (
 )
 
 type Suite struct {
+	// FIXME this type is still, yes still, wrong: you need a factory for machines,
+	// because otherwise you're gonna have a bad day if the same type comes up twice in a stack.
+	// We really do need some declaritive type thing for "machinestrategy" here, separate from the machine impl.
 	mappings map[reflect.Type]MarshalMachine
+}
+
+/*
+	Folds another behavior dispatch into the suite.
+
+	The `typeHint` parameter is an instance of the type you want dispatch
+	to use this machine for.  A zero instance is fine.
+	Thus, calls to this method usually resemble the following:
+
+		suite.Add(YourType{}, &SomeMachineImpl{})
+*/
+func (s *Suite) Add(typeHint interface{}, mach MarshalMachine) {
+	if s.mappings == nil {
+		s.mappings = make(map[reflect.Type]MarshalMachine)
+	}
+	rt := reflect.TypeOf(typeHint)
+	for {
+		if rt.Kind() == reflect.Ptr {
+			rt = rt.Elem()
+		}
+	}
+	s.mappings[rt] = mach
+}
+
+func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
+	mach := s.maybePickMarshalMachine(valp)
+	if mach == nil {
+		panic(fmt.Errorf("no machine available in suite for type %T", valp))
+	}
+	return mach
 }
 
 /*
@@ -14,12 +47,22 @@ type Suite struct {
 	common/primitive types, and advanced machines where structs get involved.
 
 	The argument should be the address of the actual value of interest.
+
+	Returns nil if there is no marshal machine in the suite for this type.
 */
-func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
+func (s *Suite) maybePickMarshalMachine(valp interface{}) MarshalMachine {
 	// TODO : we can use type switches to do some primitives efficiently here
 	//  before we turn to the reflective path.
 	val_rt := reflect.ValueOf(valp).Elem().Type()
-	return s.marshalMachineForType(val_rt)
+	return s.maybeMarshalMachineForType(val_rt)
+}
+
+func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
+	mach := s.maybeMarshalMachineForType(rt)
+	if mach == nil {
+		panic(fmt.Errorf("no machine available in suite for type %s", rt.Name()))
+	}
+	return mach
 }
 
 /*
@@ -30,8 +73,13 @@ func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
 
 	(Using an instance may be able to take faster, non-reflective paths for
 	primitive values.)
+
+	In contrast to the method that takes a `valp interface{}`, this type info
+	is understood to already be dereferenced.
+
+	Returns nil if there is no marshal machine in the suite for this type.
 */
-func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
+func (s *Suite) maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
 	switch rt.Kind() {
 	case reflect.Bool:
 		return &MarshalMachineLiteral{}
@@ -63,9 +111,9 @@ func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
 		return &MarshalMachineMapWildcard{}
 	case reflect.Ptr:
 		// REVIEW: doing this once, fine.  but unbounded?  questionable.
-		return s.marshalMachineForType(rt.Elem())
+		return s.maybeMarshalMachineForType(rt.Elem())
 	case reflect.Struct:
-		return &UnmarshalMachineStructAtlas{}
+		return s.mappings[rt]
 	case reflect.Interface:
 		panic("TODO iface")
 	case reflect.Func:

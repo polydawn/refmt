@@ -28,15 +28,40 @@ func (m MarshalMachineLiteral) Step(_ *MarshalDriver, _ *Suite, tok *tok.Token) 
 	// Honestly, this entire set of paths does so little work we should think about inlining it
 	// into the machine-picker (or earlier) entirely and never allocing or returning a machine.
 	switch v2 := m.target.(type) {
-	case *bool,
-		*string,
-		*[]byte,
-		*int, *int8, *int16, *int32, *int64,
-		*uint, *uint8, *uint16, *uint32, *uint64, *uintptr,
-		*float32, *float64:
-		*tok = &v2
-		return true, nil
+	case *bool:
+		*tok = v2
+	case *string:
+		*tok = v2
+	case *[]byte:
+		*tok = v2
+	case *int8:
+		*tok = v2
+	case *int16:
+		*tok = v2
+	case *int32:
+		*tok = v2
+	case *int64:
+		*tok = v2
+	case *uint:
+		*tok = v2
+	case *uint8:
+		*tok = v2
+	case *uint16:
+		*tok = v2
+	case *uint32:
+		*tok = v2
+	case *uint64:
+		*tok = v2
+	case *uintptr:
+		*tok = v2
+	case *float32:
+		*tok = v2
+	case *float64:
+		*tok = v2
+	case *int:
+		*tok = v2
 	default:
 		panic(fmt.Errorf("cannot marshal unhandled type %T", m.target))
 	}
+	return true, nil
 }
