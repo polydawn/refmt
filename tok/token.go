@@ -100,9 +100,13 @@ func TokenToString(t Token) string {
 		return "<]>"
 	}
 	if !IsValidToken(t) {
-		return "<???>"
+		return fmt.Sprintf("<INVALID:%T:%p>",
+			t, t)
 	}
 	return fmt.Sprintf("<%T:%p:%s>",
 		t, t, reflect.ValueOf(t).Elem().Interface(),
 	)
 }
+
+func TokStr(x string) Token { return &x } // Util for testing.
+func TokInt(x int) Token    { return &x } // Util for testing.

@@ -33,7 +33,7 @@ func TestMarshaller(t *testing.T) {
 			title:    "simple literal",
 			targetFn: func() interface{} { i := 4; return &i },
 			expectSeq: []Token{
-				4,
+				TokInt(4),
 			},
 		},
 		{
@@ -54,8 +54,8 @@ func TestMarshaller(t *testing.T) {
 			}},
 			expectSeq: []Token{
 				Token_MapOpen,
-				"F", 7,
-				"X", "s",
+				TokStr("F"), TokInt(7),
+				TokStr("X"), TokStr("s"),
 				Token_MapClose,
 			},
 		},
@@ -88,7 +88,7 @@ func TestMarshaller(t *testing.T) {
 		for n, expectTok := range tr.expectSeq {
 			done, err = marshaller.Step(&tok)
 			if !IsTokenEqual(expectTok, tok) {
-				t.Errorf("step %d yielded wrong token: expected %s, got %s", n, expectTok, tok)
+				t.Errorf("step %d yielded wrong token: expected %s, got %s", n, TokenToString(expectTok), TokenToString(tok))
 			}
 			if err != nil {
 				t.Errorf("step %d (expecting %#v) errored: %s", n, expectTok, err)
