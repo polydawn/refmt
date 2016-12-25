@@ -6,7 +6,32 @@ import (
 )
 
 type Suite struct {
+	// FIXME this type is still, yes still, wrong: you need a factory for machines,
+	// because otherwise you're gonna have a bad day if the same type comes up twice in a stack.
+	// We really do need some declaritive type thing for "machinestrategy" here, separate from the machine impl.
 	mappings map[reflect.Type]MarshalMachine
+}
+
+/*
+	Folds another behavior dispatch into the suite.
+
+	The `typeHint` parameter is an instance of the type you want dispatch
+	to use this machine for.  A zero instance is fine.
+	Thus, calls to this method usually resemble the following:
+
+		suite.Add(YourType{}, &SomeMachineImpl{})
+*/
+func (s *Suite) Add(typeHint interface{}, mach MarshalMachine) {
+	if s.mappings == nil {
+		s.mappings = make(map[reflect.Type]MarshalMachine)
+	}
+	rt := reflect.TypeOf(typeHint)
+	for {
+		if rt.Kind() == reflect.Ptr {
+			rt = rt.Elem()
+		}
+	}
+	s.mappings[rt] = mach
 }
 
 func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {

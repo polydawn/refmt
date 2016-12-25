@@ -16,6 +16,7 @@ type MarshalMachineStructAtlas struct {
 }
 
 func NewMarshalMachineStructAtlas(atl atlas.Atlas) MarshalMachine {
+	atl.Init()
 	return &MarshalMachineStructAtlas{atlas: atl}
 }
 
@@ -52,9 +53,7 @@ func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *Suite, tok *T
 
 	entry := m.atlas.Fields[m.index]
 	if m.value {
-		//fmt.Printf(">> %d : %#T %#v\n   - : %#T %#v\n", m.index, m.target, m.target, *(m.target.(*interface{})), *(m.target.(*interface{})))
 		valp := entry.Grab(m.target)
-		//fmt.Printf(":: %d : %#T %#v\n   - : %#T %#v\n", m.index, valp, valp, *(valp.(*interface{})), *(valp.(*interface{})))
 		m.index++
 		return false, driver.Recurse(tok, valp, s.pickMarshalMachine(valp))
 	}

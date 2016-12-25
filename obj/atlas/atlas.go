@@ -12,6 +12,11 @@ import (
 )
 
 type Atlas struct {
+	// REVIEW : I think we're going to need to have the reflect.Type here.
+	// I've been trying to resist mandating it's use, but...
+	// Having it will make it possible to do better sanity checking in a LOT of places,
+	// and it also seems to be sometimes quite necessary during *some* init paths.
+
 	Fields []Entry
 
 	// A validation function which will be called for the whole value
@@ -54,6 +59,12 @@ type Entry struct {
 type FieldName []string
 
 type FieldRoute []int
+
+func (atl *Atlas) Init() {
+	for _, f := range atl.Fields {
+		f.init()
+	}
+}
 
 func (ent *Entry) init() {
 	// Validate reference options: only one may be used.
