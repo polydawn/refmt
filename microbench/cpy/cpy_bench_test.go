@@ -69,6 +69,14 @@ func Benchmark_CopyByRef(b *testing.B) {
 //	Benchmark_CopyByRef-8                   2000000000               0.59 ns/op
 //	Benchmark_CopyByValue_String-8          20000000                72.3 ns/op
 //	Benchmark_CopyByRef_String-8            2000000000               0.60 ns/op
+//
+// Not commited, but note that there is no sigificant impact from the length of the string.
+// Benchmem offers some insight into why:
+//
+//	Benchmark_CopyByValue_String-8          20000000                73.5 ns/op            16 B/op          1 allocs/op
+//
+// Evidentally copy-by-value of a string requires a proportionally larger alloc to store the length;
+// and furthermore despite being a single alloc, the size in bytes does visibly increase time cost.
 func Benchmark_CopyByValue_String(b *testing.B) {
 	type Alias interface{}
 	var slot Alias
