@@ -89,6 +89,9 @@ func TestMarshaller(t *testing.T) {
 		var tok Token
 		for n, expectTok := range tr.expectSeq {
 			done, err = marshaller.Step(&tok)
+			if tok != expectTok {
+				t.Errorf("step %d yielded wrong token: expected %s, got %s", n, expectTok, tok)
+			}
 			if err != nil {
 				t.Errorf("step %d (expecting %#v) errored: %s", n, expectTok, err)
 			}
