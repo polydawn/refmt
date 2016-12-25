@@ -35,6 +35,12 @@ func TestTokenValidityDefn(t *testing.T) {
 }
 
 func TestTokenEqualityDefn(t *testing.T) {
+	var str1 string = "one"
+	var str2 string = "two"
+	var str1b string = "one"
+	var i3 int = 3
+	var i4 int = 4
+	var i3b int = 3
 	tt := []struct {
 		tok1 Token
 		tok2 Token
@@ -51,9 +57,20 @@ func TestTokenEqualityDefn(t *testing.T) {
 		{Token_MapOpen, Token_ArrOpen, false},
 		{Token_ArrOpen, Token_ArrClose, false},
 		{Token_ArrOpen, Token_MapClose, false},
+
+		// Other values should behave as you expect:
+		{&str1, &str1, true},  // self is same
+		{&str1, &str2, false}, // other content is not
+		{&str1, &str1b, true}, // other ptr, but same content is same
+		{&i3, &i3, true},      // self is same
+		{&i3, &i4, false},     // other content is not
+		{&i3, &i3b, true},     // other ptr, but same content is same
+		{&i3, &str1, false},   // totally different types are not same
+		{&i3, Token_MapOpen, false},
+		{Token_MapOpen, &i3, false},
 	}
 	for _, tr := range tt {
-		Assert(t, fmt.Sprintf("equality check for %#v==%#v", tr.tok1, tr.tok2),
+		Assert(t, fmt.Sprintf("equality check for %q==%q", tr.tok1, tr.tok2),
 			tr.eq, IsTokenEqual(tr.tok1, tr.tok2))
 	}
 }

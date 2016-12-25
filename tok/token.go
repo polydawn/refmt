@@ -37,7 +37,7 @@ func (t ctrlToken) String() string {
 	case Token_ArrClose:
 		return "<]>"
 	default:
-		return "<???>"
+		return "<?>"
 	}
 }
 
@@ -73,6 +73,10 @@ func IsTokenEqual(t1, t2 Token) bool {
 	switch t1 {
 	case Token_MapOpen, Token_MapClose, Token_ArrOpen, Token_ArrClose:
 		return t1 == t2
+	}
+	switch t2 {
+	case Token_MapOpen, Token_MapClose, Token_ArrOpen, Token_ArrClose:
+		return false
 	}
 	if !IsValidToken(t1) {
 		return false
