@@ -118,3 +118,68 @@ func Benchmark_CopyByRef_String(b *testing.B) {
 		b.Error("final value of valB wrong")
 	}
 }
+
+// One more quick check -- let's be sure that it's not some bizzare hyperoptimization
+// that only works on pointers when they're the same: let's flip two different types
+// of pointers through the interface slot:
+//
+//	Benchmark_CopyByValue_Mixed-8           20000000               117 ns/op              24 B/op          2 allocs/op
+//	Benchmark_CopyByRef_Mixed-8             2000000000               0.90 ns/op            0 B/op          0 allocs/op
+//
+// Nope.  Same.  Alloc size and count matches straight addition for copy-by-value,
+// and remains zero zero and fast for copy-by-ref.
+func Benchmark_CopyByValue_Mixed(b *testing.B) {
+	type Alias interface{}
+	var slot Alias
+	type StructA struct {
+		field string
+		other int
+	}
+	type StructB struct {
+		field string
+		other int
+	}
+	valA := StructA{"alksjdlkjweoihgowihehgioijerg", 4}
+	valB := StructB{}
+
+	for i := 0; i < b.N; i++ {
+		slot = valA.field
+		valB.field = slot.(string)
+		slot = valA.other
+		valB.other = slot.(int)
+	}
+	if valB.field != valA.field {
+		b.Error("final value of valB str wrong")
+	}
+	if valB.other != valA.other {
+		b.Error("final value of valB int wrong")
+	}
+}
+
+func Benchmark_CopyByRef_Mixed(b *testing.B) {
+	type Alias interface{}
+	var slot Alias
+	type StructA struct {
+		field string
+		other int
+	}
+	type StructB struct {
+		field string
+		other int
+	}
+	valA := StructA{"alksjdlkjweoihgowihehgioijerg", 4}
+	valB := StructB{}
+
+	for i := 0; i < b.N; i++ {
+		slot = &(valA.field)
+		valB.field = *(slot.(*string))
+		slot = &(valA.other)
+		valB.other = *(slot.(*int))
+	}
+	if valB.field != valA.field {
+		b.Error("final value of valB str wrong")
+	}
+	if valB.other != valA.other {
+		b.Error("final value of valB int wrong")
+	}
+}
