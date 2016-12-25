@@ -7,6 +7,11 @@ import (
 	. "github.com/polydawn/go-xlate/testutil"
 )
 
+func TestCtrlTokenUniqueness(t *testing.T) {
+	Assert(t, fmt.Sprintf("control tokens are not naturally equal to values"),
+		Token_MapOpen == '{', false)
+}
+
 func TestTokenValidityDefn(t *testing.T) {
 	var str string
 	var i int
