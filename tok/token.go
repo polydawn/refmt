@@ -12,11 +12,34 @@ import (
 type Token interface{}
 
 var (
-	Token_MapOpen  Token = '{'
-	Token_MapClose Token = '}'
-	Token_ArrOpen  Token = '['
-	Token_ArrClose Token = ']'
+	Token_MapOpen  Token = ctrlToken('{')
+	Token_MapClose Token = ctrlToken('}')
+	Token_ArrOpen  Token = ctrlToken('[')
+	Token_ArrClose Token = ctrlToken(']')
 )
+
+/*
+	Unexported type used to make sure the control tokens are unique (e.g. so
+	you can't accidentally return a rune from buggy code and end up in a very
+	strange situation).  Also, attaches a tostring function so you don't
+	get a character number in your debug printfs.
+*/
+type ctrlToken rune
+
+func (t ctrlToken) String() string {
+	switch t {
+	case Token_MapOpen:
+		return "<{>"
+	case Token_MapClose:
+		return "<}>"
+	case Token_ArrOpen:
+		return "<[>"
+	case Token_ArrClose:
+		return "<]>"
+	default:
+		return "<???>"
+	}
+}
 
 func IsValidToken(t Token) bool {
 	switch t {

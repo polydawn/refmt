@@ -19,8 +19,8 @@ func TestTokenValidityDefn(t *testing.T) {
 		{Token_MapClose, true},
 		{Token_ArrOpen, true},
 		{Token_ArrClose, true},
-		{'[', true},  // ...!  Remember, casting makes it so.
-		{"{", false}, // ... but strings aren't so casted.
+		{'[', false}, // casting will not make it so, due to the unexported typedef.
+		{"{", false},
 
 		// Some actual values:
 		{&str, true},
@@ -29,7 +29,7 @@ func TestTokenValidityDefn(t *testing.T) {
 		{4, false},
 	}
 	for _, tr := range tt {
-		Assert(t, fmt.Sprintf("validity check for %#v", tr.tok),
+		Assert(t, fmt.Sprintf("validity check for %q", tr.tok),
 			tr.valid, IsValidToken(tr.tok))
 	}
 }
