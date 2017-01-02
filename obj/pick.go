@@ -26,10 +26,8 @@ func (s *Suite) Add(typeHint interface{}, mach MarshalMachine) {
 		s.mappings = make(map[reflect.Type]MarshalMachine)
 	}
 	rt := reflect.TypeOf(typeHint)
-	for {
-		if rt.Kind() == reflect.Ptr {
-			rt = rt.Elem()
-		}
+	for rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
 	}
 	s.mappings[rt] = mach
 }
