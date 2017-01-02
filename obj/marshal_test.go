@@ -58,6 +58,40 @@ func TestMarshaller(t *testing.T) {
 				Token_MapClose,
 			},
 		},
+		{
+			title: "nested structs and literals",
+			targetFn: func() interface{} {
+				return &AA{
+					"s",
+					BB{},
+				}
+			},
+			suite: (&Suite{}).
+				Add(NN{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+					Fields: []atlas.Entry{ /* this should be extraneous */ },
+				})).
+				Add(AA{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+					Type: reflect.TypeOf(AA{}),
+					Fields: []atlas.Entry{
+						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
+						{Name: "a.x", FieldName: atlas.FieldName{"X"}},
+					},
+				})).
+				Add(BB{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+					Type: reflect.TypeOf(BB{}),
+					Fields: []atlas.Entry{
+						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
+					},
+				})),
+			expectSeq: []Token{
+				Token_MapOpen,
+				TokStr("a.y"), Token_MapOpen,
+				TokStr("zee"), TokStr(""),
+				Token_MapClose,
+				TokStr("a.x"), TokStr("s"),
+				Token_MapClose,
+			},
+		},
 		// TODO following doesn't work yet because of type-loss issues when converting away from reflect.Value
 		//  (which are in turn blocked from easily resolution because of the tricky detail that map vals are not addressable..).
 		//{
