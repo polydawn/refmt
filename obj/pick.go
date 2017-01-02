@@ -21,7 +21,7 @@ type Suite struct {
 
 		suite.Add(YourType{}, &SomeMachineImpl{})
 */
-func (s *Suite) Add(typeHint interface{}, mach MarshalMachine) {
+func (s *Suite) Add(typeHint interface{}, mach MarshalMachine) *Suite {
 	if s.mappings == nil {
 		s.mappings = make(map[reflect.Type]MarshalMachine)
 	}
@@ -30,6 +30,7 @@ func (s *Suite) Add(typeHint interface{}, mach MarshalMachine) {
 		rt = rt.Elem()
 	}
 	s.mappings[rt] = mach
+	return s
 }
 
 func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {

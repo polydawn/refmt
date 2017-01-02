@@ -43,15 +43,14 @@ func TestMarshaller(t *testing.T) {
 					7, "s",
 				}
 			},
-			suite: &Suite{map[reflect.Type]MarshalMachine{
-				reflect.TypeOf(NN{}): NewMarshalMachineStructAtlas(atlas.Atlas{
+			suite: (&Suite{}).
+				Add(NN{}, NewMarshalMachineStructAtlas(atlas.Atlas{
 					Type: reflect.TypeOf(NN{}),
 					Fields: []atlas.Entry{
 						{Name: "F", FieldName: atlas.FieldName{"F"}},
 						{Name: "X", FieldName: atlas.FieldName{"X"}},
 					},
-				}),
-			}},
+				})),
 			expectSeq: []Token{
 				Token_MapOpen,
 				TokStr("F"), TokInt(7),
