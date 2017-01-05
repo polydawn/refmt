@@ -40,6 +40,8 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 		},
 	}, {
 		title: "struct containing nils",
+		// This is not exactly a well-confined test: it covers the ptr machine,
+		// not just this struct atlas machine.
 		targetFn: func() interface{} {
 			return &struct {
 				Z *string
@@ -53,6 +55,28 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 		expectSeq: []Token{
 			Token_MapOpen,
 			TokStr("x"), nil,
+			Token_MapClose,
+		},
+	}, {
+		title: "struct containing ptr to primitve",
+		// This is not exactly a well-confined test: it covers the ptr machine,
+		// not just this struct atlas machine.
+		targetFn: func() interface{} {
+			s := "asdf"
+			return &struct {
+				Z *string
+			}{
+				&s,
+			}
+		},
+		atlas: atlas.Atlas{
+			Fields: []atlas.Entry{
+				{Name: "x", FieldRoute: []int{0}},
+			},
+		},
+		expectSeq: []Token{
+			Token_MapOpen,
+			TokStr("x"), TokStr("asdf"),
 			Token_MapClose,
 		},
 	}}
