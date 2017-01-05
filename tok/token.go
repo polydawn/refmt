@@ -42,6 +42,9 @@ func (t ctrlToken) String() string {
 }
 
 func IsValidToken(t Token) bool {
+	if t == nil {
+		return true
+	}
 	switch t {
 	case Token_MapOpen, Token_MapClose, Token_ArrOpen, Token_ArrClose:
 		return true
@@ -70,6 +73,9 @@ func IsValidToken(t Token) bool {
 	This method is primarily useful for testing.
 */
 func IsTokenEqual(t1, t2 Token) bool {
+	if t1 == nil && t2 == nil {
+		return true
+	}
 	switch t1 {
 	case Token_MapOpen, Token_MapClose, Token_ArrOpen, Token_ArrClose:
 		return t1 == t2

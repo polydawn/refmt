@@ -38,6 +38,23 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 			TokStr("z"), TokStr("nine"),
 			Token_MapClose,
 		},
+	}, {
+		title: "struct containing nils",
+		targetFn: func() interface{} {
+			return &struct {
+				Z *string
+			}{}
+		},
+		atlas: atlas.Atlas{
+			Fields: []atlas.Entry{
+				{Name: "x", FieldRoute: []int{0}},
+			},
+		},
+		expectSeq: []Token{
+			Token_MapOpen,
+			TokStr("x"), nil,
+			Token_MapClose,
+		},
 	}}
 	for _, tr := range tt {
 		// Setup

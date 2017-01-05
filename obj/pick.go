@@ -109,8 +109,7 @@ func (s *Suite) maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
 		//  so it can have state for cache.
 		return &MarshalMachineMapWildcard{}
 	case reflect.Ptr:
-		// REVIEW: doing this once, fine.  but unbounded?  questionable.
-		return s.maybeMarshalMachineForType(rt.Elem())
+		return &MarshalMachinePtr{}
 	case reflect.Struct:
 		return s.mappings[rt]
 	case reflect.Interface:
