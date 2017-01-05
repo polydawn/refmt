@@ -36,7 +36,7 @@ func (s *Suite) Add(typeHint interface{}, mach MarshalMachine) *Suite {
 func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
 	mach := s.maybePickMarshalMachine(valp)
 	if mach == nil {
-		panic(fmt.Errorf("no machine available in suite for type %T", valp))
+		panic(ErrNoHandler{valp})
 	}
 	return mach
 }
