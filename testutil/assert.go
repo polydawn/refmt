@@ -18,7 +18,7 @@ func Assert(t *testing.T, title string, expect, actual interface{}) {
 	}
 }
 
-func capturePanics(fn func()) (e error) {
+func CapturePanics(fn func()) (e error) {
 	defer func() {
 		if rcvr := recover(); rcvr != nil {
 			e = rcvr.(error)
