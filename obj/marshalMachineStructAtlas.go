@@ -32,7 +32,7 @@ func (m *MarshalMachineStructAtlas) Reset(s *Suite, target interface{}) error {
 
 func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *Suite, tok *Token) (done bool, err error) {
 	if m.index < 0 {
-		if m.target == nil { // REVIEW p sure should have ptr cast and indirect
+		if m.target == nil {
 			*tok = nil
 			m.index++
 			return true, nil
