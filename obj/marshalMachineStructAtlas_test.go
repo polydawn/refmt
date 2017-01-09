@@ -1,7 +1,6 @@
 package obj
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 

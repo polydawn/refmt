@@ -104,6 +104,8 @@ func TokenToString(t Token) string {
 		return "<[>"
 	case Token_ArrClose:
 		return "<]>"
+	case nil:
+		return "<->"
 	}
 	if !IsValidToken(t) {
 		return fmt.Sprintf("<INVALID:%T:%p>",
