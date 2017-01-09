@@ -26,6 +26,11 @@ func TestMarshaller(t *testing.T) {
 		F *int
 		Z *string
 	}
+	type DDD struct {
+		A **AA
+		F *int
+		Z *string
+	}
 
 	tt := []struct {
 		title       string
@@ -156,6 +161,54 @@ func TestMarshaller(t *testing.T) {
 						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
 					},
 				})),
+			expectSeq: []Token{
+				Token_MapOpen,
+				TokStr("1"), Token_MapOpen,
+				/**/ TokStr("a.y"), Token_MapOpen,
+				/**/ /**/ TokStr("zee"), TokStr("B"),
+				/**/ Token_MapClose,
+				Token_MapClose,
+				TokStr("3"), nil,
+				TokStr("2"), TokInt(2),
+				Token_MapClose,
+			},
+		},
+		{
+			title: "nested structs and deep ptrs",
+			targetFn: func() interface{} {
+				f := 2
+				ap := &AA{
+					"X",
+					BB{"B"},
+				}
+				return &DDD{
+					&ap,
+					&f,
+					nil,
+				}
+			},
+			suite: (&Suite{}).
+				Add(DDD{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+					Type: reflect.TypeOf(DDD{}),
+					Fields: []atlas.Entry{
+						{Name: "1", FieldName: atlas.FieldName{"A"}},
+						{Name: "3", FieldName: atlas.FieldName{"Z"}},
+						{Name: "2", FieldName: atlas.FieldName{"F"}},
+					},
+				})).
+				Add(AA{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+					Type: reflect.TypeOf(AA{}),
+					Fields: []atlas.Entry{
+						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
+					},
+				})).
+				Add(BB{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+					Type: reflect.TypeOf(BB{}),
+					Fields: []atlas.Entry{
+						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
+					},
+				})),
+			// should serialize exact same way as previous test:
 			expectSeq: []Token{
 				Token_MapOpen,
 				TokStr("1"), Token_MapOpen,
