@@ -22,6 +22,9 @@ func CapturePanics(fn func()) (e error) {
 	defer func() {
 		if rcvr := recover(); rcvr != nil {
 			e = rcvr.(error)
+			//stack := make([]byte, 1024*1024)
+			//stackLen := runtime.Stack(stack, false)
+			//fmt.Printf("stack: %s\n", string(stack[0:stackLen]))
 		}
 	}()
 	fn()

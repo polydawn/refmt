@@ -32,7 +32,9 @@ type MarshalMachine interface {
 type marshalMachineStep func(*MarshalDriver, *Token) (done bool, err error)
 
 func (d *MarshalDriver) Step(tok *Token) (bool, error) {
+	//	fmt.Printf("> next step is %#v\n", d.step)
 	done, err := d.step.Step(d, d.suite, tok)
+	//	fmt.Printf(">> yield is %#v\n", TokenToString(*tok))
 	// If the step errored: out, entirely.
 	if err != nil {
 		return true, err
@@ -46,6 +48,7 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	if nSteps == -1 {
 		return true, nil // that's all folks
 	}
+	//	fmt.Printf(">> popping up from %#v\n", d.stack)
 	d.step = d.stack[nSteps]
 	d.stack = d.stack[0:nSteps]
 	return false, nil
@@ -65,6 +68,7 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	that object will be traversed and the stream ready for you to continue.
 */
 func (d *MarshalDriver) Recurse(tok *Token, target interface{}, nextMach MarshalMachine) error {
+	//	fmt.Printf(">>> pushing into recursion with %#v\n", nextMach)
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	d.stack = append(d.stack, d.step)
 	// Initialize the machine for this new target value.

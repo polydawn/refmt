@@ -31,6 +31,7 @@ func (m *MarshalMachineStructAtlas) Reset(s *Suite, target interface{}) error {
 }
 
 func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *Suite, tok *Token) (done bool, err error) {
+	//fmt.Printf("--step on %#v: i=%d/%d v=%v\n", m.target, m.index, len(m.atlas.Fields), m.value)
 	if m.index < 0 {
 		if m.target == nil {
 			*tok = nil
