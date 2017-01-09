@@ -79,6 +79,22 @@ func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
 	Returns nil if there is no marshal machine in the suite for this type.
 */
 func (s *Suite) maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
+	peelCount := 0
+	for rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
+		peelCount++
+	}
+	mach := s._maybeMarshalMachineForType(rt)
+	if mach == nil {
+		return nil
+	}
+	if peelCount > 0 {
+		return &ptrDerefDelegateMarshalMachine{mach, peelCount, false}
+	}
+	return mach
+}
+
+func (s *Suite) _maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
 	switch rt.Kind() {
 	case reflect.Bool:
 		return &MarshalMachineLiteral{}
@@ -96,26 +112,15 @@ func (s *Suite) maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
 	case reflect.Array:
 		return &MarshalMachineSliceWildcard{}
 	case reflect.Map:
-		// Consider (for efficiency in happy paths):
-		//		switch v2 := v.(type) {
-		//		case map[string]interface{}:
-		//			_ = v2
-		//			return nil // TODO special
-		//		default:
-		//			return &MarshalMachineMapWildcard{}
-		//		}
-		// but, it's not clear how we'd cache this.
-		// possibly we should attach this whole method to the Driver,
-		//  so it can have state for cache.
 		return &MarshalMachineMapWildcard{}
-	case reflect.Ptr:
-		return &MarshalMachinePtr{}
 	case reflect.Struct:
 		return s.mappings[rt]
 	case reflect.Interface:
 		panic("TODO iface")
 	case reflect.Func:
 		panic("TODO func") // hey, if we can find it in the suite
+	case reflect.Ptr:
+		panic("unreachable: ptrs must already be resolved")
 	default:
 		panic(fmt.Errorf("excursion %s", rt.Kind()))
 	}

@@ -21,6 +21,11 @@ func TestMarshaller(t *testing.T) {
 		X string
 		Y BB
 	}
+	type DD struct {
+		A *AA
+		F *int
+		Z *string
+	}
 
 	tt := []struct {
 		title       string
@@ -116,6 +121,52 @@ func TestMarshaller(t *testing.T) {
 			},
 			expectPanic: ErrNoHandler{},
 			errString:   "no machine available in suite for struct of type obj.BB",
+		},
+		{
+			title: "nested structs and ptrs",
+			targetFn: func() interface{} {
+				f := 2
+				return &DD{
+					&AA{
+						"X",
+						BB{"B"},
+					},
+					&f,
+					nil,
+				}
+			},
+			suite: (&Suite{}).
+				Add(DD{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+					Type: reflect.TypeOf(DD{}),
+					Fields: []atlas.Entry{
+						{Name: "1", FieldName: atlas.FieldName{"A"}},
+						{Name: "3", FieldName: atlas.FieldName{"Z"}},
+						{Name: "2", FieldName: atlas.FieldName{"F"}},
+					},
+				})).
+				Add(AA{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+					Type: reflect.TypeOf(AA{}),
+					Fields: []atlas.Entry{
+						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
+					},
+				})).
+				Add(BB{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+					Type: reflect.TypeOf(BB{}),
+					Fields: []atlas.Entry{
+						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
+					},
+				})),
+			expectSeq: []Token{
+				Token_MapOpen,
+				TokStr("1"), Token_MapOpen,
+				/**/ TokStr("a.y"), Token_MapOpen,
+				/**/ /**/ TokStr("zee"), TokStr("B"),
+				/**/ Token_MapClose,
+				Token_MapClose,
+				TokStr("3"), nil,
+				TokStr("2"), TokInt(2),
+				Token_MapClose,
+			},
 		},
 		// TODO following doesn't work yet because of type-loss issues when converting away from reflect.Value
 		//  (which are in turn blocked from easily resolution because of the tricky detail that map vals are not addressable..).

@@ -76,6 +76,9 @@ func IsTokenEqual(t1, t2 Token) bool {
 	if t1 == nil && t2 == nil {
 		return true
 	}
+	if t1 == nil || t2 == nil {
+		return false
+	}
 	switch t1 {
 	case Token_MapOpen, Token_MapClose, Token_ArrOpen, Token_ArrClose:
 		return t1 == t2
@@ -108,6 +111,10 @@ func TokenToString(t Token) string {
 		return "<->"
 	}
 	if !IsValidToken(t) {
+		return fmt.Sprintf("<INVALID:%T:%p>",
+			t, t)
+	}
+	if reflect.ValueOf(t).IsNil() {
 		return fmt.Sprintf("<INVALID:%T:%p>",
 			t, t)
 	}

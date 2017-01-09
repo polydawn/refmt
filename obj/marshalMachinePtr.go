@@ -6,26 +6,30 @@ import (
 	"github.com/polydawn/go-xlate/tok"
 )
 
-/*
-	A MarshalMachine which handles (any) pointer indirection.
-*/
-type MarshalMachinePtr struct {
-	target interface{}
+type ptrDerefDelegateMarshalMachine struct {
+	MarshalMachine
+	peelCount int
+
+	isNil bool
 }
 
-func (m *MarshalMachinePtr) Reset(_ *Suite, target interface{}) error {
-	m.target = target
-	return nil
+func (m *ptrDerefDelegateMarshalMachine) Reset(s *Suite, valp interface{}) error {
+	m.isNil = false
+	rv := reflect.ValueOf(valp)
+	for i := 0; i < m.peelCount; i++ {
+		rv = rv.Elem()
+		if rv.IsNil() {
+			m.isNil = true
+			return nil
+		}
+	}
+	return m.MarshalMachine.Reset(s, rv.Interface())
 }
 
-func (m MarshalMachinePtr) Step(d *MarshalDriver, s *Suite, tok *tok.Token) (done bool, err error) {
-	//	fmt.Printf(":hai -- ptr fondling %#v\n", m.target)
-	val_rv := reflect.ValueOf(m.target).Elem()
-	if val_rv.IsNil() {
+func (m *ptrDerefDelegateMarshalMachine) Step(d *MarshalDriver, s *Suite, tok *tok.Token) (done bool, err error) {
+	if m.isNil {
 		*tok = nil
 		return true, nil
 	}
-	derefvalp_rv := val_rv.Elem().Addr()
-	//	fmt.Printf(":: unwound to %#v\n", derefvalp_rv.Interface())
-	return true, d.Recurse(tok, derefvalp_rv.Interface(), s.pickMarshalMachine(derefvalp_rv.Interface()))
+	return m.MarshalMachine.Step(d, s, tok)
 }
