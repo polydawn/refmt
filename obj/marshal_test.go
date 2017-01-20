@@ -236,6 +236,23 @@ func TestMarshaller(t *testing.T) {
 				Token_MapClose,
 			},
 		},
+		{
+			title: "map of map of literals",
+			targetFn: func() interface{} {
+				return &map[string]map[string]int{
+					"a": map[string]int{
+						"b": 2,
+					},
+				}
+			},
+			expectSeq: []Token{
+				Token_MapOpen,
+				TokStr("a"), Token_MapOpen,
+				TokStr("b"), TokInt(2),
+				Token_MapClose,
+				Token_MapClose,
+			},
+		},
 	}
 	for _, tr := range tt {
 		if tr.suite == nil {
