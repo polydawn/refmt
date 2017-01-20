@@ -66,11 +66,13 @@ func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *Suite, tok *Token)
 		return true, fmt.Errorf("invalid state: value already consumed")
 	}
 	if m.value {
-		// TODO undesirable: using reflect to get an iface and taking its addr like this misplaces type info
-		val := m.target_rv.MapIndex(m.keys[m.index].rv).Interface()
+		val_rv := m.target_rv.MapIndex(m.keys[m.index].rv)
+		new_vprv := reflect.New(val_rv.Type())
+		new_vprv.Elem().Set(val_rv)
+		valp := new_vprv.Interface()
 		m.value = false
 		m.index++
-		return false, d.Recurse(tok, &val, s.pickMarshalMachine(&val))
+		return false, d.Recurse(tok, valp, s.pickMarshalMachine(valp))
 	}
 	*tok = &(m.keys[m.index].s)
 	m.value = true

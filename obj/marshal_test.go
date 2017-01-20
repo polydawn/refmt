@@ -223,19 +223,19 @@ func TestMarshaller(t *testing.T) {
 		},
 		// TODO following doesn't work yet because of type-loss issues when converting away from reflect.Value
 		//  (which are in turn blocked from easily resolution because of the tricky detail that map vals are not addressable..).
-		//{
-		//	title: "wildcard map of literals",
-		//	targetFn: func() interface{} {
-		//		return &map[string]int{
-		//			"a": 1,
-		//		}
-		//	},
-		//	expectSeq: []Token{
-		//		Token_MapOpen,
-		//		"a", 1,
-		//		Token_MapClose,
-		//	},
-		//},
+		{
+			title: "map of literals",
+			targetFn: func() interface{} {
+				return &map[string]int{
+					"a": 1,
+				}
+			},
+			expectSeq: []Token{
+				Token_MapOpen,
+				TokStr("a"), TokInt(1),
+				Token_MapClose,
+			},
+		},
 	}
 	for _, tr := range tt {
 		if tr.suite == nil {
