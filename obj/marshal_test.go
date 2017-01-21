@@ -221,8 +221,6 @@ func TestMarshaller(t *testing.T) {
 				Token_MapClose,
 			},
 		},
-		// TODO following doesn't work yet because of type-loss issues when converting away from reflect.Value
-		//  (which are in turn blocked from easily resolution because of the tricky detail that map vals are not addressable..).
 		{
 			title: "map of literals",
 			targetFn: func() interface{} {
