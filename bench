@@ -18,3 +18,4 @@ go test \
 ### Beware the dangers of trying to read pprof on a benchmark.
 ### The run counts will direly confuse any attempt to read absolutes,
 ###  or get meaning out of any paths hit by more than one test.
+### See the `profile` script for another route that clarifies this.
