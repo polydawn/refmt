@@ -68,9 +68,9 @@ func (d *Serializer) Step(tok *Token) (done bool, err error) {
 		default:
 			// It's a key.  It'd better be a string.
 			switch v2 := (*tok).(type) {
-			case string:
+			case *string:
 				d.entrySep()
-				d.wr.Write([]byte(fmt.Sprintf("%q", v2)))
+				d.wr.Write([]byte(fmt.Sprintf("%q", *v2)))
 				d.wr.Write(wordColon)
 				d.current = phase_mapExpectValue
 				return false, nil
@@ -169,12 +169,12 @@ func (d *Serializer) entrySep() {
 	d.some = true
 }
 
-func (d *Serializer) flushValue(val *Token) {
-	switch v2 := (*val).(type) {
-	case string:
-		d.wr.Write([]byte(fmt.Sprintf("%q", v2)))
-	case int:
-		d.wr.Write([]byte(fmt.Sprintf("%d", v2)))
+func (d *Serializer) flushValue(tokSlot *Token) {
+	switch valp := (*tokSlot).(type) {
+	case *string:
+		d.wr.Write([]byte(fmt.Sprintf("%q", *valp)))
+	case *int:
+		d.wr.Write([]byte(fmt.Sprintf("%d", *valp)))
 	default:
 		panic("TODO finish more jsonSerializer primitives support")
 	}
