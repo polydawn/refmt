@@ -18,10 +18,11 @@ echo "${funcs[@]}" | tr " " "\n" | xargs -n1 -I{} \
 	go test \
 		-run=XXX -bench={} \
 		-o "$profPath/bench.bin" \
-		-cpuprofile="$profPath/{}.cpu.pprof"
+		-cpuprofile="$profPath/{}.cpu.pprof" \
+		2> /dev/null | grep "^Benchmark_"
 echo "${funcs[@]}" | tr " " "\n" | xargs -n1 -I{} \
 	go tool pprof \
 		--pdf \
 		--output "$profPath/{}.cpu.pdf" \
 		"$profPath/bench.bin" "$profPath/{}.cpu.pprof"
-ls -lah "$profPath"/*.pdf
+#ls -lah "$profPath"/*.pdf # 'go tool' already says where it puts it
