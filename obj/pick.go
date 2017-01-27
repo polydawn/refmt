@@ -119,12 +119,12 @@ func (s *Suite) _maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
 		}
 		return nil
 	case reflect.Interface:
-		panic("TODO iface")
+		panic(ErrUnreachable{"TODO iface"})
 	case reflect.Func:
-		panic("TODO func") // hey, if we can find it in the suite
+		panic(ErrUnreachable{"TODO func"}) // hey, if we can find it in the suite
 	case reflect.Ptr:
-		panic("unreachable: ptrs must already be resolved")
+		panic(ErrUnreachable{"unreachable: ptrs must already be resolved"})
 	default:
-		panic(fmt.Errorf("excursion %s", rt.Kind()))
+		panic(ErrUnreachable{}.Fmt("excursion %s", rt.Kind()))
 	}
 }

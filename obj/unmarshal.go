@@ -88,6 +88,6 @@ func pickUnmarshalMachine(v interface{}) UnmarshalMachine {
 	//  Look up what kind of machine to use, based on the type info, and use it.
 	default:
 		// TODO mustAddressable check goes here.
-		panic("TODO mappersuite lookup")
+		panic(ErrUnreachable{"TODO mappersuite lookup"})
 	}
 }
