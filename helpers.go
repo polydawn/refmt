@@ -1,6 +1,7 @@
 package xlate
 
 import (
+	"bytes"
 	"io"
 
 	"github.com/polydawn/go-xlate/json"
@@ -17,9 +18,15 @@ type JsonEncoder struct {
 
 func (d *JsonEncoder) Marshal(v interface{}) {
 	TokenPump{
-		nil, // todo get the rest of obj.NewMarshaller(v) in place
+		obj.NewMarshaler(&obj.Suite{}, v),
 		json.NewSerializer(d.wr),
 	}.Run()
+}
+
+func JsonEncode(v interface{}) []byte {
+	var buf bytes.Buffer
+	NewJsonEncoder(&buf).Marshal(v)
+	return buf.Bytes()
 }
 
 func NewJsonDecoder(r io.Reader) *JsonDecoder {
