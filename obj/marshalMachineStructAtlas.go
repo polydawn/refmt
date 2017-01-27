@@ -15,9 +15,9 @@ type MarshalMachineStructAtlas struct {
 	value  bool        // Progress marker
 }
 
-func NewMarshalMachineStructAtlas(atl atlas.Atlas) MarshalMachine {
+func MarshalMachineStructAtlasFactory(atl atlas.Atlas) func() MarshalMachine {
 	atl.Init()
-	return &MarshalMachineStructAtlas{atlas: atl}
+	return func() MarshalMachine { return &MarshalMachineStructAtlas{atlas: atl} }
 }
 
 func (m *MarshalMachineStructAtlas) Reset(s *Suite, target interface{}) error {

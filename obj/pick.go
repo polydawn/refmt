@@ -6,10 +6,10 @@ import (
 )
 
 type Suite struct {
-	// FIXME this type is still, yes still, wrong: you need a factory for machines,
-	// because otherwise you're gonna have a bad day if the same type comes up twice in a stack.
-	// We really do need some declaritive type thing for "machinestrategy" here, separate from the machine impl.
-	mappings map[reflect.Type]MarshalMachine
+	// Map typeinfo to a factory function for new marshaller state machines.
+	// A factory function is needed even though machines are resettable and reusable
+	// because we still need more than one machine instance in the case of recursive structures.
+	mappings map[reflect.Type]func() MarshalMachine
 }
 
 /*
@@ -21,15 +21,15 @@ type Suite struct {
 
 		suite.Add(YourType{}, &SomeMachineImpl{})
 */
-func (s *Suite) Add(typeHint interface{}, mach MarshalMachine) *Suite {
+func (s *Suite) Add(typeHint interface{}, machFactory func() MarshalMachine) *Suite {
 	if s.mappings == nil {
-		s.mappings = make(map[reflect.Type]MarshalMachine)
+		s.mappings = make(map[reflect.Type]func() MarshalMachine)
 	}
 	rt := reflect.TypeOf(typeHint)
 	for rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
 	}
-	s.mappings[rt] = mach
+	s.mappings[rt] = machFactory
 	return s
 }
 
@@ -114,7 +114,10 @@ func (s *Suite) _maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
 	case reflect.Map:
 		return &MarshalMachineMapWildcard{}
 	case reflect.Struct:
-		return s.mappings[rt]
+		if factory, ok := s.mappings[rt]; ok {
+			return factory()
+		}
+		return nil
 	case reflect.Interface:
 		panic("TODO iface")
 	case reflect.Func:

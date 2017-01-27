@@ -31,6 +31,9 @@ func TestMarshaller(t *testing.T) {
 		F *int
 		Z *string
 	}
+	type RR struct {
+		R *RR
+	}
 
 	tt := []struct {
 		title       string
@@ -56,7 +59,7 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(NN{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(NN{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(NN{}),
 					Fields: []atlas.Entry{
 						{Name: "F", FieldName: atlas.FieldName{"F"}},
@@ -79,17 +82,17 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(NN{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(NN{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Fields: []atlas.Entry{ /* this should be extraneous */ },
 				})).
-				Add(AA{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(AA{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(AA{}),
 					Fields: []atlas.Entry{
 						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
 						{Name: "a.x", FieldName: atlas.FieldName{"X"}},
 					},
 				})).
-				Add(BB{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(BB{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(BB{}),
 					Fields: []atlas.Entry{
 						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
@@ -113,7 +116,7 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(AA{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(AA{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(AA{}),
 					Fields: []atlas.Entry{
 						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
@@ -141,7 +144,7 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(DD{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(DD{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(DD{}),
 					Fields: []atlas.Entry{
 						{Name: "1", FieldName: atlas.FieldName{"A"}},
@@ -149,13 +152,13 @@ func TestMarshaller(t *testing.T) {
 						{Name: "2", FieldName: atlas.FieldName{"F"}},
 					},
 				})).
-				Add(AA{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(AA{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(AA{}),
 					Fields: []atlas.Entry{
 						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
 					},
 				})).
-				Add(BB{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(BB{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(BB{}),
 					Fields: []atlas.Entry{
 						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
@@ -188,7 +191,7 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(DDD{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(DDD{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(DDD{}),
 					Fields: []atlas.Entry{
 						{Name: "1", FieldName: atlas.FieldName{"A"}},
@@ -196,13 +199,13 @@ func TestMarshaller(t *testing.T) {
 						{Name: "2", FieldName: atlas.FieldName{"F"}},
 					},
 				})).
-				Add(AA{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(AA{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(AA{}),
 					Fields: []atlas.Entry{
 						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
 					},
 				})).
-				Add(BB{}, NewMarshalMachineStructAtlas(atlas.Atlas{
+				Add(BB{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
 					Type: reflect.TypeOf(BB{}),
 					Fields: []atlas.Entry{
 						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
@@ -218,6 +221,36 @@ func TestMarshaller(t *testing.T) {
 				Token_MapClose,
 				TokStr("3"), nil,
 				TokStr("2"), TokInt(2),
+				Token_MapClose,
+			},
+		},
+		{
+			title: "recursive structures",
+			targetFn: func() interface{} {
+				return &RR{
+					&RR{
+						&RR{
+							&RR{},
+						},
+					},
+				}
+			},
+			suite: (&Suite{}).
+				Add(RR{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+					Type: reflect.TypeOf(RR{}),
+					Fields: []atlas.Entry{
+						{Name: "r", FieldName: atlas.FieldName{"R"}},
+					},
+				})),
+			expectSeq: []Token{
+				Token_MapOpen,
+				/**/ TokStr("r"), Token_MapOpen,
+				/**/ /**/ TokStr("r"), Token_MapOpen,
+				/**/ /**/ /**/ TokStr("r"), Token_MapOpen,
+				/**/ /**/ /**/ /**/ TokStr("r"), nil,
+				/**/ /**/ /**/ Token_MapClose,
+				/**/ /**/ Token_MapClose,
+				/**/ Token_MapClose,
 				Token_MapClose,
 			},
 		},

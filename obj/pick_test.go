@@ -18,8 +18,8 @@ func TestPick(t *testing.T) {
 	type Sly []AA
 
 	suite := &Suite{
-		map[reflect.Type]MarshalMachine{
-			reflect.TypeOf(CC("")): &MarshalMachineLiteral{},
+		map[reflect.Type]func() MarshalMachine{
+			reflect.TypeOf(CC("")): func() MarshalMachine { return &MarshalMachineLiteral{} },
 		},
 	}
 	tt := []struct {
