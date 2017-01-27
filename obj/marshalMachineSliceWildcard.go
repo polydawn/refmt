@@ -32,7 +32,7 @@ type MarshalMachineArrayWildcard struct {
 }
 
 func (m *MarshalMachineArrayWildcard) Reset(s *Suite, valp interface{}) error {
-	m.target_rv = reflect.ValueOf(*(valp).(*interface{}))
+	m.target_rv = reflect.ValueOf(valp).Elem()
 	m.valueMach = s.marshalMachineForType(m.target_rv.Type().Elem())
 	m.index = -1
 	m.length = m.target_rv.Len()
@@ -53,7 +53,7 @@ func (m *MarshalMachineArrayWildcard) Step(d *MarshalDriver, s *Suite, tok *Toke
 	if m.index > m.length {
 		return true, fmt.Errorf("invalid state: value already consumed")
 	}
-	d.Recurse(tok, m.target_rv.Index(m.index).Interface(), m.valueMach)
+	d.Recurse(tok, m.target_rv.Index(m.index).Addr().Interface(), m.valueMach)
 	m.index++
 	return false, nil
 }

@@ -284,6 +284,17 @@ func TestMarshaller(t *testing.T) {
 				Token_MapClose,
 			},
 		},
+		{
+			title: "slice of literals",
+			targetFn: func() interface{} {
+				return &[]int{1, 2, 3, 4, 5}
+			},
+			expectSeq: []Token{
+				Token_ArrOpen,
+				TokInt(1), TokInt(2), TokInt(3), TokInt(4), TokInt(5),
+				Token_ArrClose,
+			},
+		},
 	}
 	for _, tr := range tt {
 		if tr.suite == nil {

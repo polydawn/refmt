@@ -56,10 +56,10 @@ func (s *Suite) maybePickMarshalMachine(valp interface{}) MarshalMachine {
 	return s.maybeMarshalMachineForType(val_rt)
 }
 
-func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
-	mach := s.maybeMarshalMachineForType(rt)
+func (s *Suite) marshalMachineForType(val_rt reflect.Type) MarshalMachine {
+	mach := s.maybeMarshalMachineForType(val_rt)
 	if mach == nil {
-		panic(fmt.Errorf("no machine available in suite for type %s", rt.Name()))
+		panic(fmt.Errorf("no machine available in suite for type %s", val_rt.Name()))
 	}
 	return mach
 }
@@ -78,13 +78,13 @@ func (s *Suite) marshalMachineForType(rt reflect.Type) MarshalMachine {
 
 	Returns nil if there is no marshal machine in the suite for this type.
 */
-func (s *Suite) maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
+func (s *Suite) maybeMarshalMachineForType(val_rt reflect.Type) MarshalMachine {
 	peelCount := 0
-	for rt.Kind() == reflect.Ptr {
-		rt = rt.Elem()
+	for val_rt.Kind() == reflect.Ptr {
+		val_rt = val_rt.Elem()
 		peelCount++
 	}
-	mach := s._maybeMarshalMachineForType(rt)
+	mach := s._maybeMarshalMachineForType(val_rt)
 	if mach == nil {
 		return nil
 	}
