@@ -16,17 +16,19 @@ type JsonEncoder struct {
 	wr io.Writer
 }
 
-func (d *JsonEncoder) Marshal(v interface{}) {
-	TokenPump{
+func (d *JsonEncoder) Marshal(v interface{}) error {
+	return TokenPump{
 		obj.NewMarshaler(&obj.Suite{}, v),
 		json.NewSerializer(d.wr),
 	}.Run()
 }
 
-func JsonEncode(v interface{}) []byte {
+func JsonEncode(v interface{}) ([]byte, error) {
 	var buf bytes.Buffer
-	NewJsonEncoder(&buf).Marshal(v)
-	return buf.Bytes()
+	if err := NewJsonEncoder(&buf).Marshal(v); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
 }
 
 func NewJsonDecoder(r io.Reader) *JsonDecoder {
