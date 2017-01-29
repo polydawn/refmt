@@ -9,7 +9,10 @@ import (
 )
 
 func NewSerializer(wr io.Writer) *Serializer {
-	return &Serializer{wr: wr}
+	return &Serializer{
+		wr:    wr,
+		stack: make([]phase, 0, 10),
+	}
 }
 
 /*

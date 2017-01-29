@@ -11,6 +11,7 @@ import (
 func NewMarshaler(s *Suite, v interface{}) *MarshalDriver {
 	d := &MarshalDriver{
 		suite: s,
+		stack: make([]MarshalMachine, 0, 10),
 		step:  s.pickMarshalMachine(v),
 	}
 	d.step.Reset(s, v)
