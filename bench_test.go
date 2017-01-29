@@ -14,7 +14,7 @@ func Benchmark_ArrayFlatIntToJson_Xlate(b *testing.B) {
 }
 func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		json.Marshal(fixture_arrayFlatInt)
+		json.Marshal(&fixture_arrayFlatInt)
 	}
 }
 
@@ -27,6 +27,6 @@ func Benchmark_ArrayFlatStrToJson_Xlate(b *testing.B) {
 }
 func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		json.Marshal(fixture_arrayFlatStr)
+		json.Marshal(&fixture_arrayFlatStr)
 	}
 }
