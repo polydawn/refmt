@@ -3,6 +3,7 @@ package json
 import (
 	"fmt"
 	"io"
+	"strconv"
 
 	. "github.com/polydawn/go-xlate/tok"
 )
@@ -22,6 +23,9 @@ type Serializer struct {
 	stack   []phase
 	current phase // shortcut to value at end of stack
 	some    bool  // set to true after first value in any context; use to append commas.
+
+	// Spare memory, for use in operations on leaf nodes (e.g. temp space for an int serialization).
+	scratch [64]byte
 }
 
 type phase int
@@ -174,8 +178,11 @@ func (d *Serializer) flushValue(tokSlot *Token) {
 	case *string:
 		d.wr.Write([]byte(fmt.Sprintf("%q", *valp)))
 	case *int:
-		d.wr.Write([]byte(fmt.Sprintf("%d", *valp)))
+		b := strconv.AppendInt(d.scratch[:0], int64(*valp), 10)
+		d.wr.Write(b)
+	case nil:
+		d.wr.Write(wordNull)
 	default:
-		panic("TODO finish more jsonSerializer primitives support")
+		panic(fmt.Errorf("TODO finish more jsonSerializer primitives support: type %T", *tokSlot))
 	}
 }

@@ -5,6 +5,8 @@ import (
 	"testing"
 )
 
+// http://www.darkcoding.net/software/go-the-price-of-interface/
+
 // Just getting the reflect.Value of a string.
 // 45ns.
 // Or, 60ns with GC enabled.  Yes, quite a difference.
