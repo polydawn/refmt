@@ -188,5 +188,6 @@ func (d *Serializer) flushValue(tokSlot *Token) {
 }
 
 func (d *Serializer) writeByte(b byte) {
-	d.wr.Write([]byte{b})
+	d.scratch[0] = b
+	d.wr.Write(d.scratch[0:1])
 }
