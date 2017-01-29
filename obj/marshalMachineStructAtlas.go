@@ -52,14 +52,13 @@ func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *Suite, tok *T
 		return true, fmt.Errorf("invalid state: entire struct (%d fields) already consumed", nEntries)
 	}
 
-	entry := m.atlas.Fields[m.index]
 	if m.value {
-		valp := entry.Grab(m.target)
+		valp := m.atlas.Fields[m.index].Grab(m.target)
 		m.index++
 		m.value = false
 		return false, driver.Recurse(tok, valp, s.pickMarshalMachine(valp))
 	}
-	*tok = &entry.Name
+	*tok = &m.atlas.Fields[m.index].Name
 	m.value = true
 	return false, nil
 }
