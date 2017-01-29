@@ -152,6 +152,13 @@ func TestJsonSerializer(t *testing.T) {
 			},
 			`{"k":{"k2":"v2"}}`,
 		},
+		{
+			"strings needing escape",
+			[]Token{
+				TokStr("str\nbroken\ttabbed"),
+			},
+			`"str\nbroken\ttabbed"`,
+		},
 	}
 	for _, tr := range tt {
 		// Set it up.

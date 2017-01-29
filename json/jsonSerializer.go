@@ -74,7 +74,7 @@ func (d *Serializer) Step(tok *Token) (done bool, err error) {
 			switch v2 := (*tok).(type) {
 			case *string:
 				d.entrySep()
-				d.wr.Write([]byte(fmt.Sprintf("%q", *v2)))
+				d.emitString(*v2)
 				d.wr.Write(wordColon)
 				d.current = phase_mapExpectValue
 				return false, nil
@@ -176,7 +176,7 @@ func (d *Serializer) entrySep() {
 func (d *Serializer) flushValue(tokSlot *Token) {
 	switch valp := (*tokSlot).(type) {
 	case *string:
-		d.wr.Write([]byte(fmt.Sprintf("%q", *valp)))
+		d.emitString(*valp)
 	case *int:
 		b := strconv.AppendInt(d.scratch[:0], int64(*valp), 10)
 		d.wr.Write(b)
@@ -185,4 +185,8 @@ func (d *Serializer) flushValue(tokSlot *Token) {
 	default:
 		panic(fmt.Errorf("TODO finish more jsonSerializer primitives support: type %T", *tokSlot))
 	}
+}
+
+func (d *Serializer) writeByte(b byte) {
+	d.wr.Write([]byte{b})
 }
