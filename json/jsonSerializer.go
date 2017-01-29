@@ -180,7 +180,9 @@ func (d *Serializer) flushValue(tokSlot *Token) {
 	case *int:
 		b := strconv.AppendInt(d.scratch[:0], int64(*valp), 10)
 		d.wr.Write(b)
+	case nil:
+		d.wr.Write(wordNull)
 	default:
-		panic("TODO finish more jsonSerializer primitives support")
+		panic(fmt.Errorf("TODO finish more jsonSerializer primitives support: type %T", *tokSlot))
 	}
 }
