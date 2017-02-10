@@ -68,14 +68,17 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	with an object, and by the time we call back to your machine again,
 	that object will be traversed and the stream ready for you to continue.
 */
-func (d *MarshalDriver) Recurse(tok *Token, target interface{}, nextMach MarshalMachine) error {
+func (d *MarshalDriver) Recurse(tok *Token, target interface{}, nextMach MarshalMachine) (err error) {
 	//	fmt.Printf(">>> pushing into recursion with %#v\n", nextMach)
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	d.stack = append(d.stack, d.step)
 	// Initialize the machine for this new target value.
-	nextMach.Reset(d.suite, target)
+	err = nextMach.Reset(d.suite, target)
+	if err != nil {
+		return
+	}
 	d.step = nextMach
 	// Immediately make a step (we're still the delegate in charge of someone else's step).
-	_, err := d.Step(tok)
-	return err
+	_, err = d.Step(tok)
+	return
 }
