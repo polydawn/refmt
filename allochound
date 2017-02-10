@@ -24,7 +24,7 @@ while read -r -u3 -d' ' func; do
 		-run=XXX -bench=$func \
 		-count=1
 	) 2> "$profPath/$func.allocfreetrace" | grep "^Benchmark_"
-done 3< <(echo "${funcs[@]}")
+done 3< <(echo "${funcs[@]} ")
 ls -lah "$profPath"/*.allocfreetrace
 
 ##
