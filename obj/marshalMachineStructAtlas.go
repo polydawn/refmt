@@ -2,7 +2,6 @@ package obj
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/polydawn/go-xlate/obj/atlas"
 	. "github.com/polydawn/go-xlate/tok"
@@ -24,9 +23,6 @@ func (m *MarshalMachineStructAtlas) Reset(s *Suite, target interface{}) error {
 	m.target = target
 	m.index = -1
 	m.value = false
-	if !reflect.ValueOf(target).CanAddr() {
-		return fmt.Errorf("error resetting MarshalMachineStructAtlas: target is not addressable")
-	}
 	return nil
 }
 
