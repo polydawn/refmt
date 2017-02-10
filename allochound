@@ -1,0 +1,28 @@
+#!/bin/bash
+set -euo pipefail
+
+### Normalize path -- all work should be relative to this script's location.
+## Set up gopath -- also relative to this dir, so we work in isolation.
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+export GOPATH="$PWD/.gopath/"
+
+funcs=()
+funcs+=("Benchmark_ArrayFlatIntToJson_Xlate")
+funcs+=("Benchmark_ArrayFlatIntToJson_Stdlib")
+funcs+=("Benchmark_ArrayFlatStrToJson_Xlate")
+funcs+=("Benchmark_ArrayFlatStrToJson_Stdlib")
+
+funcs+=("Benchmark_StructToJson_XlateFieldRoute")
+funcs+=("Benchmark_StructToJson_XlateAddrFunc")
+funcs+=("Benchmark_StructToJson_Stdlib")
+
+profPath=".gopath/tmp/prof/" ; mkdir -p "$profPath"
+go test -i .
+export GODEBUG=allocfreetrace=1
+while read -r -u3 -d' ' func; do
+	(go test \
+		-run=XXX -bench=$func \
+		-count=1
+	) 2> "$profPath/$func.allocfreetrace" | grep "^Benchmark_"
+done 3< <(echo "${funcs[@]}")
+ls -lah "$profPath"/*.allocfreetrace
