@@ -94,18 +94,20 @@ func (s *Suite) maybeMarshalMachineForType(val_rt reflect.Type) MarshalMachine {
 	return mach
 }
 
+var theLiteralMachine = &MarshalMachineLiteral{}
+
 func (s *Suite) _maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
 	switch rt.Kind() {
 	case reflect.Bool:
-		return &MarshalMachineLiteral{}
+		return theLiteralMachine
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return &MarshalMachineLiteral{}
+		return theLiteralMachine
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return &MarshalMachineLiteral{}
+		return theLiteralMachine
 	case reflect.Float32, reflect.Float64:
-		return &MarshalMachineLiteral{}
+		return theLiteralMachine
 	case reflect.String:
-		return &MarshalMachineLiteral{}
+		return theLiteralMachine
 	case reflect.Slice:
 		// TODO also bytes should get a special path
 		return &MarshalMachineSliceWildcard{}
