@@ -52,7 +52,7 @@ func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *Suite, tok *T
 		valp := m.atlas.Fields[m.index].Grab(m.target)
 		m.index++
 		m.value = false
-		return false, driver.Recurse(tok, valp, s.pickMarshalMachine(valp))
+		return false, driver.Recurse(tok, valp, s.mustPickMarshalMachine(valp))
 	}
 	*tok = &m.atlas.Fields[m.index].Name
 	m.value = true

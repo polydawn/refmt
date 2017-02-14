@@ -33,7 +33,7 @@ type MarshalMachineArrayWildcard struct {
 
 func (m *MarshalMachineArrayWildcard) Reset(s *Suite, valp interface{}) error {
 	m.target_rv = reflect.ValueOf(valp).Elem()
-	m.valueMach = s.marshalMachineForType(m.target_rv.Type().Elem())
+	m.valueMach = s.mustPickMarshalMachineByType(m.target_rv.Type().Elem())
 	m.index = -1
 	m.length = m.target_rv.Len()
 	return nil

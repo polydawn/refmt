@@ -43,7 +43,7 @@ func TestPick(t *testing.T) {
 	}}
 	for _, tr := range tt {
 		// Call pick with the address of our value.  Remember, this is what `AddrFunc` always yields.
-		m := suite.maybePickMarshalMachine(tr.value)
+		m := suite.pickMarshalMachine(tr.value)
 		// Eh?
 		t.Logf("test %q:\n\tvalue %#v yielded machine %T\n", tr.title, tr.value, m)
 	}
