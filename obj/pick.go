@@ -112,7 +112,11 @@ func (s *slab) pickMarshalMachineByType(val_rt reflect.Type) MarshalMachine {
 		return nil
 	}
 	if peelCount > 0 {
-		return &ptrDerefDelegateMarshalMachine{mach, peelCount, false}
+		off := len(s.rows) - 1
+		s.rows[off].ptrDerefDelegateMarshalMachine.MarshalMachine = mach
+		s.rows[off].ptrDerefDelegateMarshalMachine.peelCount = peelCount
+		s.rows[off].ptrDerefDelegateMarshalMachine.isNil = false
+		return &s.rows[off].ptrDerefDelegateMarshalMachine
 	}
 	return mach
 }
