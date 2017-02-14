@@ -8,25 +8,21 @@ import (
 )
 
 type MarshalMachineStructAtlas struct {
+	atlas atlas.Atlas // Populate on initialization.
+
 	target interface{}
-	atlas  atlas.Atlas // Populate on initialization.
-	index  int         // Progress marker
-	value  bool        // Progress marker
+	index  int  // Progress marker
+	value  bool // Progress marker
 }
 
-func MarshalMachineStructAtlasFactory(atl atlas.Atlas) func() MarshalMachine {
-	atl.Init()
-	return func() MarshalMachine { return &MarshalMachineStructAtlas{atlas: atl} }
-}
-
-func (m *MarshalMachineStructAtlas) Reset(s *Suite, target interface{}) error {
+func (m *MarshalMachineStructAtlas) Reset(s *slab, target interface{}) error {
 	m.target = target
 	m.index = -1
 	m.value = false
 	return nil
 }
 
-func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *Suite, tok *Token) (done bool, err error) {
+func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *slab, tok *Token) (done bool, err error) {
 	//fmt.Printf("--step on %#v: i=%d/%d v=%v\n", m.target, m.index, len(m.atlas.Fields), m.value)
 	if m.index < 0 {
 		if m.target == nil {

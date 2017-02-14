@@ -59,13 +59,13 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(NN{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				Add(NN{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(NN{}),
 					Fields: []atlas.Entry{
 						{Name: "F", FieldName: atlas.FieldName{"F"}},
 						{Name: "X", FieldName: atlas.FieldName{"X"}},
 					},
-				})),
+				}}),
 			expectSeq: []Token{
 				Token_MapOpen,
 				TokStr("F"), TokInt(7),
@@ -82,22 +82,22 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(NN{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				Add(NN{}, Morphism{Atlas: atlas.Atlas{
 					Fields: []atlas.Entry{ /* this should be extraneous */ },
-				})).
-				Add(AA{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				}}).
+				Add(AA{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(AA{}),
 					Fields: []atlas.Entry{
 						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
 						{Name: "a.x", FieldName: atlas.FieldName{"X"}},
 					},
-				})).
-				Add(BB{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				}}).
+				Add(BB{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(BB{}),
 					Fields: []atlas.Entry{
 						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
 					},
-				})),
+				}}),
 			expectSeq: []Token{
 				Token_MapOpen,
 				TokStr("a.y"), Token_MapOpen,
@@ -116,13 +116,13 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(AA{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				Add(AA{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(AA{}),
 					Fields: []atlas.Entry{
 						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
 						{Name: "a.x", FieldName: atlas.FieldName{"X"}},
 					},
-				})),
+				}}),
 			expectSeq: []Token{
 				Token_MapOpen,
 				TokStr("a.y"), nil, // last step panics
@@ -144,26 +144,26 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(DD{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				Add(DD{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(DD{}),
 					Fields: []atlas.Entry{
 						{Name: "1", FieldName: atlas.FieldName{"A"}},
 						{Name: "3", FieldName: atlas.FieldName{"Z"}},
 						{Name: "2", FieldName: atlas.FieldName{"F"}},
 					},
-				})).
-				Add(AA{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				}}).
+				Add(AA{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(AA{}),
 					Fields: []atlas.Entry{
 						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
 					},
-				})).
-				Add(BB{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				}}).
+				Add(BB{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(BB{}),
 					Fields: []atlas.Entry{
 						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
 					},
-				})),
+				}}),
 			expectSeq: []Token{
 				Token_MapOpen,
 				TokStr("1"), Token_MapOpen,
@@ -191,26 +191,26 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(DDD{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				Add(DDD{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(DDD{}),
 					Fields: []atlas.Entry{
 						{Name: "1", FieldName: atlas.FieldName{"A"}},
 						{Name: "3", FieldName: atlas.FieldName{"Z"}},
 						{Name: "2", FieldName: atlas.FieldName{"F"}},
 					},
-				})).
-				Add(AA{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				}}).
+				Add(AA{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(AA{}),
 					Fields: []atlas.Entry{
 						{Name: "a.y", FieldName: atlas.FieldName{"Y"}},
 					},
-				})).
-				Add(BB{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				}}).
+				Add(BB{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(BB{}),
 					Fields: []atlas.Entry{
 						{Name: "zee", FieldName: atlas.FieldName{"Z"}},
 					},
-				})),
+				}}),
 			// should serialize exact same way as previous test:
 			expectSeq: []Token{
 				Token_MapOpen,
@@ -236,12 +236,12 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			suite: (&Suite{}).
-				Add(RR{}, MarshalMachineStructAtlasFactory(atlas.Atlas{
+				Add(RR{}, Morphism{Atlas: atlas.Atlas{
 					Type: reflect.TypeOf(RR{}),
 					Fields: []atlas.Entry{
 						{Name: "r", FieldName: atlas.FieldName{"R"}},
 					},
-				})),
+				}}),
 			expectSeq: []Token{
 				Token_MapOpen,
 				/**/ TokStr("r"), Token_MapOpen,

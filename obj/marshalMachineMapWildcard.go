@@ -16,7 +16,7 @@ type MarshalMachineMapWildcard struct {
 	value     bool
 }
 
-func (m *MarshalMachineMapWildcard) Reset(s *Suite, valp interface{}) error {
+func (m *MarshalMachineMapWildcard) Reset(s *slab, valp interface{}) error {
 	m.target_rv = reflect.ValueOf(valp).Elem()
 
 	// Pick machinery for handling the value types.
@@ -46,7 +46,7 @@ func (m *MarshalMachineMapWildcard) Reset(s *Suite, valp interface{}) error {
 	return nil
 }
 
-func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *Suite, tok *Token) (done bool, err error) {
+func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *slab, tok *Token) (done bool, err error) {
 	if m.index < 0 {
 		if m.target_rv.IsNil() {
 			*tok = nil

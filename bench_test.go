@@ -120,7 +120,7 @@ var fixture_struct = structAlpha{
 }
 var fixture_struct_expect = []byte(`{"B":{"R":{"R":{"R":{"R":null,"M":""},"M":"asdf"},"M":"quir"}},"C":{"N":"n","M":13},"C2":{"N":"n2","M":14},"X":1,"Y":2,"Z":"3","W":"4"}`)
 var fixture_suiteFieldRoute = (&obj.Suite{}).
-	Add(structAlpha{}, obj.MarshalMachineStructAtlasFactory(atlas.Atlas{
+	Add(structAlpha{}, obj.Morphism{Atlas: atlas.Atlas{
 		Fields: []atlas.Entry{
 			{Name: "B", FieldRoute: atlas.FieldRoute{0}},
 			{Name: "C", FieldRoute: atlas.FieldRoute{1}},
@@ -130,26 +130,26 @@ var fixture_suiteFieldRoute = (&obj.Suite{}).
 			{Name: "Z", FieldRoute: atlas.FieldRoute{5}},
 			{Name: "W", FieldRoute: atlas.FieldRoute{6}},
 		},
-	})).
-	Add(structBeta{}, obj.MarshalMachineStructAtlasFactory(atlas.Atlas{
+	}}).
+	Add(structBeta{}, obj.Morphism{Atlas: atlas.Atlas{
 		Fields: []atlas.Entry{
 			{Name: "R", FieldRoute: atlas.FieldRoute{0}},
 		},
-	})).
-	Add(structGamma{}, obj.MarshalMachineStructAtlasFactory(atlas.Atlas{
+	}}).
+	Add(structGamma{}, obj.Morphism{Atlas: atlas.Atlas{
 		Fields: []atlas.Entry{
 			{Name: "N", FieldRoute: atlas.FieldRoute{0}},
 			{Name: "M", FieldRoute: atlas.FieldRoute{1}},
 		},
-	})).
-	Add(structRecursive{}, obj.MarshalMachineStructAtlasFactory(atlas.Atlas{
+	}}).
+	Add(structRecursive{}, obj.Morphism{Atlas: atlas.Atlas{
 		Fields: []atlas.Entry{
 			{Name: "R", FieldRoute: atlas.FieldRoute{0}},
 			{Name: "M", FieldRoute: atlas.FieldRoute{1}},
 		},
-	}))
+	}})
 var fixture_suiteAddrFunc = (&obj.Suite{}).
-	Add(structAlpha{}, obj.MarshalMachineStructAtlasFactory(atlas.Atlas{
+	Add(structAlpha{}, obj.Morphism{Atlas: atlas.Atlas{
 		Fields: []atlas.Entry{
 			{Name: "B", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).B) }},
 			{Name: "C", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).C) }},
@@ -159,24 +159,24 @@ var fixture_suiteAddrFunc = (&obj.Suite{}).
 			{Name: "Z", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).Z) }},
 			{Name: "W", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).W) }},
 		},
-	})).
-	Add(structBeta{}, obj.MarshalMachineStructAtlasFactory(atlas.Atlas{
+	}}).
+	Add(structBeta{}, obj.Morphism{Atlas: atlas.Atlas{
 		Fields: []atlas.Entry{
 			{Name: "R", AddrFunc: func(v interface{}) interface{} { return &(v.(*structBeta).R) }},
 		},
-	})).
-	Add(structGamma{}, obj.MarshalMachineStructAtlasFactory(atlas.Atlas{
+	}}).
+	Add(structGamma{}, obj.Morphism{Atlas: atlas.Atlas{
 		Fields: []atlas.Entry{
 			{Name: "N", AddrFunc: func(v interface{}) interface{} { return &(v.(*structGamma).N) }},
 			{Name: "M", AddrFunc: func(v interface{}) interface{} { return &(v.(*structGamma).M) }},
 		},
-	})).
-	Add(structRecursive{}, obj.MarshalMachineStructAtlasFactory(atlas.Atlas{
+	}}).
+	Add(structRecursive{}, obj.Morphism{Atlas: atlas.Atlas{
 		Fields: []atlas.Entry{
 			{Name: "R", AddrFunc: func(v interface{}) interface{} { return &(v.(*structRecursive).R) }},
 			{Name: "M", AddrFunc: func(v interface{}) interface{} { return &(v.(*structRecursive).M) }},
 		},
-	}))
+	}})
 
 func Benchmark_StructToJson_XlateFieldRoute(b *testing.B) {
 	var ser []byte

@@ -10,23 +10,26 @@ import (
 */
 func NewMarshaler(s *Suite, v interface{}) *MarshalDriver {
 	d := &MarshalDriver{
-		suite: s,
+		slab: slab{
+			suite: s,
+			rows:  make([]slabRow, 0, 10),
+		},
 		stack: make([]MarshalMachine, 0, 10),
-		step:  s.mustPickMarshalMachine(v),
 	}
-	d.step.Reset(s, v)
+	d.step = d.slab.mustPickMarshalMachine(v)
+	d.step.Reset(&d.slab, v)
 	return d
 }
 
 type MarshalDriver struct {
-	suite *Suite
+	slab  slab
 	stack []MarshalMachine
 	step  MarshalMachine
 }
 
 type MarshalMachine interface {
-	Reset(*Suite, interface{}) error
-	Step(*MarshalDriver, *Suite, *Token) (done bool, err error)
+	Reset(*slab, interface{}) error
+	Step(*MarshalDriver, *slab, *Token) (done bool, err error)
 }
 
 // for convenience in declaring fields of state machines with internal step funcs
@@ -34,7 +37,7 @@ type marshalMachineStep func(*MarshalDriver, *Token) (done bool, err error)
 
 func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	//	fmt.Printf("> next step is %#v\n", d.step)
-	done, err := d.step.Step(d, d.suite, tok)
+	done, err := d.step.Step(d, &d.slab, tok)
 	//	fmt.Printf(">> yield is %#v\n", TokenToString(*tok))
 	// If the step errored: out, entirely.
 	if err != nil {
@@ -73,7 +76,7 @@ func (d *MarshalDriver) Recurse(tok *Token, target interface{}, nextMach Marshal
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	d.stack = append(d.stack, d.step)
 	// Initialize the machine for this new target value.
-	err = nextMach.Reset(d.suite, target)
+	err = nextMach.Reset(&d.slab, target)
 	if err != nil {
 		return
 	}
