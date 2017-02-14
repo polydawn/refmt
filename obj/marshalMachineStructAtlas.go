@@ -2,7 +2,6 @@ package obj
 
 import (
 	"fmt"
-	"reflect"
 
 	"github.com/polydawn/go-xlate/obj/atlas"
 	. "github.com/polydawn/go-xlate/tok"
@@ -24,9 +23,6 @@ func (m *MarshalMachineStructAtlas) Reset(s *Suite, target interface{}) error {
 	m.target = target
 	m.index = -1
 	m.value = false
-	if !reflect.ValueOf(target).CanAddr() {
-		return fmt.Errorf("error resetting MarshalMachineStructAtlas: target is not addressable")
-	}
 	return nil
 }
 
@@ -52,14 +48,13 @@ func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *Suite, tok *T
 		return true, fmt.Errorf("invalid state: entire struct (%d fields) already consumed", nEntries)
 	}
 
-	entry := m.atlas.Fields[m.index]
 	if m.value {
-		valp := entry.Grab(m.target)
+		valp := m.atlas.Fields[m.index].Grab(m.target)
 		m.index++
 		m.value = false
 		return false, driver.Recurse(tok, valp, s.pickMarshalMachine(valp))
 	}
-	*tok = &entry.Name
+	*tok = &m.atlas.Fields[m.index].Name
 	m.value = true
 	return false, nil
 }

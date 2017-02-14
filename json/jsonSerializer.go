@@ -9,7 +9,10 @@ import (
 )
 
 func NewSerializer(wr io.Writer) *Serializer {
-	return &Serializer{wr: wr}
+	return &Serializer{
+		wr:    wr,
+		stack: make([]phase, 0, 10),
+	}
 }
 
 /*
@@ -188,5 +191,6 @@ func (d *Serializer) flushValue(tokSlot *Token) {
 }
 
 func (d *Serializer) writeByte(b byte) {
-	d.wr.Write([]byte{b})
+	d.scratch[0] = b
+	d.wr.Write(d.scratch[0:1])
 }
