@@ -33,10 +33,18 @@ func (s *Suite) Add(typeHint interface{}, machFactory func() MarshalMachine) *Su
 	return s
 }
 
-func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
-	mach := s.maybePickMarshalMachine(valp)
+func (s *Suite) mustPickMarshalMachine(valp interface{}) MarshalMachine {
+	mach := s.pickMarshalMachine(valp)
 	if mach == nil {
 		panic(ErrNoHandler{valp})
+	}
+	return mach
+}
+
+func (s *Suite) mustPickMarshalMachineByType(val_rt reflect.Type) MarshalMachine {
+	mach := s.pickMarshalMachineByType(val_rt)
+	if mach == nil {
+		panic(fmt.Errorf("no machine available in suite for type %s", val_rt.Name()))
 	}
 	return mach
 }
@@ -49,23 +57,15 @@ func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
 
 	Returns nil if there is no marshal machine in the suite for this type.
 */
-func (s *Suite) maybePickMarshalMachine(valp interface{}) MarshalMachine {
+func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
 	// TODO : we can use type switches to do some primitives efficiently here
 	//  before we turn to the reflective path.
 	val_rt := reflect.ValueOf(valp).Elem().Type()
-	return s.maybeMarshalMachineForType(val_rt)
-}
-
-func (s *Suite) marshalMachineForType(val_rt reflect.Type) MarshalMachine {
-	mach := s.maybeMarshalMachineForType(val_rt)
-	if mach == nil {
-		panic(fmt.Errorf("no machine available in suite for type %s", val_rt.Name()))
-	}
-	return mach
+	return s.pickMarshalMachineByType(val_rt)
 }
 
 /*
-	Like `pickMarshalMachine`, but requiring only the reflect type info.
+	Like `mustPickMarshalMachine`, but requiring only the reflect type info.
 	This is useable when you only have the type info available (rather than an instance);
 	this comes up when for example looking up the machine to use for all values
 	in a slice based on the slice type info.
@@ -78,13 +78,13 @@ func (s *Suite) marshalMachineForType(val_rt reflect.Type) MarshalMachine {
 
 	Returns nil if there is no marshal machine in the suite for this type.
 */
-func (s *Suite) maybeMarshalMachineForType(val_rt reflect.Type) MarshalMachine {
+func (s *Suite) pickMarshalMachineByType(val_rt reflect.Type) MarshalMachine {
 	peelCount := 0
 	for val_rt.Kind() == reflect.Ptr {
 		val_rt = val_rt.Elem()
 		peelCount++
 	}
-	mach := s._maybeMarshalMachineForType(val_rt)
+	mach := s._pickMarshalMachineByType(val_rt)
 	if mach == nil {
 		return nil
 	}
@@ -96,7 +96,7 @@ func (s *Suite) maybeMarshalMachineForType(val_rt reflect.Type) MarshalMachine {
 
 var theLiteralMachine = &MarshalMachineLiteral{}
 
-func (s *Suite) _maybeMarshalMachineForType(rt reflect.Type) MarshalMachine {
+func (s *Suite) _pickMarshalMachineByType(rt reflect.Type) MarshalMachine {
 	switch rt.Kind() {
 	case reflect.Bool:
 		return theLiteralMachine

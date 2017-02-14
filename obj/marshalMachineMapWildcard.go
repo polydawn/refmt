@@ -20,7 +20,7 @@ func (m *MarshalMachineMapWildcard) Reset(s *Suite, valp interface{}) error {
 	m.target_rv = reflect.ValueOf(valp).Elem()
 
 	// Pick machinery for handling the value types.
-	m.valueMach = s.marshalMachineForType(m.target_rv.Type().Elem())
+	m.valueMach = s.mustPickMarshalMachineByType(m.target_rv.Type().Elem())
 
 	// Enumerate all the keys (must do this up front, one way or another),
 	// flip them into strings,
@@ -72,7 +72,7 @@ func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *Suite, tok *Token)
 		valp := new_vprv.Interface()
 		m.value = false
 		m.index++
-		return false, d.Recurse(tok, valp, s.pickMarshalMachine(valp))
+		return false, d.Recurse(tok, valp, s.mustPickMarshalMachine(valp))
 	}
 	*tok = &(m.keys[m.index].s)
 	m.value = true
