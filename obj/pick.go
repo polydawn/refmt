@@ -121,6 +121,10 @@ func (s *slab) grow() {
 	s.rows = append(s.rows, slabRow{})
 }
 
+func (s *slab) release() {
+	s.rows = s.rows[0 : len(s.rows)-1]
+}
+
 func (s *slab) _pickMarshalMachineByType(rt reflect.Type) MarshalMachine {
 	s.grow()
 	off := len(s.rows) - 1

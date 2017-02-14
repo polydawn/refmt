@@ -38,6 +38,7 @@ func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *slab, tok *To
 	if m.index == nEntries {
 		*tok = Token_MapClose
 		m.index++
+		s.release()
 		return true, nil
 	}
 	if m.index > nEntries {
@@ -52,5 +53,8 @@ func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *slab, tok *To
 	}
 	*tok = &m.atlas.Fields[m.index].Name
 	m.value = true
+	if m.index > 0 {
+		s.release()
+	}
 	return false, nil
 }

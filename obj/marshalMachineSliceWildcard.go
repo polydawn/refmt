@@ -48,6 +48,7 @@ func (m *MarshalMachineArrayWildcard) Step(d *MarshalDriver, s *slab, tok *Token
 	if m.index == m.length {
 		*tok = Token_ArrClose
 		m.index++
+		s.release()
 		return true, nil
 	}
 	if m.index > m.length {

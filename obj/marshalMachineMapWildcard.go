@@ -60,6 +60,7 @@ func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *slab, tok *Token) 
 	if m.index == len(m.keys) {
 		*tok = Token_MapClose
 		m.index++
+		s.release()
 		return true, nil
 	}
 	if m.index > len(m.keys) {
@@ -72,7 +73,7 @@ func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *slab, tok *Token) 
 		valp := new_vprv.Interface()
 		m.value = false
 		m.index++
-		return false, d.Recurse(tok, valp, s.mustPickMarshalMachine(valp))
+		return false, d.Recurse(tok, valp, m.valueMach)
 	}
 	*tok = &(m.keys[m.index].s)
 	m.value = true
