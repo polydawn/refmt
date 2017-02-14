@@ -1,6 +1,7 @@
 package json
 
 import (
+	"io"
 	"unicode/utf8"
 )
 
@@ -71,7 +72,7 @@ func (d *Serializer) emitString(s string) {
 		i += size
 	}
 	if start < len(s) {
-		d.wr.Write([]byte(s[start:]))
+		io.WriteString(d.wr, s[start:])
 	}
 	d.writeByte('"')
 }
