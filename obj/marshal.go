@@ -9,11 +9,10 @@ import (
 	This machinery will walk over structures in memory,
 	emitting tokens representing values and fields as it visits them.
 
-	After allocation all the machinery with this function, use `Bind`
-	to set the value to visit.
-	Then, the `Step` function is ready for you.
+	Initialization must be finished by calling `Bind` to set the value to visit;
+	after this, the `Step` function is ready to be pumped.
 	Subsequent calls to `Bind` do a full reset, leaving `Step` ready to call
-	again and making all of the machinery reusable.
+	again and making all of the machinery reusable without re-allocating.
 */
 func NewMarshaler(s *Suite) *MarshalDriver {
 	d := &MarshalDriver{
