@@ -19,29 +19,34 @@ var fixture_arrayFlatInt = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
 var fixture_arrayFlatInt_expect = []byte(`[1,2,3,4,5,6,7,8,9,0]`)
 
 func Benchmark_ArrayFlatIntToJson_Xlate(b *testing.B) {
-	var ser []byte
+	var buf bytes.Buffer
 	var err error
+	enc := NewJsonEncoder(&buf)
 	for i := 0; i < b.N; i++ {
-		ser, err = JsonEncode(&fixture_arrayFlatInt)
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatInt)
 	}
 	if err != nil {
 		panic(err)
 	}
-	if !bytes.Equal(ser, fixture_arrayFlatInt_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", ser, fixture_arrayFlatInt_expect))
+	if !bytes.Equal(buf.Bytes(), fixture_arrayFlatInt_expect) {
+		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_arrayFlatInt_expect))
 	}
 }
 func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
-	var ser []byte
+	var buf bytes.Buffer
 	var err error
+	enc := json.NewEncoder(&buf)
 	for i := 0; i < b.N; i++ {
-		ser, err = json.Marshal(&fixture_arrayFlatInt)
+		buf.Reset()
+		err = enc.Encode(&fixture_arrayFlatInt)
 	}
 	if err != nil {
 		panic(err)
 	}
-	if !bytes.Equal(ser, fixture_arrayFlatInt_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", ser, fixture_arrayFlatInt_expect))
+	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
+	if !bytes.Equal(buf.Bytes(), fixture_arrayFlatInt_expect) {
+		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_arrayFlatInt_expect))
 	}
 }
 
@@ -53,29 +58,34 @@ var fixture_arrayFlatStr = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9",
 var fixture_arrayFlatStr_expect = []byte(`["1","2","3","4","5","6","7","8","9","0"]`)
 
 func Benchmark_ArrayFlatStrToJson_Xlate(b *testing.B) {
-	var ser []byte
+	var buf bytes.Buffer
 	var err error
+	enc := NewJsonEncoder(&buf)
 	for i := 0; i < b.N; i++ {
-		ser, err = JsonEncode(&fixture_arrayFlatStr)
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatStr)
 	}
 	if err != nil {
 		panic(err)
 	}
-	if !bytes.Equal(ser, fixture_arrayFlatStr_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", ser, fixture_arrayFlatStr_expect))
+	if !bytes.Equal(buf.Bytes(), fixture_arrayFlatStr_expect) {
+		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_arrayFlatStr_expect))
 	}
 }
 func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
-	var ser []byte
+	var buf bytes.Buffer
 	var err error
+	enc := json.NewEncoder(&buf)
 	for i := 0; i < b.N; i++ {
-		ser, err = json.Marshal(&fixture_arrayFlatStr)
+		buf.Reset()
+		err = enc.Encode(&fixture_arrayFlatStr)
 	}
 	if err != nil {
 		panic(err)
 	}
-	if !bytes.Equal(ser, fixture_arrayFlatStr_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", ser, fixture_arrayFlatStr_expect))
+	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
+	if !bytes.Equal(buf.Bytes(), fixture_arrayFlatStr_expect) {
+		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_arrayFlatStr_expect))
 	}
 }
 
@@ -179,55 +189,58 @@ var fixture_suiteAddrFunc = (&obj.Suite{}).
 	}))
 
 func Benchmark_StructToJson_XlateFieldRoute(b *testing.B) {
-	var ser []byte
+	var buf bytes.Buffer
 	var err error
+	marshaller := obj.NewMarshaler(fixture_suiteFieldRoute)
 	for i := 0; i < b.N; i++ {
-		var buf bytes.Buffer
-		marshaller := obj.NewMarshaler(fixture_suiteFieldRoute)
+		buf.Reset()
 		marshaller.Bind(&fixture_struct)
-		err = TokenPump{
+		enc := TokenPump{
 			marshaller,
 			xlatejson.NewSerializer(&buf),
-		}.Run()
-		ser = buf.Bytes()
+		}
+		err = enc.Run()
 	}
 	if err != nil {
 		panic(err)
 	}
-	if !bytes.Equal(ser, fixture_struct_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", ser, fixture_struct_expect))
+	if !bytes.Equal(buf.Bytes(), fixture_struct_expect) {
+		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_struct_expect))
 	}
 }
 func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
-	var ser []byte
+	var buf bytes.Buffer
 	var err error
+	marshaller := obj.NewMarshaler(fixture_suiteAddrFunc)
 	for i := 0; i < b.N; i++ {
-		var buf bytes.Buffer
-		marshaller := obj.NewMarshaler(fixture_suiteAddrFunc)
+		buf.Reset()
 		marshaller.Bind(&fixture_struct)
-		err = TokenPump{
+		enc := TokenPump{
 			marshaller,
 			xlatejson.NewSerializer(&buf),
-		}.Run()
-		ser = buf.Bytes()
+		}
+		err = enc.Run()
 	}
 	if err != nil {
 		panic(err)
 	}
-	if !bytes.Equal(ser, fixture_struct_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", ser, fixture_struct_expect))
+	if !bytes.Equal(buf.Bytes(), fixture_struct_expect) {
+		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_struct_expect))
 	}
 }
 func Benchmark_StructToJson_Stdlib(b *testing.B) {
-	var ser []byte
+	var buf bytes.Buffer
 	var err error
+	enc := json.NewEncoder(&buf)
 	for i := 0; i < b.N; i++ {
-		ser, err = json.Marshal(&fixture_struct)
+		buf.Reset()
+		err = enc.Encode(&fixture_struct)
 	}
 	if err != nil {
 		panic(err)
 	}
-	if !bytes.Equal(ser, fixture_struct_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", ser, fixture_struct_expect))
+	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
+	if !bytes.Equal(buf.Bytes(), fixture_struct_expect) {
+		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_struct_expect))
 	}
 }
