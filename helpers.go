@@ -9,16 +9,21 @@ import (
 )
 
 func NewJsonEncoder(wr io.Writer) *JsonEncoder {
-	return &JsonEncoder{wr}
+	return &JsonEncoder{
+		obj.NewMarshaler(&obj.Suite{}),
+		wr,
+	}
 }
 
 type JsonEncoder struct {
-	wr io.Writer
+	marshaller *obj.MarshalDriver
+	wr         io.Writer
 }
 
 func (d *JsonEncoder) Marshal(v interface{}) error {
+	d.marshaller.Bind(v)
 	return TokenPump{
-		obj.NewMarshaler(&obj.Suite{}, v),
+		d.marshaller,
 		json.NewSerializer(d.wr),
 	}.Run()
 }

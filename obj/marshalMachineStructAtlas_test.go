@@ -96,7 +96,8 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 		suite.Add(tgt, machineFactory)
 
 		err := CapturePanics(func() {
-			marshaller := NewMarshaler(suite, tgt)
+			marshaller := NewMarshaler(suite)
+			marshaller.Bind(tgt)
 
 			// Run steps.
 			var done bool

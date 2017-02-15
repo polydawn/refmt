@@ -5,17 +5,28 @@ import (
 )
 
 /*
-	Returns a `TokenSource` that will walk over structures in memory,
+	Allocates the machinery for treating an object like a `TokenSource`.
+	This machinery will walk over structures in memory,
 	emitting tokens representing values and fields as it visits them.
+
+	After allocation all the machinery with this function, use `Bind`
+	to set the value to visit.
+	Then, the `Step` function is ready for you.
+	Subsequent calls to `Bind` do a full reset, leaving `Step` ready to call
+	again and making all of the machinery reusable.
 */
-func NewMarshaler(s *Suite, v interface{}) *MarshalDriver {
+func NewMarshaler(s *Suite) *MarshalDriver {
 	d := &MarshalDriver{
 		suite: s,
 		stack: make([]MarshalMachine, 0, 10),
-		step:  s.mustPickMarshalMachine(v),
 	}
-	d.step.Reset(s, v)
 	return d
+}
+
+func (d *MarshalDriver) Bind(v interface{}) {
+	d.stack = d.stack[0:0]
+	d.step = d.suite.mustPickMarshalMachine(v)
+	d.step.Reset(d.suite, v)
 }
 
 type MarshalDriver struct {

@@ -183,8 +183,10 @@ func Benchmark_StructToJson_XlateFieldRoute(b *testing.B) {
 	var err error
 	for i := 0; i < b.N; i++ {
 		var buf bytes.Buffer
+		marshaller := obj.NewMarshaler(fixture_suiteFieldRoute)
+		marshaller.Bind(&fixture_struct)
 		err = TokenPump{
-			obj.NewMarshaler(fixture_suiteFieldRoute, &fixture_struct),
+			marshaller,
 			xlatejson.NewSerializer(&buf),
 		}.Run()
 		ser = buf.Bytes()
@@ -201,8 +203,10 @@ func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
 	var err error
 	for i := 0; i < b.N; i++ {
 		var buf bytes.Buffer
+		marshaller := obj.NewMarshaler(fixture_suiteAddrFunc)
+		marshaller.Bind(&fixture_struct)
 		err = TokenPump{
-			obj.NewMarshaler(fixture_suiteAddrFunc, &fixture_struct),
+			marshaller,
 			xlatejson.NewSerializer(&buf),
 		}.Run()
 		ser = buf.Bytes()
