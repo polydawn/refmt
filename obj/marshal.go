@@ -27,6 +27,7 @@ func NewMarshaler(s *Suite) *MarshalDriver {
 
 func (d *MarshalDriver) Bind(v interface{}) {
 	d.stack = d.stack[0:0]
+	d.slab.rows = d.slab.rows[0:0]
 	d.step = d.slab.mustPickMarshalMachine(v)
 	d.step.Reset(&d.slab, v)
 }
