@@ -301,7 +301,8 @@ func TestMarshaller(t *testing.T) {
 			tr.suite = &Suite{}
 		}
 		err := CapturePanics(func() {
-			marshaller := NewMarshaler(tr.suite, tr.targetFn())
+			marshaller := NewMarshaler(tr.suite)
+			marshaller.Bind(tr.targetFn())
 
 			// Run steps.
 			var done bool
