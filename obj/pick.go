@@ -54,6 +54,7 @@ type slabRow struct {
 	MarshalMachineMapWildcard
 	MarshalMachineSliceWildcard
 	MarshalMachineStructAtlas
+	MarshalMachineWildcard
 }
 
 func (s *slab) mustPickMarshalMachine(valp interface{}) MarshalMachine {
@@ -158,7 +159,7 @@ func (s *slab) _pickMarshalMachineByType(rt reflect.Type) MarshalMachine {
 		s.rows[off].MarshalMachineStructAtlas.atlas = morphism.Atlas
 		return &s.rows[off].MarshalMachineStructAtlas
 	case reflect.Interface:
-		panic(ErrUnreachable{"TODO iface"})
+		return &s.rows[off].MarshalMachineWildcard
 	case reflect.Func:
 		panic(ErrUnreachable{"TODO func"}) // hey, if we can find it in the suite
 	case reflect.Ptr:

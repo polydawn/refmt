@@ -34,6 +34,9 @@ func TestMarshaller(t *testing.T) {
 	type RR struct {
 		R *RR
 	}
+	type FF struct {
+		I interface{}
+	}
 
 	tt := []struct {
 		title       string
@@ -293,6 +296,64 @@ func TestMarshaller(t *testing.T) {
 				Token_ArrOpen,
 				TokInt(1), TokInt(2), TokInt(3), TokInt(4), TokInt(5),
 				Token_ArrClose,
+			},
+		},
+		{
+			title: "struct containing unset wildcard field",
+			targetFn: func() interface{} {
+				return &FF{}
+			},
+			suite: (&Suite{}).
+				Add(FF{}, Morphism{Atlas: atlas.Atlas{
+					Type: reflect.TypeOf(FF{}),
+					Fields: []atlas.Entry{
+						{Name: "i", FieldName: atlas.FieldName{"I"}},
+					},
+				}}),
+			expectSeq: []Token{
+				Token_MapOpen,
+				TokStr("i"), nil,
+				Token_MapClose,
+			},
+		},
+		{
+			title: "struct containing wildcard field set to struct",
+			targetFn: func() interface{} {
+				return &FF{FF{}}
+			},
+			suite: (&Suite{}).
+				Add(FF{}, Morphism{Atlas: atlas.Atlas{
+					Type: reflect.TypeOf(FF{}),
+					Fields: []atlas.Entry{
+						{Name: "i", FieldName: atlas.FieldName{"I"}},
+					},
+				}}),
+			expectSeq: []Token{
+				Token_MapOpen,
+				/**/ TokStr("i"), Token_MapOpen,
+				/**/ /**/ TokStr("i"), nil,
+				/**/ Token_MapClose,
+				Token_MapClose,
+			},
+		},
+		{
+			title: "struct containing wildcard field set to ptr to struct",
+			targetFn: func() interface{} {
+				return &FF{&FF{}}
+			},
+			suite: (&Suite{}).
+				Add(FF{}, Morphism{Atlas: atlas.Atlas{
+					Type: reflect.TypeOf(FF{}),
+					Fields: []atlas.Entry{
+						{Name: "i", FieldName: atlas.FieldName{"I"}},
+					},
+				}}),
+			expectSeq: []Token{
+				Token_MapOpen,
+				/**/ TokStr("i"), Token_MapOpen,
+				/**/ /**/ TokStr("i"), nil,
+				/**/ Token_MapClose,
+				Token_MapClose,
 			},
 		},
 	}
