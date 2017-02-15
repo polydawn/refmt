@@ -15,6 +15,12 @@ func NewSerializer(wr io.Writer) *Serializer {
 	}
 }
 
+func (d *Serializer) Reset() {
+	d.stack = d.stack[0:0]
+	d.current = phase_anyExpectValue
+	d.some = false
+}
+
 /*
 	A json.Serializer is a TokenSink implementation that emits json bytes.
 */
