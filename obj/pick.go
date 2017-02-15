@@ -3,13 +3,22 @@ package obj
 import (
 	"fmt"
 	"reflect"
+
+	"github.com/polydawn/go-xlate/obj/atlas"
 )
 
 type Suite struct {
-	// Map typeinfo to a factory function for new marshaller state machines.
-	// A factory function is needed even though machines are resettable and reusable
-	// because we still need more than one machine instance in the case of recursive structures.
-	mappings map[reflect.Type]func() MarshalMachine
+	// Map typeinfo to a static description of how that type should be handled.
+	// (The internal machinery that will wield this information, and has memory of
+	// progress as it does so, is configured using the Morphism, but allocated separately.
+	// The machinery is stateful and mutable; the Morphism is not.)
+	mappings map[reflect.Type]Morphism
+}
+
+type Morphism struct {
+	Atlas atlas.Atlas // the one kind of object with supported customization at the moment
+	// REVIEW: those other funcs in atlas probably belong here, not there.
+	// just generally clarify the lines for what should apply for, say, typedef'd ints.
 }
 
 /*
@@ -21,19 +30,33 @@ type Suite struct {
 
 		suite.Add(YourType{}, &SomeMachineImpl{})
 */
-func (s *Suite) Add(typeHint interface{}, machFactory func() MarshalMachine) *Suite {
+func (s *Suite) Add(typeHint interface{}, morphism Morphism) *Suite {
 	if s.mappings == nil {
-		s.mappings = make(map[reflect.Type]func() MarshalMachine)
+		s.mappings = make(map[reflect.Type]Morphism)
 	}
 	rt := reflect.TypeOf(typeHint)
 	for rt.Kind() == reflect.Ptr {
 		rt = rt.Elem()
 	}
-	s.mappings[rt] = machFactory
+	s.mappings[rt] = morphism
+	morphism.Atlas.Init()
 	return s
 }
 
-func (s *Suite) mustPickMarshalMachine(valp interface{}) MarshalMachine {
+type slab struct {
+	suite *Suite
+	rows  []slabRow
+}
+
+type slabRow struct {
+	ptrDerefDelegateMarshalMachine
+	MarshalMachineLiteral
+	MarshalMachineMapWildcard
+	MarshalMachineSliceWildcard
+	MarshalMachineStructAtlas
+}
+
+func (s *slab) mustPickMarshalMachine(valp interface{}) MarshalMachine {
 	mach := s.pickMarshalMachine(valp)
 	if mach == nil {
 		panic(ErrNoHandler{valp})
@@ -41,7 +64,7 @@ func (s *Suite) mustPickMarshalMachine(valp interface{}) MarshalMachine {
 	return mach
 }
 
-func (s *Suite) mustPickMarshalMachineByType(val_rt reflect.Type) MarshalMachine {
+func (s *slab) mustPickMarshalMachineByType(val_rt reflect.Type) MarshalMachine {
 	mach := s.pickMarshalMachineByType(val_rt)
 	if mach == nil {
 		panic(fmt.Errorf("no machine available in suite for type %s", val_rt.Name()))
@@ -57,7 +80,7 @@ func (s *Suite) mustPickMarshalMachineByType(val_rt reflect.Type) MarshalMachine
 
 	Returns nil if there is no marshal machine in the suite for this type.
 */
-func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
+func (s *slab) pickMarshalMachine(valp interface{}) MarshalMachine {
 	// TODO : we can use type switches to do some primitives efficiently here
 	//  before we turn to the reflective path.
 	val_rt := reflect.ValueOf(valp).Elem().Type()
@@ -78,7 +101,7 @@ func (s *Suite) pickMarshalMachine(valp interface{}) MarshalMachine {
 
 	Returns nil if there is no marshal machine in the suite for this type.
 */
-func (s *Suite) pickMarshalMachineByType(val_rt reflect.Type) MarshalMachine {
+func (s *slab) pickMarshalMachineByType(val_rt reflect.Type) MarshalMachine {
 	peelCount := 0
 	for val_rt.Kind() == reflect.Ptr {
 		val_rt = val_rt.Elem()
@@ -89,37 +112,51 @@ func (s *Suite) pickMarshalMachineByType(val_rt reflect.Type) MarshalMachine {
 		return nil
 	}
 	if peelCount > 0 {
-		return &ptrDerefDelegateMarshalMachine{mach, peelCount, false}
+		off := len(s.rows) - 1
+		s.rows[off].ptrDerefDelegateMarshalMachine.MarshalMachine = mach
+		s.rows[off].ptrDerefDelegateMarshalMachine.peelCount = peelCount
+		s.rows[off].ptrDerefDelegateMarshalMachine.isNil = false
+		return &s.rows[off].ptrDerefDelegateMarshalMachine
 	}
 	return mach
 }
 
-var theLiteralMachine = &MarshalMachineLiteral{}
+func (s *slab) grow() {
+	s.rows = append(s.rows, slabRow{})
+}
 
-func (s *Suite) _pickMarshalMachineByType(rt reflect.Type) MarshalMachine {
+func (s *slab) release() {
+	s.rows = s.rows[0 : len(s.rows)-1]
+}
+
+func (s *slab) _pickMarshalMachineByType(rt reflect.Type) MarshalMachine {
+	s.grow()
+	off := len(s.rows) - 1
 	switch rt.Kind() {
 	case reflect.Bool:
-		return theLiteralMachine
+		return &s.rows[off].MarshalMachineLiteral
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return theLiteralMachine
+		return &s.rows[off].MarshalMachineLiteral
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return theLiteralMachine
+		return &s.rows[off].MarshalMachineLiteral
 	case reflect.Float32, reflect.Float64:
-		return theLiteralMachine
+		return &s.rows[off].MarshalMachineLiteral
 	case reflect.String:
-		return theLiteralMachine
+		return &s.rows[off].MarshalMachineLiteral
 	case reflect.Slice:
 		// TODO also bytes should get a special path
-		return &MarshalMachineSliceWildcard{}
+		return &s.rows[off].MarshalMachineSliceWildcard
 	case reflect.Array:
-		return &MarshalMachineSliceWildcard{}
+		return &s.rows[off].MarshalMachineSliceWildcard
 	case reflect.Map:
-		return &MarshalMachineMapWildcard{}
+		return &s.rows[off].MarshalMachineMapWildcard
 	case reflect.Struct:
-		if factory, ok := s.mappings[rt]; ok {
-			return factory()
+		morphism, ok := s.suite.mappings[rt]
+		if !ok {
+			return nil
 		}
-		return nil
+		s.rows[off].MarshalMachineStructAtlas.atlas = morphism.Atlas
+		return &s.rows[off].MarshalMachineStructAtlas
 	case reflect.Interface:
 		panic(ErrUnreachable{"TODO iface"})
 	case reflect.Func:

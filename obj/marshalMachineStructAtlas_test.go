@@ -88,12 +88,9 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 	for _, tr := range tt {
 		// Setup
 		tgt := tr.targetFn()
-		machineFactory := MarshalMachineStructAtlasFactory(
-			tr.atlas,
-		)
 		// Placeholders required for recursing on.
 		suite := &Suite{}
-		suite.Add(tgt, machineFactory)
+		suite.Add(tgt, Morphism{Atlas: tr.atlas})
 
 		err := CapturePanics(func() {
 			marshaller := NewMarshaler(suite)

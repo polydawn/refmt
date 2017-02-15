@@ -16,7 +16,7 @@ type MarshalMachineMapWildcard struct {
 	value     bool
 }
 
-func (m *MarshalMachineMapWildcard) Reset(s *Suite, valp interface{}) error {
+func (m *MarshalMachineMapWildcard) Reset(s *slab, valp interface{}) error {
 	m.target_rv = reflect.ValueOf(valp).Elem()
 
 	// Pick machinery for handling the value types.
@@ -46,7 +46,7 @@ func (m *MarshalMachineMapWildcard) Reset(s *Suite, valp interface{}) error {
 	return nil
 }
 
-func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *Suite, tok *Token) (done bool, err error) {
+func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *slab, tok *Token) (done bool, err error) {
 	if m.index < 0 {
 		if m.target_rv.IsNil() {
 			*tok = nil
@@ -60,6 +60,7 @@ func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *Suite, tok *Token)
 	if m.index == len(m.keys) {
 		*tok = Token_MapClose
 		m.index++
+		s.release()
 		return true, nil
 	}
 	if m.index > len(m.keys) {
@@ -72,7 +73,7 @@ func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *Suite, tok *Token)
 		valp := new_vprv.Interface()
 		m.value = false
 		m.index++
-		return false, d.Recurse(tok, valp, s.mustPickMarshalMachine(valp))
+		return false, d.Recurse(tok, valp, m.valueMach)
 	}
 	*tok = &(m.keys[m.index].s)
 	m.value = true
