@@ -15,14 +15,14 @@ type MarshalMachineStructAtlas struct {
 	value  bool // Progress marker
 }
 
-func (m *MarshalMachineStructAtlas) Reset(s *slab, target interface{}) error {
+func (m *MarshalMachineStructAtlas) Reset(s *marshalSlab, target interface{}) error {
 	m.target = target
 	m.index = -1
 	m.value = false
 	return nil
 }
 
-func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *slab, tok *Token) (done bool, err error) {
+func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
 	//fmt.Printf("--step on %#v: i=%d/%d v=%v\n", m.target, m.index, len(m.atlas.Fields), m.value)
 	if m.index < 0 {
 		if m.target == nil {

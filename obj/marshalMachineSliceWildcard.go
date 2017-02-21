@@ -13,7 +13,7 @@ type MarshalMachineSliceWildcard struct {
 	MarshalMachineArrayWildcard
 }
 
-func (m *MarshalMachineSliceWildcard) Step(d *MarshalDriver, s *slab, tok *Token) (done bool, err error) {
+func (m *MarshalMachineSliceWildcard) Step(d *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
 	if m.index < 0 {
 		if m.target_rv.IsNil() {
 			*tok = nil
@@ -31,7 +31,7 @@ type MarshalMachineArrayWildcard struct {
 	length    int
 }
 
-func (m *MarshalMachineArrayWildcard) Reset(s *slab, valp interface{}) error {
+func (m *MarshalMachineArrayWildcard) Reset(s *marshalSlab, valp interface{}) error {
 	m.target_rv = reflect.ValueOf(valp).Elem()
 	m.valueMach = s.mustPickMarshalMachineByType(m.target_rv.Type().Elem())
 	m.index = -1
@@ -39,7 +39,7 @@ func (m *MarshalMachineArrayWildcard) Reset(s *slab, valp interface{}) error {
 	return nil
 }
 
-func (m *MarshalMachineArrayWildcard) Step(d *MarshalDriver, s *slab, tok *Token) (done bool, err error) {
+func (m *MarshalMachineArrayWildcard) Step(d *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
 	if m.index < 0 {
 		*tok = Token_ArrOpen
 		m.index++

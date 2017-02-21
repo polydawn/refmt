@@ -15,7 +15,7 @@ type MarshalMachineWildcard struct {
 	delegate MarshalMachine
 }
 
-func (m *MarshalMachineWildcard) Reset(s *slab, valp interface{}) error {
+func (m *MarshalMachineWildcard) Reset(s *marshalSlab, valp interface{}) error {
 	val_rv := reflect.ValueOf(valp).Elem()
 	// If the interface contains nil, go no further; we'll simply yield that single token.
 	if val_rv.IsNil() {
@@ -31,7 +31,7 @@ func (m *MarshalMachineWildcard) Reset(s *slab, valp interface{}) error {
 	return m.delegate.Reset(s, valp)
 }
 
-func (m MarshalMachineWildcard) Step(driver *MarshalDriver, s *slab, tokSlot *Token) (done bool, err error) {
+func (m MarshalMachineWildcard) Step(driver *MarshalDriver, s *marshalSlab, tokSlot *Token) (done bool, err error) {
 	if m.delegate == nil {
 		*tokSlot = nil
 		return true, nil

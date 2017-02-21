@@ -16,9 +16,9 @@ import (
 */
 func NewMarshaler(s *Suite) *MarshalDriver {
 	d := &MarshalDriver{
-		slab: slab{
+		marshalSlab: marshalSlab{
 			suite: s,
-			rows:  make([]slabRow, 0, 10),
+			rows:  make([]marshalSlabRow, 0, 10),
 		},
 		stack: make([]MarshalMachine, 0, 10),
 	}
@@ -27,20 +27,20 @@ func NewMarshaler(s *Suite) *MarshalDriver {
 
 func (d *MarshalDriver) Bind(v interface{}) {
 	d.stack = d.stack[0:0]
-	d.slab.rows = d.slab.rows[0:0]
-	d.step = d.slab.mustPickMarshalMachine(v)
-	d.step.Reset(&d.slab, v)
+	d.marshalSlab.rows = d.marshalSlab.rows[0:0]
+	d.step = d.marshalSlab.mustPickMarshalMachine(v)
+	d.step.Reset(&d.marshalSlab, v)
 }
 
 type MarshalDriver struct {
-	slab  slab
+	marshalSlab  marshalSlab
 	stack []MarshalMachine
 	step  MarshalMachine
 }
 
 type MarshalMachine interface {
-	Reset(*slab, interface{}) error
-	Step(*MarshalDriver, *slab, *Token) (done bool, err error)
+	Reset(*marshalSlab, interface{}) error
+	Step(*MarshalDriver, *marshalSlab, *Token) (done bool, err error)
 }
 
 // for convenience in declaring fields of state machines with internal step funcs
@@ -48,7 +48,7 @@ type marshalMachineStep func(*MarshalDriver, *Token) (done bool, err error)
 
 func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	//	fmt.Printf("> next step is %#v\n", d.step)
-	done, err := d.step.Step(d, &d.slab, tok)
+	done, err := d.step.Step(d, &d.marshalSlab, tok)
 	//	fmt.Printf(">> yield is %#v\n", TokenToString(*tok))
 	// If the step errored: out, entirely.
 	if err != nil {
@@ -87,7 +87,7 @@ func (d *MarshalDriver) Recurse(tok *Token, target interface{}, nextMach Marshal
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	d.stack = append(d.stack, d.step)
 	// Initialize the machine for this new target value.
-	err = nextMach.Reset(&d.slab, target)
+	err = nextMach.Reset(&d.marshalSlab, target)
 	if err != nil {
 		return
 	}

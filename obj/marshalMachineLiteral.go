@@ -19,12 +19,12 @@ type MarshalMachineLiteral struct {
 	target interface{}
 }
 
-func (m *MarshalMachineLiteral) Reset(_ *slab, target interface{}) error {
+func (m *MarshalMachineLiteral) Reset(_ *marshalSlab, target interface{}) error {
 	m.target = target
 	return nil
 }
 
-func (m MarshalMachineLiteral) Step(_ *MarshalDriver, _ *slab, tok *tok.Token) (done bool, err error) {
+func (m MarshalMachineLiteral) Step(_ *MarshalDriver, _ *marshalSlab, tok *tok.Token) (done bool, err error) {
 	// Honestly, this entire set of paths does so little work we should think about inlining it
 	// into the machine-picker (or earlier) entirely and never allocing or returning a machine.
 	switch v2 := m.target.(type) {
