@@ -77,7 +77,7 @@ func (d *Decoder) step_acceptArrValueOrBreak(tokenSlot *Token) (done bool, err e
 	}
 }
 
-// Step in midst of decoding an indefinite-length map, key expected up next.
+// Step in midst of decoding an indefinite-length map, key expected up next, or end.
 func (d *Decoder) step_acceptMapIndefKey(tokenSlot *Token) (done bool, err error) {
 	majorByte := d.r.readn1()
 	switch majorByte {
@@ -91,7 +91,7 @@ func (d *Decoder) step_acceptMapIndefKey(tokenSlot *Token) (done bool, err error
 	}
 }
 
-// Step in midst of decoding an indefinite-length map, key expected up next.
+// Step in midst of decoding an indefinite-length map, value expected up next.
 func (d *Decoder) step_acceptMapIndefValueOrBreak(tokenSlot *Token) (done bool, err error) {
 	majorByte := d.r.readn1()
 	switch majorByte {
