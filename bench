@@ -9,10 +9,10 @@ export GOPATH="$PWD/.gopath/"
 profPath="$GOPATH/tmp/prof/" ; mkdir -p "$profPath"
 go test -i "$@"
 echo "--- regular bench ---"
-go test -run=XXX -bench=.
+go test -run=XXX -bench=. "$@"
 echo
 echo "--- NOGC bench ---"
-GOGC=off go test -run=XXX -bench=.
+GOGC=off go test -run=XXX -bench=. "$@"
 echo
 echo "--- bench mem ---"
-go test -run=XXX -bench=. -benchmem
+go test -run=XXX -bench=. -benchmem "$@"
