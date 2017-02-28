@@ -109,7 +109,7 @@ func (d *Decoder) step_acceptMapIndefValueOrBreak(tokenSlot *Token) (done bool, 
 
 // Step in midst of decoding a definite-length array.
 func (d *Decoder) step_acceptArrValue(tokenSlot *Token) (done bool, err error) {
-	// Yield close token and return done flag if expecting no more entries.
+	// Yield close token, pop state, and return done flag if expecting no more entries.
 	ll := len(d.left) - 1
 	if d.left[ll] == 0 {
 		d.left = d.left[0:ll]
@@ -125,6 +125,14 @@ func (d *Decoder) step_acceptArrValue(tokenSlot *Token) (done bool, err error) {
 
 // Step in midst of decoding an definite-length map, key expected up next.
 func (d *Decoder) step_acceptMapKey(tokenSlot *Token) (done bool, err error) {
+	// Yield close token, pop state, and return done flag if expecting no more entries.
+	ll := len(d.left) - 1
+	if d.left[ll] == 0 {
+		d.left = d.left[0:ll]
+		*tokenSlot = Token_MapClose
+		return true, nil
+	}
+	d.left[ll]--
 	// Read next key.
 	majorByte := d.r.readn1()
 	d.step = d.step_acceptMapValue
@@ -137,23 +145,8 @@ func (d *Decoder) step_acceptMapValue(tokenSlot *Token) (done bool, err error) {
 	// Read next value.
 	majorByte := d.r.readn1()
 	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
-	// If expecting no more entries, pop state
-	// and set next step to endMap instead of acceptKey.
-	ll := len(d.left) - 1
-	if d.left[ll] <= 1 {
-		d.left = d.left[0:ll]
-		d.step = d.step_endMap
-		return false, err
-	}
-	d.left[ll]--
 	d.step = d.step_acceptMapKey
 	return false, err
-}
-
-// Step when reached the expected end of a definite-length map.
-func (d *Decoder) step_endMap(tokenSlot *Token) (done bool, err error) {
-	*tokenSlot = Token_MapClose
-	return true, nil
 }
 
 func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done bool, err error) {
@@ -212,25 +205,18 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 			return true, err
 		case majorByte >= cborMajorArray && majorByte < cborMajorMap:
 			*tokenSlot = Token_ArrOpen
-			d.pushPhase(d.step_acceptArrValue)
 			var n int
 			n, err = d.decodeLen(majorByte)
 			d.left = append(d.left, n)
-			return false, nil
+			d.pushPhase(d.step_acceptArrValue)
+			return false, err
 		case majorByte >= cborMajorMap && majorByte < cborMajorTag:
 			*tokenSlot = Token_MapOpen
 			var n int
 			n, err = d.decodeLen(majorByte)
-			if err != nil {
-				return true, err
-			}
-			if n == 0 {
-				d.pushPhase(d.step_endMap)
-				return false, nil
-			}
 			d.left = append(d.left, n)
 			d.pushPhase(d.step_acceptMapKey)
-			return false, nil
+			return false, err
 		case majorByte >= cborMajorTag && majorByte < cborMajorSimple:
 			return true, fmt.Errorf("cbor tags not supported")
 			// but when we do, it'll be by saving it as another field of the Token, and recursing.
