@@ -144,8 +144,8 @@ func (d *Decoder) step_acceptMapKey(tokenSlot *Token) (done bool, err error) {
 func (d *Decoder) step_acceptMapValue(tokenSlot *Token) (done bool, err error) {
 	// Read next value.
 	majorByte := d.r.readn1()
-	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
 	d.step = d.step_acceptMapKey
+	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
 	return false, err
 }
 
