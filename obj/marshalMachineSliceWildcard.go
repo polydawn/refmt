@@ -16,7 +16,7 @@ type MarshalMachineSliceWildcard struct {
 func (m *MarshalMachineSliceWildcard) Step(d *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
 	if m.index < 0 {
 		if m.target_rv.IsNil() {
-			*tok = nil
+			tok.Type = TNull
 			return true, nil
 		}
 	}
@@ -41,12 +41,13 @@ func (m *MarshalMachineArrayWildcard) Reset(s *marshalSlab, valp interface{}) er
 
 func (m *MarshalMachineArrayWildcard) Step(d *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
 	if m.index < 0 {
-		*tok = Token_ArrOpen
+		tok.Type = TArrOpen
+		tok.Length = m.target_rv.Len()
 		m.index++
 		return false, nil
 	}
 	if m.index == m.length {
-		*tok = Token_ArrClose
+		tok.Type = TArrClose
 		m.index++
 		s.release()
 		return true, nil

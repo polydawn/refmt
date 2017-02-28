@@ -49,16 +49,17 @@ func (m *MarshalMachineMapWildcard) Reset(s *marshalSlab, valp interface{}) erro
 func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
 	if m.index < 0 {
 		if m.target_rv.IsNil() {
-			*tok = nil
+			tok.Type = TNull
 			m.index++
 			return true, nil
 		}
-		*tok = Token_MapOpen
+		tok.Type = TMapOpen
+		tok.Length = m.target_rv.Len()
 		m.index++
 		return false, nil
 	}
 	if m.index == len(m.keys) {
-		*tok = Token_MapClose
+		tok.Type = TMapClose
 		m.index++
 		s.release()
 		return true, nil
@@ -75,7 +76,8 @@ func (m *MarshalMachineMapWildcard) Step(d *MarshalDriver, s *marshalSlab, tok *
 		m.index++
 		return false, d.Recurse(tok, valp, m.valueMach)
 	}
-	*tok = &(m.keys[m.index].s)
+	tok.Type = TString
+	tok.Str = m.keys[m.index].s
 	m.value = true
 	return false, nil
 }

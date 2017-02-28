@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/go-xlate/tok"
 )
 
 // Force bench.N to a fixed number.
@@ -17,15 +17,15 @@ func forceN(b *testing.B) {
 func Benchmark_UnmarshalTinyMap(b *testing.B) {
 	forceN(b)
 	var v interface{}
-	x := []tok.Token{
-		"k1",
+	x := []Token{
+		{Type: TString, Str: "k1"},
 	}
 	for i := 0; i < b.N; i++ {
 		sink := NewUnmarshaler(&v)
-		sink.Step(&tok.Token_MapOpen)
+		sink.Step(&Token{Type: TMapOpen})
 		sink.Step(&x[0])
 		sink.Step(&x[0])
-		sink.Step(&tok.Token_MapClose)
+		sink.Step(&Token{Type: TMapClose})
 	}
 }
 
@@ -41,8 +41,13 @@ func Benchmark_JsonUnmarshalTinyMap(b *testing.B) {
 func Benchmark_UnmarshalLongArray(b *testing.B) {
 	forceN(b)
 	var v interface{}
-	x := []tok.Token{
-		tok.Token_ArrOpen, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, tok.Token_ArrClose,
+	x := []Token{
+		{Type: TArrOpen},
+		{Type: TInt, Int: 1}, {Type: TInt, Int: 2}, {Type: TInt, Int: 3}, {Type: TInt, Int: 4},
+		{Type: TInt, Int: 5}, {Type: TInt, Int: 6}, {Type: TInt, Int: 7}, {Type: TInt, Int: 8},
+		{Type: TInt, Int: 9}, {Type: TInt, Int: 10}, {Type: TInt, Int: 11}, {Type: TInt, Int: 12},
+		{Type: TInt, Int: 13}, {Type: TInt, Int: 14}, {Type: TInt, Int: 15}, {Type: TInt, Int: 16},
+		{Type: TArrClose},
 	}
 	for i := 0; i < b.N; i++ {
 		sink := NewUnmarshaler(&v)

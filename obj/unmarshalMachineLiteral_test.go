@@ -39,7 +39,7 @@ func TestUnmarshalMachineLiteral(t *testing.T) {
 		for n, tok := range tr.tokenSeq {
 			done, err = mach.Step(nil, &tok)
 			if err != nil {
-				t.Errorf("step %d (inputting %s) errored: %s", n, TokenToString(tok), err)
+				t.Errorf("step %d (inputting %s) errored: %s", n, tok, err)
 			}
 			if done && n != len(tr.tokenSeq)-1 {
 				t.Errorf("done early! on step %d out of %d tokens", n, len(tr.tokenSeq))

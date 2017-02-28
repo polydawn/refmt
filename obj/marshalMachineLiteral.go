@@ -3,7 +3,7 @@ package obj
 import (
 	"fmt"
 
-	"github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/go-xlate/tok"
 )
 
 /*
@@ -24,42 +24,58 @@ func (m *MarshalMachineLiteral) Reset(_ *marshalSlab, target interface{}) error 
 	return nil
 }
 
-func (m MarshalMachineLiteral) Step(_ *MarshalDriver, _ *marshalSlab, tok *tok.Token) (done bool, err error) {
+func (m MarshalMachineLiteral) Step(_ *MarshalDriver, _ *marshalSlab, tok *Token) (done bool, err error) {
 	// Honestly, this entire set of paths does so little work we should think about inlining it
 	// into the machine-picker (or earlier) entirely and never allocing or returning a machine.
 	switch v2 := m.target.(type) {
 	case *bool:
-		*tok = v2
+		tok.Type = TBool
+		tok.Bool = *v2
 	case *string:
-		*tok = v2
+		tok.Type = TString
+		tok.Str = *v2
 	case *[]byte:
-		*tok = v2
-	case *int8:
-		*tok = v2
-	case *int16:
-		*tok = v2
-	case *int32:
-		*tok = v2
-	case *int64:
-		*tok = v2
-	case *uint:
-		*tok = v2
-	case *uint8:
-		*tok = v2
-	case *uint16:
-		*tok = v2
-	case *uint32:
-		*tok = v2
-	case *uint64:
-		*tok = v2
-	case *uintptr:
-		*tok = v2
-	case *float32:
-		*tok = v2
-	case *float64:
-		*tok = v2
+		tok.Type = TBytes
+		tok.Bytes = *v2
 	case *int:
-		*tok = v2
+		tok.Type = TInt
+		tok.Int = int64(*v2)
+	case *int8:
+		tok.Type = TInt
+		tok.Int = int64(*v2)
+	case *int16:
+		tok.Type = TInt
+		tok.Int = int64(*v2)
+	case *int32:
+		tok.Type = TInt
+		tok.Int = int64(*v2)
+	case *int64:
+		tok.Type = TInt
+		tok.Int = *v2
+	case *uint:
+		tok.Type = TUint
+		tok.Uint = uint64(*v2)
+	case *uint8:
+		tok.Type = TUint
+		tok.Uint = uint64(*v2)
+	case *uint16:
+		tok.Type = TUint
+		tok.Uint = uint64(*v2)
+	case *uint32:
+		tok.Type = TUint
+		tok.Uint = uint64(*v2)
+	case *uint64:
+		tok.Type = TUint
+		tok.Uint = *v2
+	case *uintptr:
+		tok.Type = TUint
+		tok.Uint = uint64(*v2)
+	case *float32:
+		tok.Type = TFloat64
+		tok.Float64 = float64(*v2)
+	case *float64:
+		tok.Type = TFloat64
+		tok.Float64 = *v2
 	default:
 		panic(fmt.Errorf("cannot marshal unhandled type %T", m.target))
 	}

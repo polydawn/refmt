@@ -49,18 +49,18 @@ const (
 func (d *Serializer) Step(tok *Token) (done bool, err error) {
 	switch d.current {
 	case phase_anyExpectValue:
-		switch *tok {
-		case Token_MapOpen:
+		switch tok.Type {
+		case TMapOpen:
 			d.pushPhase(phase_mapExpectKeyOrEnd)
 			d.wr.Write(wordMapOpen)
 			return false, nil
-		case Token_ArrOpen:
+		case TArrOpen:
 			d.pushPhase(phase_arrExpectValueOrEnd)
 			d.wr.Write(wordArrOpen)
 			return false, nil
-		case Token_MapClose:
+		case TMapClose:
 			return true, fmt.Errorf("unexpected mapClose; expected start of value")
-		case Token_ArrClose:
+		case TArrClose:
 			return true, fmt.Errorf("unexpected arrClose; expected start of value")
 		default:
 			// It's a value; handle it.
@@ -68,22 +68,22 @@ func (d *Serializer) Step(tok *Token) (done bool, err error) {
 			return true, nil
 		}
 	case phase_mapExpectKeyOrEnd:
-		switch *tok {
-		case Token_MapOpen:
+		switch tok.Type {
+		case TMapOpen:
 			return true, fmt.Errorf("unexpected mapOpen; expected start of key or end of map")
-		case Token_ArrOpen:
+		case TArrOpen:
 			return true, fmt.Errorf("unexpected arrOpen; expected start of key or end of map")
-		case Token_MapClose:
+		case TMapClose:
 			d.wr.Write(wordMapClose)
 			return d.popPhase()
-		case Token_ArrClose:
+		case TArrClose:
 			return true, fmt.Errorf("unexpected arrClose; expected start of key or end of map")
 		default:
 			// It's a key.  It'd better be a string.
-			switch v2 := (*tok).(type) {
-			case *string:
+			switch tok.Type {
+			case TString:
 				d.entrySep()
-				d.emitString(*v2)
+				d.emitString(tok.Str)
 				d.wr.Write(wordColon)
 				d.current = phase_mapExpectValue
 				return false, nil
@@ -92,18 +92,18 @@ func (d *Serializer) Step(tok *Token) (done bool, err error) {
 			}
 		}
 	case phase_mapExpectValue:
-		switch *tok {
-		case Token_MapOpen:
+		switch tok.Type {
+		case TMapOpen:
 			d.pushPhase(phase_mapExpectKeyOrEnd)
 			d.wr.Write(wordMapOpen)
 			return false, nil
-		case Token_ArrOpen:
+		case TArrOpen:
 			d.pushPhase(phase_arrExpectValueOrEnd)
 			d.wr.Write(wordArrOpen)
 			return false, nil
-		case Token_MapClose:
+		case TMapClose:
 			return true, fmt.Errorf("unexpected mapClose; expected start of value")
-		case Token_ArrClose:
+		case TArrClose:
 			return true, fmt.Errorf("unexpected arrClose; expected start of value")
 		default:
 			// It's a value; handle it.
@@ -112,20 +112,20 @@ func (d *Serializer) Step(tok *Token) (done bool, err error) {
 			return false, nil
 		}
 	case phase_arrExpectValueOrEnd:
-		switch *tok {
-		case Token_MapOpen:
+		switch tok.Type {
+		case TMapOpen:
 			d.entrySep()
 			d.pushPhase(phase_mapExpectKeyOrEnd)
 			d.wr.Write(wordMapOpen)
 			return false, nil
-		case Token_ArrOpen:
+		case TArrOpen:
 			d.entrySep()
 			d.pushPhase(phase_arrExpectValueOrEnd)
 			d.wr.Write(wordArrOpen)
 			return false, nil
-		case Token_MapClose:
+		case TMapClose:
 			return true, fmt.Errorf("unexpected mapClose; expected start of value or end of array")
-		case Token_ArrClose:
+		case TArrClose:
 			d.wr.Write(wordArrClose)
 			return d.popPhase()
 		default:
@@ -182,17 +182,17 @@ func (d *Serializer) entrySep() {
 	d.some = true
 }
 
-func (d *Serializer) flushValue(tokSlot *Token) {
-	switch valp := (*tokSlot).(type) {
-	case *string:
-		d.emitString(*valp)
-	case *int:
-		b := strconv.AppendInt(d.scratch[:0], int64(*valp), 10)
+func (d *Serializer) flushValue(tok *Token) {
+	switch tok.Type {
+	case TString:
+		d.emitString(tok.Str)
+	case TInt:
+		b := strconv.AppendInt(d.scratch[:0], tok.Int, 10)
 		d.wr.Write(b)
-	case nil:
+	case TNull:
 		d.wr.Write(wordNull)
 	default:
-		panic(fmt.Errorf("TODO finish more jsonSerializer primitives support: type %T", *tokSlot))
+		panic(fmt.Errorf("TODO finish more jsonSerializer primitives support: unhandled token %s", tok))
 	}
 }
 

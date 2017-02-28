@@ -24,19 +24,20 @@ func (m *MarshalMachineStructAtlas) Reset(s *marshalSlab, target interface{}) er
 
 func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
 	//fmt.Printf("--step on %#v: i=%d/%d v=%v\n", m.target, m.index, len(m.atlas.Fields), m.value)
+	nEntries := len(m.atlas.Fields)
 	if m.index < 0 {
 		if m.target == nil {
-			*tok = nil
+			tok.Type = TNull
 			m.index++
 			return true, nil
 		}
-		*tok = Token_MapOpen
+		tok.Type = TMapOpen
+		tok.Length = nEntries
 		m.index++
 		return false, nil
 	}
-	nEntries := len(m.atlas.Fields)
 	if m.index == nEntries {
-		*tok = Token_MapClose
+		tok.Type = TMapClose
 		m.index++
 		s.release()
 		return true, nil
@@ -51,7 +52,8 @@ func (m *MarshalMachineStructAtlas) Step(driver *MarshalDriver, s *marshalSlab, 
 		m.value = false
 		return false, driver.Recurse(tok, valp, s.mustPickMarshalMachine(valp))
 	}
-	*tok = &m.atlas.Fields[m.index].Name
+	tok.Type = TString
+	tok.Str = m.atlas.Fields[m.index].Name
 	m.value = true
 	if m.index > 0 {
 		s.release()

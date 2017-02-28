@@ -3,7 +3,7 @@ package obj
 import (
 	"reflect"
 
-	"github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/go-xlate/tok"
 )
 
 type ptrDerefDelegateMarshalMachine struct {
@@ -26,9 +26,9 @@ func (m *ptrDerefDelegateMarshalMachine) Reset(s *marshalSlab, valp interface{})
 	return m.MarshalMachine.Reset(s, rv.Interface())
 }
 
-func (m *ptrDerefDelegateMarshalMachine) Step(d *MarshalDriver, s *marshalSlab, tok *tok.Token) (done bool, err error) {
+func (m *ptrDerefDelegateMarshalMachine) Step(d *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
 	if m.isNil {
-		*tok = nil
+		tok.Type = TNull
 		return true, nil
 	}
 	return m.MarshalMachine.Step(d, s, tok)
