@@ -31,10 +31,10 @@ func (m *MarshalMachineWildcard) Reset(s *marshalSlab, valp interface{}) error {
 	return m.delegate.Reset(s, valp)
 }
 
-func (m MarshalMachineWildcard) Step(driver *MarshalDriver, s *marshalSlab, tokSlot *Token) (done bool, err error) {
+func (m MarshalMachineWildcard) Step(driver *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
 	if m.delegate == nil {
-		*tokSlot = nil
+		tok.Type = TNull
 		return true, nil
 	}
-	return m.delegate.Step(driver, s, tokSlot)
+	return m.delegate.Step(driver, s, tok)
 }

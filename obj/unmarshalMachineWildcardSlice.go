@@ -24,19 +24,19 @@ func (m *UnmarshalMachineSliceWildcard) Step(vr *UnmarshalDriver, tok *Token) (d
 func (m *UnmarshalMachineSliceWildcard) step_Initial(_ *UnmarshalDriver, tok *Token) (done bool, err error) {
 	// If it's a special state, start an object.
 	//  (Or, blow up if its a special state that's silly).
-	switch *tok {
-	case Token_MapOpen:
+	switch tok.Type {
+	case TMapOpen:
 		return true, fmt.Errorf("unexpected mapOpen; expected start of array")
-	case Token_ArrOpen:
+	case TArrOpen:
 		// Great.  Consumed.
 		m.step = m.step_AcceptValue
 		return false, nil
-	case Token_MapClose:
+	case TMapClose:
 		return true, fmt.Errorf("unexpected mapClose; expected start of array")
-	case Token_ArrClose:
+	case TArrClose:
 		return true, fmt.Errorf("unexpected arrClose; expected start of array")
 	default:
-		return true, fmt.Errorf("unexpected literal of type %T; expected start of array", *tok)
+		return true, fmt.Errorf("unexpected token %s; expected start of array", tok)
 	}
 }
 
@@ -44,11 +44,11 @@ func (m *UnmarshalMachineSliceWildcard) step_AcceptValue(driver *UnmarshalDriver
 	// Either form of open token are valid, but
 	// - an arrClose is ours
 	// - and a mapClose is clearly invalid.
-	switch *tok {
-	case Token_MapClose:
+	switch tok.Type {
+	case TMapClose:
 		// no special checks for ends of wildcard slice; no such thing as incomplete.
 		return false, fmt.Errorf("unexpected mapClose; expected array value or end of array")
-	case Token_ArrClose:
+	case TArrClose:
 		// Finishing step: push our current slice ref all the way to original target.
 		*(m.target) = m.slice
 		return true, nil

@@ -1,127 +1,150 @@
 package tok
 
 import (
+	"bytes"
 	"fmt"
-	"reflect"
 )
 
-/*
-	Token is either one of magic const tokens (used to denote beginning and
-	ending of maps and arrays), or an address to a primitive (string, int, etc).
-*/
-type Token interface{}
+type Token struct {
+	// The type of token.  Indicates which of the value fields has meaning,
+	// or has a special value to indicate beginnings and endings of maps and arrays.
+	Type   TokenType
+	Length int // If this is a TMapOpen or TArrOpen, a length may be specified.  Use -1 for unknown.
+	//Tag interface{} // Extension slot (mainly for cbor).
 
-var (
-	Token_MapOpen  Token = ctrlToken('{')
-	Token_MapClose Token = ctrlToken('}')
-	Token_ArrOpen  Token = ctrlToken('[')
-	Token_ArrClose Token = ctrlToken(']')
+	Str     string  // Value union.  Only one of these has meaning, depending on the value of 'Type'.
+	Bytes   []byte  // Value union.  Only one of these has meaning, depending on the value of 'Type'.
+	Bool    bool    // Value union.  Only one of these has meaning, depending on the value of 'Type'.
+	Int     int64   // Value union.  Only one of these has meaning, depending on the value of 'Type'.
+	Uint    uint64  // Value union.  Only one of these has meaning, depending on the value of 'Type'.
+	Float64 float64 // Value union.  Only one of these has meaning, depending on the value of 'Type'.
+}
+
+type TokenType byte
+
+const (
+	TMapOpen  TokenType = '{'
+	TMapClose TokenType = '}'
+	TArrOpen  TokenType = '['
+	TArrClose TokenType = ']'
+	TNull     TokenType = '0'
+
+	TString  TokenType = 's'
+	TBytes   TokenType = 'x'
+	TBool    TokenType = 'b'
+	TInt     TokenType = 'i'
+	TUint    TokenType = 'u'
+	TFloat64 TokenType = 'f'
 )
 
-/*
-	Unexported type used to make sure the control tokens are unique (e.g. so
-	you can't accidentally return a rune from buggy code and end up in a very
-	strange situation).  Also, attaches a tostring function so you don't
-	get a character number in your debug printfs.
-*/
-type ctrlToken rune
-
-func (t ctrlToken) String() string {
-	switch t {
-	case Token_MapOpen:
-		return "<{>"
-	case Token_MapClose:
-		return "<}>"
-	case Token_ArrOpen:
-		return "<[>"
-	case Token_ArrClose:
-		return "<]>"
+func (tt TokenType) IsValid() bool {
+	switch tt {
+	case TString, TBytes, TBool, TInt, TUint, TFloat64, TNull:
+		return true
+	case TMapOpen, TMapClose, TArrOpen, TArrClose:
+		return true
 	default:
-		return "<?>"
+		return false
 	}
 }
 
-func IsValidToken(t Token) bool {
-	if t == nil {
+func (tt TokenType) IsValue() bool {
+	switch tt {
+	case TString, TBytes, TBool, TInt, TUint, TFloat64:
 		return true
+	default:
+		return false
 	}
-	switch t {
-	case Token_MapOpen, Token_MapClose, Token_ArrOpen, Token_ArrClose:
+}
+
+func (tt TokenType) IsSpecial() bool {
+	switch tt {
+	case TMapOpen, TMapClose, TArrOpen, TArrClose, TNull:
 		return true
+	default:
+		return false
 	}
-	switch t.(type) {
-	case *string, *[]byte:
-		return true
-	case *bool:
-		return true
-	case *int, *int8, *int16, *int32, *int64:
-		return true
-	case *uint, *uint8, *uint16, *uint32, *uint64:
-		return true
-	}
-	return false
 }
 
 /*
 	Checks if the content of two tokens is the same.
-	Tokens are considered the same if they're one of the special consts and are equal;
-	or, if they are addresses of a value, then they are the same if they contain the same data
-	(it does not matter of the pointers are identical).
+	Tokens are considered the same if their type one of the special
+	consts (map/array open/close) and that type and the optional length field are equal;
+	or, if type indicates a value, then they are the same if those values are equal.
+	In either path, values that are *not* specified as relevant by the Token's Type
+	are disregarded in the comparison.
 
-	If either value is not a valid token, the result will be false.
+	If the Token.Type is not valid, the result will be false.
 
 	This method is primarily useful for testing.
 */
 func IsTokenEqual(t1, t2 Token) bool {
-	if t1 == nil && t2 == nil {
+	if t1.Type != t2.Type {
+		return false
+	}
+	switch t1.Type {
+	case TMapOpen, TArrOpen:
+		return t1.Length == t2.Length
+	case TMapClose, TArrClose, TNull:
 		return true
-	}
-	if t1 == nil || t2 == nil {
+	case TString, TBool, TInt, TUint, TFloat64:
+		return t1.Value() == t2.Value()
+	case TBytes:
+		return bytes.Equal(t1.Bytes, t2.Bytes)
+	default:
 		return false
 	}
-	switch t1 {
-	case Token_MapOpen, Token_MapClose, Token_ArrOpen, Token_ArrClose:
-		return t1 == t2
-	}
-	switch t2 {
-	case Token_MapOpen, Token_MapClose, Token_ArrOpen, Token_ArrClose:
-		return false
-	}
-	if !IsValidToken(t1) {
-		return false
-	}
-	if !IsValidToken(t2) {
-		return false
-	}
-	// Could do another giant type switch here, but don't care about perf much.
-	return reflect.ValueOf(t1).Elem().Interface() == reflect.ValueOf(t2).Elem().Interface()
 }
 
-func TokenToString(t Token) string {
-	switch t {
-	case Token_MapOpen:
-		return "<{>"
-	case Token_MapClose:
+// Returns the value attached to this token, or nil.
+// This boxes the value into an `interface{}`, which almost certainly
+// incurs a memory allocation via `runtime.convT2E` in the process,
+// so this this method should not be used when performance is a concern.
+func (t Token) Value() interface{} {
+	switch t.Type {
+	case TString:
+		return t.Str
+	case TBytes:
+		return t.Bytes
+	case TBool:
+		return t.Bool
+	case TInt:
+		return t.Int
+	case TUint:
+		return t.Uint
+	case TFloat64:
+		return t.Float64
+	default:
+		return nil
+	}
+}
+
+func (t Token) String() string {
+	switch t.Type {
+	case TMapOpen:
+		if t.Length == -1 {
+			return "<{>"
+		}
+		return fmt.Sprintf("<{:%d>", t.Length)
+	case TMapClose:
 		return "<}>"
-	case Token_ArrOpen:
-		return "<[>"
-	case Token_ArrClose:
+	case TArrOpen:
+		if t.Length == -1 {
+			return "<[>"
+		}
+		return fmt.Sprintf("<[:%d>", t.Length)
+	case TArrClose:
 		return "<]>"
-	case nil:
-		return "<->"
+	case TNull:
+		return "<0>"
+	case TString:
+		return fmt.Sprintf("<%c:%q>", t.Type, t.Value())
 	}
-	if !IsValidToken(t) {
-		return fmt.Sprintf("<INVALID:%T:%p>",
-			t, t)
+	if t.Type.IsValue() {
+		return fmt.Sprintf("<%c:%v>", t.Type, t.Value())
 	}
-	if reflect.ValueOf(t).IsNil() {
-		return fmt.Sprintf("<INVALID:%T:%p>",
-			t, t)
-	}
-	return fmt.Sprintf("<%T:%p:%s>",
-		t, t, reflect.ValueOf(t).Elem().Interface(),
-	)
+	return "<INVALID>"
 }
 
-func TokStr(x string) Token { return &x } // Util for testing.
-func TokInt(x int) Token    { return &x } // Util for testing.
+func TokStr(x string) Token { return Token{Type: TString, Str: x} } // Util for testing.
+func TokInt(x int64) Token  { return Token{Type: TInt, Int: x} }    // Util for testing.

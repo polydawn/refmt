@@ -26,8 +26,8 @@ func (m *UnmarshalMachineWildcard) Step(driver *UnmarshalDriver, tok *Token) (do
 func (m *UnmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, tok *Token) (done bool, err error) {
 	// If it's a special state, start an object.
 	//  (Or, blow up if its a special state that's silly).
-	switch *tok {
-	case Token_MapOpen:
+	switch tok.Type {
+	case TMapOpen:
 		// Fill in our wildcard ref with a blank map,
 		//  and make a new machine for it; hand off everything.
 		mp := make(map[string]interface{})
@@ -37,7 +37,7 @@ func (m *UnmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, tok *Toke
 		m.delegate = dec
 		return m.delegate.Step(driver, tok)
 
-	case Token_ArrOpen:
+	case TArrOpen:
 		// Similar to maps, but a step more complex: we make a new slot for a *pointer*
 		//  to a slice, because slices get new addresses when they grow (whereas by
 		//   comparison, maps hide their internal growth).
@@ -47,11 +47,15 @@ func (m *UnmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, tok *Toke
 		m.delegate = dec
 		return m.delegate.Step(driver, tok)
 
-	case Token_MapClose:
+	case TMapClose:
 		return true, fmt.Errorf("unexpected mapClose; expected start of value")
 
-	case Token_ArrClose:
+	case TArrClose:
 		return true, fmt.Errorf("unexpected arrClose; expected start of value")
+
+	case TNull:
+		*(m.target) = nil
+		return true, nil
 
 	default:
 		// If it wasn't the start of composite, shell out to the machine for literals.

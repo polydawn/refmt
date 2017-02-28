@@ -72,7 +72,7 @@ func (d *Decoder) step_acceptArrValueOrBreak(tokenSlot *Token) (done bool, err e
 	majorByte := d.r.readn1()
 	switch majorByte {
 	case cborSigilBreak:
-		*tokenSlot = Token_ArrClose
+		tokenSlot.Type = TArrClose
 		return true, nil
 	default:
 		_, err := d.stepHelper_acceptValue(majorByte, tokenSlot)
@@ -85,7 +85,7 @@ func (d *Decoder) step_acceptMapIndefKey(tokenSlot *Token) (done bool, err error
 	majorByte := d.r.readn1()
 	switch majorByte {
 	case cborSigilBreak:
-		*tokenSlot = Token_MapClose
+		tokenSlot.Type = TMapClose
 		return true, nil
 	default:
 		d.step = d.step_acceptMapIndefValueOrBreak
@@ -113,7 +113,7 @@ func (d *Decoder) step_acceptArrValue(tokenSlot *Token) (done bool, err error) {
 	ll := len(d.left) - 1
 	if d.left[ll] == 0 {
 		d.left = d.left[0:ll]
-		*tokenSlot = Token_ArrClose
+		tokenSlot.Type = TArrClose
 		return true, nil
 	}
 	d.left[ll]--
@@ -129,7 +129,7 @@ func (d *Decoder) step_acceptMapKey(tokenSlot *Token) (done bool, err error) {
 	ll := len(d.left) - 1
 	if d.left[ll] == 0 {
 		d.left = d.left[0:ll]
-		*tokenSlot = Token_MapClose
+		tokenSlot.Type = TMapClose
 		return true, nil
 	}
 	d.left[ll]--
@@ -152,68 +152,69 @@ func (d *Decoder) step_acceptMapValue(tokenSlot *Token) (done bool, err error) {
 func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done bool, err error) {
 	switch majorByte {
 	case cborSigilNil:
-		*tokenSlot = nil
+		tokenSlot.Type = TNull
 		return true, nil
 	case cborSigilFalse:
-		*tokenSlot = false
+		tokenSlot.Type = TBool
+		tokenSlot.Bool = false
 		return true, nil
 	case cborSigilTrue:
-		*tokenSlot = true
+		tokenSlot.Type = TBool
+		tokenSlot.Bool = true
 		return true, nil
 	case cborSigilFloat16, cborSigilFloat32, cborSigilFloat64:
-		*tokenSlot = d.decodeFloat(majorByte)
+		tokenSlot.Type = TFloat64
+		tokenSlot.Float64 = d.decodeFloat(majorByte)
 		return true, nil
 	case cborSigilIndefiniteBytes:
-		var x []byte
-		x, err = d.decodeBytesIndefinite(nil)
-		*tokenSlot = &x
+		tokenSlot.Type = TBytes
+		tokenSlot.Bytes, err = d.decodeBytesIndefinite(nil)
 		return true, err
 	case cborSigilIndefiniteString:
-		var x string
-		x, err = d.decodeStringIndefinite()
-		*tokenSlot = &x
+		tokenSlot.Type = TString
+		tokenSlot.Str, err = d.decodeStringIndefinite()
 		return true, err
 	case cborSigilIndefiniteArray:
-		*tokenSlot = Token_ArrOpen
+		tokenSlot.Type = TArrOpen
+		tokenSlot.Length = -1
 		d.pushPhase(d.step_acceptArrValueOrBreak)
 		return false, nil
 	case cborSigilIndefiniteMap:
-		*tokenSlot = Token_MapOpen
+		tokenSlot.Type = TMapOpen
+		tokenSlot.Length = -1
 		d.pushPhase(d.step_acceptMapIndefKey)
 		return false, nil
 	default:
 		switch {
 		case majorByte >= cborMajorUint && majorByte < cborMajorNegInt:
-			var x uint64
-			x, err = d.decodeUint(majorByte)
-			*tokenSlot = &x
+			tokenSlot.Type = TUint
+			tokenSlot.Uint, err = d.decodeUint(majorByte)
 			return true, err
 		case majorByte >= cborMajorNegInt && majorByte < cborMajorBytes:
-			var x int64
-			x, err = d.decodeNegInt(majorByte)
-			*tokenSlot = &x
+			tokenSlot.Type = TInt
+			tokenSlot.Int, err = d.decodeNegInt(majorByte)
 			return true, err
 		case majorByte >= cborMajorBytes && majorByte < cborMajorString:
-			var x []byte
-			x, err = d.decodeBytes(majorByte)
-			*tokenSlot = &x
+			tokenSlot.Type = TBytes
+			tokenSlot.Bytes, err = d.decodeBytes(majorByte)
 			return true, err
 		case majorByte >= cborMajorString && majorByte < cborMajorArray:
-			var x string
-			x, err = d.decodeString(majorByte)
-			*tokenSlot = &x
+			tokenSlot.Type = TString
+			tokenSlot.Str, err = d.decodeString(majorByte)
 			return true, err
 		case majorByte >= cborMajorArray && majorByte < cborMajorMap:
-			*tokenSlot = Token_ArrOpen
 			var n int
 			n, err = d.decodeLen(majorByte)
+			tokenSlot.Type = TArrOpen
+			tokenSlot.Length = n
 			d.left = append(d.left, n)
 			d.pushPhase(d.step_acceptArrValue)
 			return false, err
 		case majorByte >= cborMajorMap && majorByte < cborMajorTag:
-			*tokenSlot = Token_MapOpen
 			var n int
 			n, err = d.decodeLen(majorByte)
+			tokenSlot.Type = TMapOpen
+			tokenSlot.Length = n
 			d.left = append(d.left, n)
 			d.pushPhase(d.step_acceptMapKey)
 			return false, err

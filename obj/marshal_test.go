@@ -70,10 +70,10 @@ func TestMarshaller(t *testing.T) {
 					},
 				}}),
 			expectSeq: []Token{
-				Token_MapOpen,
-				TokStr("F"), TokInt(7),
-				TokStr("X"), TokStr("s"),
-				Token_MapClose,
+				{Type: TMapOpen, Length: 2},
+				/**/ TokStr("F"), TokInt(7),
+				/**/ TokStr("X"), TokStr("s"),
+				{Type: TMapClose},
 			},
 		},
 		{
@@ -102,12 +102,12 @@ func TestMarshaller(t *testing.T) {
 					},
 				}}),
 			expectSeq: []Token{
-				Token_MapOpen,
-				TokStr("a.y"), Token_MapOpen,
-				TokStr("zee"), TokStr(""),
-				Token_MapClose,
-				TokStr("a.x"), TokStr("s"),
-				Token_MapClose,
+				{Type: TMapOpen, Length: 2},
+				/**/ TokStr("a.y"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ TokStr("zee"), TokStr(""),
+				/**/ {Type: TMapClose},
+				/**/ TokStr("a.x"), TokStr("s"),
+				{Type: TMapClose},
 			},
 		},
 		{
@@ -127,8 +127,8 @@ func TestMarshaller(t *testing.T) {
 					},
 				}}),
 			expectSeq: []Token{
-				Token_MapOpen,
-				TokStr("a.y"), nil, // last step panics
+				{Type: TMapOpen, Length: 2},
+				TokStr("a.y"), {Type: TNull}, // last step panics
 			},
 			expectPanic: ErrNoHandler{},
 			errString:   "no machine available in suite for struct of type obj.BB",
@@ -168,15 +168,15 @@ func TestMarshaller(t *testing.T) {
 					},
 				}}),
 			expectSeq: []Token{
-				Token_MapOpen,
-				TokStr("1"), Token_MapOpen,
-				/**/ TokStr("a.y"), Token_MapOpen,
-				/**/ /**/ TokStr("zee"), TokStr("B"),
-				/**/ Token_MapClose,
-				Token_MapClose,
-				TokStr("3"), nil,
-				TokStr("2"), TokInt(2),
-				Token_MapClose,
+				{Type: TMapOpen, Length: 3},
+				/**/ TokStr("1"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ TokStr("a.y"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ /**/ TokStr("zee"), TokStr("B"),
+				/**/ /**/ {Type: TMapClose},
+				/**/ {Type: TMapClose},
+				/**/ TokStr("3"), {Type: TNull},
+				/**/ TokStr("2"), TokInt(2),
+				{Type: TMapClose},
 			},
 		},
 		{
@@ -216,15 +216,15 @@ func TestMarshaller(t *testing.T) {
 				}}),
 			// should serialize exact same way as previous test:
 			expectSeq: []Token{
-				Token_MapOpen,
-				TokStr("1"), Token_MapOpen,
-				/**/ TokStr("a.y"), Token_MapOpen,
-				/**/ /**/ TokStr("zee"), TokStr("B"),
-				/**/ Token_MapClose,
-				Token_MapClose,
-				TokStr("3"), nil,
-				TokStr("2"), TokInt(2),
-				Token_MapClose,
+				{Type: TMapOpen, Length: 3},
+				/**/ TokStr("1"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ TokStr("a.y"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ /**/ TokStr("zee"), TokStr("B"),
+				/**/ /**/ {Type: TMapClose},
+				/**/ {Type: TMapClose},
+				/**/ TokStr("3"), {Type: TNull},
+				/**/ TokStr("2"), TokInt(2),
+				{Type: TMapClose},
 			},
 		},
 		{
@@ -246,15 +246,15 @@ func TestMarshaller(t *testing.T) {
 					},
 				}}),
 			expectSeq: []Token{
-				Token_MapOpen,
-				/**/ TokStr("r"), Token_MapOpen,
-				/**/ /**/ TokStr("r"), Token_MapOpen,
-				/**/ /**/ /**/ TokStr("r"), Token_MapOpen,
-				/**/ /**/ /**/ /**/ TokStr("r"), nil,
-				/**/ /**/ /**/ Token_MapClose,
-				/**/ /**/ Token_MapClose,
-				/**/ Token_MapClose,
-				Token_MapClose,
+				{Type: TMapOpen, Length: 1},
+				/**/ TokStr("r"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ TokStr("r"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ /**/ TokStr("r"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ /**/ /**/ TokStr("r"), {Type: TNull},
+				/**/ /**/ /**/ {Type: TMapClose},
+				/**/ /**/ {Type: TMapClose},
+				/**/ {Type: TMapClose},
+				{Type: TMapClose},
 			},
 		},
 		{
@@ -265,9 +265,9 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			expectSeq: []Token{
-				Token_MapOpen,
+				{Type: TMapOpen, Length: 1},
 				TokStr("a"), TokInt(1),
-				Token_MapClose,
+				{Type: TMapClose},
 			},
 		},
 		{
@@ -280,11 +280,11 @@ func TestMarshaller(t *testing.T) {
 				}
 			},
 			expectSeq: []Token{
-				Token_MapOpen,
-				TokStr("a"), Token_MapOpen,
-				TokStr("b"), TokInt(2),
-				Token_MapClose,
-				Token_MapClose,
+				{Type: TMapOpen, Length: 1},
+				/**/ TokStr("a"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ TokStr("b"), TokInt(2),
+				/**/ {Type: TMapClose},
+				{Type: TMapClose},
 			},
 		},
 		{
@@ -293,9 +293,9 @@ func TestMarshaller(t *testing.T) {
 				return &[]int{1, 2, 3, 4, 5}
 			},
 			expectSeq: []Token{
-				Token_ArrOpen,
+				{Type: TArrOpen, Length: 5},
 				TokInt(1), TokInt(2), TokInt(3), TokInt(4), TokInt(5),
-				Token_ArrClose,
+				{Type: TArrClose},
 			},
 		},
 		{
@@ -311,9 +311,9 @@ func TestMarshaller(t *testing.T) {
 					},
 				}}),
 			expectSeq: []Token{
-				Token_MapOpen,
-				TokStr("i"), nil,
-				Token_MapClose,
+				{Type: TMapOpen, Length: 1},
+				TokStr("i"), {Type: TNull},
+				{Type: TMapClose},
 			},
 		},
 		{
@@ -329,11 +329,11 @@ func TestMarshaller(t *testing.T) {
 					},
 				}}),
 			expectSeq: []Token{
-				Token_MapOpen,
-				/**/ TokStr("i"), Token_MapOpen,
-				/**/ /**/ TokStr("i"), nil,
-				/**/ Token_MapClose,
-				Token_MapClose,
+				{Type: TMapOpen, Length: 1},
+				/**/ TokStr("i"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ TokStr("i"), {Type: TNull},
+				/**/ {Type: TMapClose},
+				{Type: TMapClose},
 			},
 		},
 		{
@@ -349,11 +349,11 @@ func TestMarshaller(t *testing.T) {
 					},
 				}}),
 			expectSeq: []Token{
-				Token_MapOpen,
-				/**/ TokStr("i"), Token_MapOpen,
-				/**/ /**/ TokStr("i"), nil,
-				/**/ Token_MapClose,
-				Token_MapClose,
+				{Type: TMapOpen, Length: 1},
+				/**/ TokStr("i"), {Type: TMapOpen, Length: 1},
+				/**/ /**/ TokStr("i"), {Type: TNull},
+				/**/ {Type: TMapClose},
+				{Type: TMapClose},
 			},
 		},
 	}
@@ -373,7 +373,7 @@ func TestMarshaller(t *testing.T) {
 				done, err = marshaller.Step(&tok)
 				if !IsTokenEqual(expectTok, tok) {
 					t.Errorf("test %q failed: step %d yielded wrong token: expected %s, got %s",
-						tr.title, n, TokenToString(expectTok), TokenToString(tok))
+						tr.title, n, expectTok, tok)
 				}
 				if err != nil {
 					t.Errorf("test %q failed: step %d (expecting %#v) errored: %s",

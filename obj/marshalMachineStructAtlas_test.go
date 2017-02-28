@@ -37,11 +37,11 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 			},
 		},
 		expectSeq: []Token{
-			Token_MapOpen,
+			{Type: TMapOpen, Length: 3},
 			TokStr("x"), TokInt(1),
 			TokStr("y"), TokInt(4),
 			TokStr("z"), TokStr("nine"),
-			Token_MapClose,
+			{Type: TMapClose},
 		},
 	}, {
 		title: "struct containing nils",
@@ -58,9 +58,9 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 			},
 		},
 		expectSeq: []Token{
-			Token_MapOpen,
-			TokStr("x"), nil,
-			Token_MapClose,
+			{Type: TMapOpen, Length: 1},
+			TokStr("x"), {Type: TNull},
+			{Type: TMapClose},
 		},
 	}, {
 		title: "struct containing ptr to primitve",
@@ -80,9 +80,9 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 			},
 		},
 		expectSeq: []Token{
-			Token_MapOpen,
+			{Type: TMapOpen, Length: 1},
 			TokStr("x"), TokStr("asdf"),
-			Token_MapClose,
+			{Type: TMapClose},
 		},
 	}}
 	for _, tr := range tt {
@@ -104,7 +104,7 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 				done, err = marshaller.Step(&tok)
 				if !IsTokenEqual(expectTok, tok) {
 					t.Errorf("test %q failed: step %d yielded wrong token: expected %s, got %s",
-						tr.title, n, TokenToString(expectTok), TokenToString(tok))
+						tr.title, n, expectTok, tok)
 				}
 				if err != nil {
 					t.Errorf("test %q failed: step %d (expecting %#v) errored: %s",
