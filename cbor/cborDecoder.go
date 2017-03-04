@@ -13,8 +13,6 @@ type Decoder struct {
 	stack []decoderStep // When empty, and step returns done, all done.
 	step  decoderStep   // Shortcut to end of stack.
 	left  []int         // Statekeeping space for definite-len map and array.
-
-	spareBytes []byte
 }
 
 func NewDecoder(r io.Reader) (d *Decoder) {
