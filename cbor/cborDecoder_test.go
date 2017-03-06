@@ -8,20 +8,6 @@ import (
 	. "github.com/polydawn/go-xlate/tok"
 )
 
-func bcat(bss ...[]byte) []byte {
-	l := 0
-	for _, bs := range bss {
-		l += len(bs)
-	}
-	rbs := make([]byte, 0, l)
-	for _, bs := range bss {
-		rbs = append(rbs, bs...)
-	}
-	return rbs
-}
-
-func b(b byte) []byte { return []byte{b} }
-
 func TestCborDecoder(t *testing.T) {
 	tt := cborFixtures
 	for _, tr := range tt {

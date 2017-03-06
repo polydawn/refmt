@@ -4,6 +4,20 @@ import (
 	"github.com/polydawn/go-xlate/tok/fixtures"
 )
 
+func bcat(bss ...[]byte) []byte {
+	l := 0
+	for _, bs := range bss {
+		l += len(bs)
+	}
+	rbs := make([]byte, 0, l)
+	for _, bs := range bss {
+		rbs = append(rbs, bs...)
+	}
+	return rbs
+}
+
+func b(b byte) []byte { return []byte{b} }
+
 var cborFixtures = []struct {
 	title    string
 	sequence fixtures.Sequence
