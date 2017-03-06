@@ -18,43 +18,58 @@ func bcat(bss ...[]byte) []byte {
 
 func b(b byte) []byte { return []byte{b} }
 
+type situation byte
+
+const (
+	situationEncoding situation = 0x1
+	situationDecoding situation = 0x2
+)
+
 var cborFixtures = []struct {
 	title    string
 	sequence fixtures.Sequence
 	serial   []byte
+	only     situation
 }{
 	// Strings and flats.
 	{"",
 		fixtures.SequenceMap["flat string"],
 		bcat(b(0x60+5), []byte(`value`)),
+		situationEncoding | situationDecoding,
 	},
 	{"indefinite length string (single actual hunk)",
 		fixtures.SequenceMap["flat string"],
 		bcat(b(0x7f), b(0x60+5), []byte(`value`), b(0xff)),
+		situationDecoding,
 	},
 	{"indefinite length string (multiple hunks)",
 		fixtures.SequenceMap["flat string"],
 		bcat(b(0x7f), b(0x60+2), []byte(`va`), b(0x60+3), []byte(`lue`), b(0xff)),
+		situationDecoding,
 	},
 	{"",
 		fixtures.SequenceMap["strings needing escape"],
 		bcat(b(0x60+17), []byte("str\nbroken\ttabbed")),
+		situationEncoding | situationDecoding,
 	},
 
 	// Maps.
 	{"",
 		fixtures.SequenceMap["empty map"],
 		bcat(b(0xa0)),
+		situationEncoding | situationDecoding,
 	},
 	{"indefinite length",
 		fixtures.SequenceMap["empty map"].SansLengthInfo(),
 		bcat(b(0xbf), b(0xff)),
+		situationEncoding | situationDecoding,
 	},
 	{"",
 		fixtures.SequenceMap["single row map"],
 		bcat(b(0xa0+1),
 			b(0x60+3), []byte(`key`), b(0x60+5), []byte(`value`),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"indefinite length",
 		fixtures.SequenceMap["single row map"].SansLengthInfo(),
@@ -62,6 +77,7 @@ var cborFixtures = []struct {
 			b(0x60+3), []byte(`key`), b(0x60+5), []byte(`value`),
 			b(0xff),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"",
 		fixtures.SequenceMap["duo row map"],
@@ -69,6 +85,7 @@ var cborFixtures = []struct {
 			b(0x60+3), []byte(`key`), b(0x60+5), []byte(`value`),
 			b(0x60+2), []byte(`k2`), b(0x60+2), []byte(`v2`),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"indefinite length",
 		fixtures.SequenceMap["duo row map"].SansLengthInfo(),
@@ -77,22 +94,26 @@ var cborFixtures = []struct {
 			b(0x60+2), []byte(`k2`), b(0x60+2), []byte(`v2`),
 			b(0xff),
 		),
+		situationEncoding | situationDecoding,
 	},
 
 	// Arrays.
 	{"",
 		fixtures.SequenceMap["empty array"],
 		bcat(b(0x80)),
+		situationEncoding | situationDecoding,
 	},
 	{"indefinite length",
 		fixtures.SequenceMap["empty array"].SansLengthInfo(),
 		bcat(b(0x9f), b(0xff)),
+		situationEncoding | situationDecoding,
 	},
 	{"",
 		fixtures.SequenceMap["single entry array"],
 		bcat(b(0x80+1),
 			b(0x60+5), []byte(`value`),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"indefinite length",
 		fixtures.SequenceMap["single entry array"].SansLengthInfo(),
@@ -100,6 +121,7 @@ var cborFixtures = []struct {
 			b(0x60+5), []byte(`value`),
 			b(0xff),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"indefinite length with nested indef string",
 		fixtures.SequenceMap["single entry array"].SansLengthInfo(),
@@ -107,6 +129,7 @@ var cborFixtures = []struct {
 			bcat(b(0x7f), b(0x60+5), []byte(`value`), b(0xff)),
 			b(0xff),
 		),
+		situationDecoding,
 	},
 	{"",
 		fixtures.SequenceMap["duo entry array"],
@@ -114,6 +137,7 @@ var cborFixtures = []struct {
 			b(0x60+5), []byte(`value`),
 			b(0x60+2), []byte(`v2`),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"indefinite length",
 		fixtures.SequenceMap["duo entry array"].SansLengthInfo(),
@@ -122,6 +146,7 @@ var cborFixtures = []struct {
 			b(0x60+2), []byte(`v2`),
 			b(0xff),
 		),
+		situationEncoding | situationDecoding,
 	},
 
 	// Complex / mixed / nested.
@@ -137,6 +162,7 @@ var cborFixtures = []struct {
 			),
 			b(0xff),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"all indefinite length",
 		fixtures.SequenceMap["array nested in map as first and non-final entry"].SansLengthInfo(),
@@ -150,6 +176,7 @@ var cborFixtures = []struct {
 			b(0x60+2), []byte(`k1`), b(0x60+2), []byte(`v1`),
 			b(0xff),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"",
 		fixtures.SequenceMap["maps nested in array"],
@@ -162,6 +189,7 @@ var cborFixtures = []struct {
 				b(0x60+2), []byte(`k1`), b(0x60+2), []byte(`v1`),
 			),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"all indefinite length",
 		fixtures.SequenceMap["maps nested in array"].SansLengthInfo(),
@@ -177,14 +205,17 @@ var cborFixtures = []struct {
 			),
 			b(0xff),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"",
 		fixtures.SequenceMap["arrays in arrays in arrays"],
 		bcat(b(0x80+1), b(0x80+1), b(0x80+0)),
+		situationEncoding | situationDecoding,
 	},
 	{"all indefinite length",
 		fixtures.SequenceMap["arrays in arrays in arrays"].SansLengthInfo(),
 		bcat(b(0x9f), b(0x9f), b(0x9f), b(0xff), b(0xff), b(0xff)),
+		situationEncoding | situationDecoding,
 	},
 	{"",
 		fixtures.SequenceMap["maps nested in maps"],
@@ -193,6 +224,7 @@ var cborFixtures = []struct {
 				b(0x60+2), []byte(`k2`), b(0x60+2), []byte(`v2`),
 			),
 		),
+		situationEncoding | situationDecoding,
 	},
 	{"all indefinite length",
 		fixtures.SequenceMap["maps nested in maps"].SansLengthInfo(),
@@ -203,5 +235,6 @@ var cborFixtures = []struct {
 			),
 			b(0xff),
 		),
+		situationEncoding | situationDecoding,
 	},
 }
