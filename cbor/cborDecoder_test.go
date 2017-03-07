@@ -11,6 +11,11 @@ import (
 func TestCborDecoder(t *testing.T) {
 	tt := cborFixtures
 	for _, tr := range tt {
+		// Skip if not tagged for decoding.
+		if tr.only&situationDecoding == 0 {
+			continue
+		}
+
 		// Set it up.
 		title := tr.sequence.Title
 		if tr.title != "" {

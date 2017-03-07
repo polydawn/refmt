@@ -1,6 +1,9 @@
 package cbor
 
 import (
+	"encoding/base64"
+
+	. "github.com/polydawn/go-xlate/tok"
 	"github.com/polydawn/go-xlate/tok/fixtures"
 )
 
@@ -18,6 +21,14 @@ func bcat(bss ...[]byte) []byte {
 
 func b(b byte) []byte { return []byte{b} }
 
+func deB64(s string) []byte {
+	bs, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		panic(err)
+	}
+	return bs
+}
+
 type situation byte
 
 const (
@@ -31,7 +42,7 @@ var cborFixtures = []struct {
 	serial   []byte
 	only     situation
 }{
-	// Strings and flats.
+	// Strings.
 	{"",
 		fixtures.SequenceMap["flat string"],
 		bcat(b(0x60+5), []byte(`value`)),
@@ -237,4 +248,38 @@ var cborFixtures = []struct {
 		),
 		situationEncoding | situationDecoding,
 	},
+
+	// Numbers.
+	{"",
+		fixtures.Sequence{"integer zero", []Token{{Type: TInt, Int: 0}}},
+		deB64("AA=="),
+		situationEncoding, // Impossible to decode this because cbor doens't disambiguate positive vs signed ints.
+	},
+	{"",
+		fixtures.Sequence{"integer zero unsigned", []Token{{Type: TUint, Uint: 0}}},
+		deB64("AA=="),
+		situationEncoding | situationDecoding,
+	},
+	{"",
+		fixtures.Sequence{"integer one", []Token{{Type: TInt, Int: 1}}},
+		deB64("AQ=="),
+		situationEncoding, // Impossible to decode this because cbor doens't disambiguate positive vs signed ints.
+	},
+	{"",
+		fixtures.Sequence{"integer one unsigned", []Token{{Type: TUint, Uint: 1}}},
+		deB64("AQ=="),
+		situationEncoding | situationDecoding,
+	},
+	{"",
+		fixtures.Sequence{"integer neg 1", []Token{{Type: TInt, Int: -1}}},
+		deB64("IA=="),
+		situationEncoding | situationDecoding,
+	},
+	{"",
+		fixtures.Sequence{"integer neg 100", []Token{{Type: TInt, Int: -100}}},
+		deB64("OGM="),
+		situationEncoding | situationDecoding,
+	},
+
+	// Byte strings.
 }

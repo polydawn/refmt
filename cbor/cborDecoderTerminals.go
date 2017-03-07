@@ -55,7 +55,7 @@ func (d *Decoder) decodeNegInt(majorByte byte) (i int64, err error) {
 		return 0, err
 	}
 	// TODO needs overflow check
-	return -int64(ui), nil
+	return -1 - int64(ui), nil
 }
 
 // Decode expecting a positive integer.
