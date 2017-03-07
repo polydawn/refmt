@@ -13,9 +13,23 @@ type Sequence struct {
 
 // An array of well-formed token sequences.
 var Sequences = []Sequence{
+	// Strings.
 	{"flat string",
 		[]Token{
 			TokStr("value"),
+		},
+	},
+	{"strings needing escape",
+		[]Token{
+			TokStr("str\nbroken\ttabbed"),
+		},
+	},
+
+	// Maps.
+	{"empty map",
+		[]Token{
+			{Type: TMapOpen, Length: 0},
+			{Type: TMapClose},
 		},
 	},
 	{"single row map",
@@ -36,6 +50,14 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+
+	// Arrays.
+	{"empty array",
+		[]Token{
+			{Type: TArrOpen, Length: 0},
+			{Type: TArrClose},
+		},
+	},
 	{"single entry array",
 		[]Token{
 			{Type: TArrOpen, Length: 1},
@@ -51,18 +73,8 @@ var Sequences = []Sequence{
 			{Type: TArrClose},
 		},
 	},
-	{"empty map",
-		[]Token{
-			{Type: TMapOpen, Length: 0},
-			{Type: TMapClose},
-		},
-	},
-	{"empty array",
-		[]Token{
-			{Type: TArrOpen, Length: 0},
-			{Type: TArrClose},
-		},
-	},
+
+	// Complex / mixed / nested.
 	{"array nested in map as non-first and final entry",
 		[]Token{
 			{Type: TMapOpen, Length: 2},
@@ -127,11 +139,21 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
-	{"strings needing escape",
-		[]Token{
-			TokStr("str\nbroken\ttabbed"),
-		},
-	},
+
+	// Numbers.
+	// Warning: surprisingly contentious topic.
+	// CBOR can't distinguish between positive numbers and unsigned;
+	// JSON can't generally distinguish much of anything from anything, and is
+	// subject to disasterous issues around floating point precision.
+	//
+	// Commented out because they're functionally useless -- packages define their own vagueries:
+	//	{"integer zero", []Token{{Type: TInt, Int: 0}}},
+	//	{"integer one", []Token{{Type: TInt, Int: 1}}},
+	//	{"integer neg one", []Token{{Type: TInt, Int: -1}}},
+
+	// Byte strings.
+	// Warning: contentious topic.
+	// JSON can't clearly represent binary types, and must use string transforms.
 }
 
 // Returns a copy of the sequence with all length info at the start of maps and arrays stripped.
