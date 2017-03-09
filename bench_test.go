@@ -11,12 +11,21 @@ import (
 	"github.com/polydawn/go-xlate/obj/atlas"
 )
 
+func checkAftermath(err error, result []byte, expect []byte) {
+	if err != nil {
+		panic(err)
+	}
+	if !bytes.Equal(result, expect) {
+		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", result, expect))
+	}
+}
+
 //
 // slice of ints test
 //
 
 var fixture_arrayFlatInt = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
-var fixture_arrayFlatInt_expect = []byte(`[1,2,3,4,5,6,7,8,9,0]`)
+var fixture_arrayFlatInt_json = []byte(`[1,2,3,4,5,6,7,8,9,0]`)
 
 func Benchmark_ArrayFlatIntToJson_Xlate(b *testing.B) {
 	var buf bytes.Buffer
@@ -26,12 +35,7 @@ func Benchmark_ArrayFlatIntToJson_Xlate(b *testing.B) {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatInt)
 	}
-	if err != nil {
-		panic(err)
-	}
-	if !bytes.Equal(buf.Bytes(), fixture_arrayFlatInt_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_arrayFlatInt_expect))
-	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_json)
 }
 func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
@@ -41,13 +45,8 @@ func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 		buf.Reset()
 		err = enc.Encode(&fixture_arrayFlatInt)
 	}
-	if err != nil {
-		panic(err)
-	}
 	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
-	if !bytes.Equal(buf.Bytes(), fixture_arrayFlatInt_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_arrayFlatInt_expect))
-	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_json)
 }
 
 //
@@ -55,7 +54,7 @@ func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 //
 
 var fixture_arrayFlatStr = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}
-var fixture_arrayFlatStr_expect = []byte(`["1","2","3","4","5","6","7","8","9","0"]`)
+var fixture_arrayFlatStr_json = []byte(`["1","2","3","4","5","6","7","8","9","0"]`)
 
 func Benchmark_ArrayFlatStrToJson_Xlate(b *testing.B) {
 	var buf bytes.Buffer
@@ -65,12 +64,7 @@ func Benchmark_ArrayFlatStrToJson_Xlate(b *testing.B) {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatStr)
 	}
-	if err != nil {
-		panic(err)
-	}
-	if !bytes.Equal(buf.Bytes(), fixture_arrayFlatStr_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_arrayFlatStr_expect))
-	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_json)
 }
 func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
@@ -80,13 +74,8 @@ func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 		buf.Reset()
 		err = enc.Encode(&fixture_arrayFlatStr)
 	}
-	if err != nil {
-		panic(err)
-	}
 	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
-	if !bytes.Equal(buf.Bytes(), fixture_arrayFlatStr_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_arrayFlatStr_expect))
-	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_json)
 }
 
 //
@@ -128,7 +117,7 @@ var fixture_struct = structAlpha{
 	structGamma{"n2", 14},
 	1, 2, "3", "4",
 }
-var fixture_struct_expect = []byte(`{"B":{"R":{"R":{"R":{"R":null,"M":""},"M":"asdf"},"M":"quir"}},"C":{"N":"n","M":13},"C2":{"N":"n2","M":14},"X":1,"Y":2,"Z":"3","W":"4"}`)
+var fixture_struct_json = []byte(`{"B":{"R":{"R":{"R":{"R":null,"M":""},"M":"asdf"},"M":"quir"}},"C":{"N":"n","M":13},"C2":{"N":"n2","M":14},"X":1,"Y":2,"Z":"3","W":"4"}`)
 var fixture_suiteFieldRoute = (&obj.Suite{}).
 	Add(structAlpha{}, obj.Morphism{Atlas: atlas.Atlas{
 		Fields: []atlas.Entry{
@@ -203,12 +192,7 @@ func Benchmark_StructToJson_XlateFieldRoute(b *testing.B) {
 		serializer.Reset()
 		err = enc.Run()
 	}
-	if err != nil {
-		panic(err)
-	}
-	if !bytes.Equal(buf.Bytes(), fixture_struct_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_struct_expect))
-	}
+	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
 func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
@@ -225,12 +209,7 @@ func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
 		serializer.Reset()
 		err = enc.Run()
 	}
-	if err != nil {
-		panic(err)
-	}
-	if !bytes.Equal(buf.Bytes(), fixture_struct_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_struct_expect))
-	}
+	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
 func Benchmark_StructToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
@@ -240,11 +219,6 @@ func Benchmark_StructToJson_Stdlib(b *testing.B) {
 		buf.Reset()
 		err = enc.Encode(&fixture_struct)
 	}
-	if err != nil {
-		panic(err)
-	}
 	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
-	if !bytes.Equal(buf.Bytes(), fixture_struct_expect) {
-		panic(fmt.Errorf("result \"%s\"\nmust equal \"%s\"", buf.Bytes(), fixture_struct_expect))
-	}
+	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
