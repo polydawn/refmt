@@ -37,9 +37,8 @@ func (d *Encoder) encodeNull() {
 }
 
 func (d *Encoder) encodeString(s string) {
-	bs := []byte(s)
-	d.emitMajorPlusLen(cborMajorString, uint64(len(bs)))
-	d.w.writeb(bs)
+	d.emitMajorPlusLen(cborMajorString, uint64(len(s)))
+	d.w.writestr(s)
 }
 
 func (d *Encoder) encodeBytes(bs []byte) {
