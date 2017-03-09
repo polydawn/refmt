@@ -18,9 +18,10 @@ type Encoder struct {
 
 func NewEncoder(w io.Writer) (d *Encoder) {
 	d = &Encoder{
-		w:       newQuickWriterStream(w),
-		stack:   make([]encoderPhase, 0, 10),
-		current: phase_anyExpectValue,
+		w:          newQuickWriterStream(w),
+		stack:      make([]encoderPhase, 0, 10),
+		current:    phase_anyExpectValue,
+		spareBytes: make([]byte, 8),
 	}
 	return
 }
@@ -235,7 +236,7 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 			d.current -= 1
 			fallthrough
 		case phase_anyExpectValue, phase_arrDefExpectValueOrEnd, phase_arrIndefExpectValueOrEnd:
-			// TODO
+			d.encodeFloat64(tokenSlot.Float64)
 			return phase == phase_anyExpectValue, d.w.checkErr()
 		case phase_mapDefExpectKeyOrEnd, phase_mapIndefExpectKeyOrEnd:
 			return true, &ErrInvalidTokenStream{Got: *tokenSlot, Acceptable: tokenTypesForKey}

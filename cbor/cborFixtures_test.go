@@ -280,6 +280,26 @@ var cborFixtures = []struct {
 		deB64("OGM="),
 		situationEncoding | situationDecoding,
 	},
+	{"",
+		fixtures.Sequence{"integer 1000000", []Token{{Type: TInt, Int: 1000000}}},
+		deB64("GgAPQkA="),
+		situationEncoding, // Impossible to decode this because cbor doens't disambiguate positive vs signed ints.
+	},
+	{"",
+		fixtures.Sequence{"integer 1000000 unsigned", []Token{{Type: TUint, Uint: 1000000}}},
+		deB64("GgAPQkA="),
+		situationEncoding | situationDecoding,
+	},
+	//	{"",  // This fixture expects the float32 encoding, and we currently lack support for detecting when things can be safely packed thusly.
+	//		fixtures.Sequence{"float decimal e+38", []Token{{Type: TFloat64, Float64: 3.4028234663852886e+38}}},
+	//		deB64("+n9///8="),
+	//		situationEncoding | situationDecoding,
+	//	},
+	{"",
+		fixtures.Sequence{"float 1 e+100", []Token{{Type: TFloat64, Float64: 1.0e+300}}},
+		deB64("+3435DyIAHWc"),
+		situationEncoding | situationDecoding,
+	},
 
 	// Byte strings.
 }

@@ -18,10 +18,12 @@ func (d *Encoder) emitMajorPlusLen(majorByte byte, v uint64) {
 		d.w.writen1(majorByte + 0x19)
 		d.spareBytes = d.spareBytes[:2]
 		binary.BigEndian.PutUint16(d.spareBytes, uint16(v))
+		d.w.writeb(d.spareBytes)
 	} else if v <= math.MaxUint32 {
 		d.w.writen1(majorByte + 0x1a)
 		d.spareBytes = d.spareBytes[:4]
 		binary.BigEndian.PutUint32(d.spareBytes, uint32(v))
+		d.w.writeb(d.spareBytes)
 	} else { // if v <= math.MaxUint64 {
 		d.w.writen1(majorByte + 0x1b)
 		d.spareBytes = d.spareBytes[:8]
@@ -58,4 +60,14 @@ func (d *Encoder) encodeInt64(v int64) {
 
 func (d *Encoder) encodeUint64(v uint64) {
 	d.emitMajorPlusLen(cborMajorUint, v)
+}
+
+func (d *Encoder) encodeFloat64(v float64) {
+	// Can we pack it into 32?  No idea: float precision is fraught with peril.
+	// See https://play.golang.org/p/u9sN6x0kk6
+	// So we *only* emit the full 64-bit style.  The CBOR spec permits this.
+	d.w.writen1(cborSigilFloat64)
+	d.spareBytes = d.spareBytes[:8]
+	binary.BigEndian.PutUint64(d.spareBytes, math.Float64bits(v))
+	d.w.writeb(d.spareBytes)
 }
