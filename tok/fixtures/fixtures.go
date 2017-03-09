@@ -154,6 +154,16 @@ var Sequences = []Sequence{
 	// Byte strings.
 	// Warning: contentious topic.
 	// JSON can't clearly represent binary types, and must use string transforms.
+	{"short byte array",
+		[]Token{
+			{Type: TBytes, Bytes: []byte(`value`)}, // Note 'Length' field not used; would be redundant.
+		},
+	},
+	{"long zero byte array",
+		[]Token{
+			{Type: TBytes, Bytes: make([]byte, 400)},
+		},
+	},
 }
 
 // Returns a copy of the sequence with all length info at the start of maps and arrays stripped.

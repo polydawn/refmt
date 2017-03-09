@@ -42,6 +42,11 @@ func (d *Encoder) encodeString(s string) {
 	d.w.writeb(bs)
 }
 
+func (d *Encoder) encodeBytes(bs []byte) {
+	d.emitMajorPlusLen(cborMajorBytes, uint64(len(bs)))
+	d.w.writeb(bs)
+}
+
 func (d *Encoder) encodeBool(b bool) {
 	if b {
 		d.w.writen1(cborSigilTrue)

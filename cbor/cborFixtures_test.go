@@ -1,6 +1,7 @@
 package cbor
 
 import (
+	"bytes"
 	"encoding/base64"
 
 	. "github.com/polydawn/go-xlate/tok"
@@ -302,4 +303,24 @@ var cborFixtures = []struct {
 	},
 
 	// Byte strings.
+	{"",
+		fixtures.SequenceMap["short byte array"],
+		bcat(b(0x40+5), []byte(`value`)),
+		situationEncoding | situationDecoding,
+	},
+	{"indefinite length bytes (single actual hunk)",
+		fixtures.SequenceMap["short byte array"],
+		bcat(b(0x5f), b(0x40+5), []byte(`value`), b(0xff)),
+		situationDecoding,
+	},
+	{"indefinite length bytes (multiple hunks)",
+		fixtures.SequenceMap["short byte array"],
+		bcat(b(0x5f), b(0x40+2), []byte(`va`), b(0x40+3), []byte(`lue`), b(0xff)),
+		situationDecoding,
+	},
+	{"",
+		fixtures.SequenceMap["long zero byte array"],
+		bcat(b(0x40+0x19), []byte{0x1, 0x90}, bytes.Repeat(b(0x0), 400)),
+		situationEncoding | situationDecoding,
+	},
 }

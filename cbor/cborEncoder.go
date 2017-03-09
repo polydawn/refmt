@@ -174,7 +174,7 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 			d.current -= 1
 			fallthrough
 		case phase_anyExpectValue, phase_arrDefExpectValueOrEnd, phase_arrIndefExpectValueOrEnd:
-			// TODO emit
+			d.encodeBytes(tokenSlot.Bytes)
 			return phase == phase_anyExpectValue, d.w.checkErr()
 		case phase_mapDefExpectKeyOrEnd, phase_mapIndefExpectKeyOrEnd:
 			return true, &ErrInvalidTokenStream{Got: *tokenSlot, Acceptable: tokenTypesForKey}
