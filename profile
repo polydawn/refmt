@@ -8,12 +8,16 @@ export GOPATH="$PWD/.gopath/"
 
 funcs=()
 funcs+=("Benchmark_ArrayFlatIntToJson_Xlate")
+funcs+=("Benchmark_ArrayFlatIntToCbor_Xlate")
 funcs+=("Benchmark_ArrayFlatIntToJson_Stdlib")
 funcs+=("Benchmark_ArrayFlatStrToJson_Xlate")
+funcs+=("Benchmark_ArrayFlatStrToCbor_Xlate")
 funcs+=("Benchmark_ArrayFlatStrToJson_Stdlib")
 
 funcs+=("Benchmark_StructToJson_XlateFieldRoute")
+funcs+=("Benchmark_StructToCbor_XlateFieldRoute")
 funcs+=("Benchmark_StructToJson_XlateAddrFunc")
+funcs+=("Benchmark_StructToCbor_XlateAddrFunc")
 funcs+=("Benchmark_StructToJson_Stdlib")
 
 profPath=".gopath/tmp/prof/" ; mkdir -p "$profPath"

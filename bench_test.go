@@ -68,6 +68,7 @@ func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 
 var fixture_arrayFlatStr = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"}
 var fixture_arrayFlatStr_json = []byte(`["1","2","3","4","5","6","7","8","9","0"]`)
+var fixture_arrayFlatStr_cbor = []byte{0x80 + 10, 0x60 + 1, 0x30 + 1, 0x60 + 1, 0x30 + 2, 0x60 + 1, 0x30 + 3, 0x60 + 1, 0x30 + 4, 0x60 + 1, 0x30 + 5, 0x60 + 1, 0x30 + 6, 0x60 + 1, 0x30 + 7, 0x60 + 1, 0x30 + 8, 0x60 + 1, 0x30 + 9, 0x60 + 1, 0x30 + 0}
 
 func Benchmark_ArrayFlatStrToJson_Xlate(b *testing.B) {
 	var buf bytes.Buffer
@@ -78,6 +79,16 @@ func Benchmark_ArrayFlatStrToJson_Xlate(b *testing.B) {
 		err = enc.Marshal(&fixture_arrayFlatStr)
 	}
 	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_json)
+}
+func Benchmark_ArrayFlatStrToCbor_Xlate(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := NewCborEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatStr)
+	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_cbor)
 }
 func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
@@ -243,6 +254,23 @@ func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
 		err = enc.Run()
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_json)
+}
+func Benchmark_StructToCbor_XlateAddrFunc(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	marshaller := obj.NewMarshaler(fixture_suiteAddrFunc)
+	encoder := cbor.NewEncoder(&buf)
+	serializer := TokenPump{
+		marshaller,
+		encoder,
+	}
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		marshaller.Bind(&fixture_struct)
+		encoder.Reset()
+		err = serializer.Run()
+	}
+	checkAftermath(err, buf.Bytes(), fixture_struct_cbor)
 }
 func Benchmark_StructToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
