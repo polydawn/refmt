@@ -12,7 +12,7 @@ type StructMap struct {
 type StructMapEntry struct {
 	// The field name; will be emitted as token during marshal, and used for
 	// lookup during unmarshal.  Required.
-	name string
+	SerialName string
 
 	// *One* of the following:
 
@@ -20,7 +20,7 @@ type StructMapEntry struct {
 	addrFunc     func(interface{}) interface{} // custom user function.
 
 	// If true, marshalling will skip this field if its the zero value.
-	omitEmpty bool
+	OmitEmpty bool
 }
 
 type reflectRoute []int
