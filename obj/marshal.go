@@ -33,9 +33,9 @@ func (d *MarshalDriver) Bind(v interface{}) {
 }
 
 type MarshalDriver struct {
-	marshalSlab  marshalSlab
-	stack []MarshalMachine
-	step  MarshalMachine
+	marshalSlab marshalSlab
+	stack       []MarshalMachine
+	step        MarshalMachine
 }
 
 type MarshalMachine interface {
