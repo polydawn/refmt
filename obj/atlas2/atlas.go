@@ -39,18 +39,49 @@ type AtlasEntry struct {
 	// Only valid if `this.Type.Kind() == Struct`.
 	StructMap StructMap
 
-	MarshalTransform func(interface{}) interface{}
-	// might as well store the extra type info and create it with reflect at suite setup time?
+	// Transforms the value we reached by walking (the 'live' value -- which
+	// must be of `this.Type`) into another value (the 'serialable' value --
+	// which will be of `this.MarshalTransformTargetType`).
+	//
+	// The target type may be anything, even of a completely different Kind!
+	//
+	// This transform func runs first, then the resulting value is
+	// serialized (by running through the path through Atlas again, so
+	// chaining of transform funcs is supported, though not recommended).
+	MarshalTransformFunc MarshalTransformFunc
+	// The type of value we expect after using the MarshalTransformFunc.
+	//
+	// The match between transform func and target type should be checked
+	// during construction of this AtlasEntry.
+	MarshalTransformTargetType reflect.Type
 
-	UnmarshalTransform struct {
-		TargetType reflect.Type
-		Transform  func(interface{}) interface{}
-	}
+	// Expects a different type (the 'serialable' value -- which will be of
+	// 'this.UnmarshalTransformTargetType') than the value we reached by
+	// walking (the 'live' value -- which must be of `this.Type`).
+	//
+	// The target type may be anything, even of a completely different Kind!
+	//
+	// The unmarshal of that target type will be run first, then the
+	// resulting value is fed through this function to produce the real value,
+	// which is then placed correctly into bigger mid-unmarshal object tree.
+	//
+	// For non-primitives, unmarshal of the target type will always target
+	// an empty pointer or empty slice, roughly as per if it was
+	// operating on a value produced by `TargetType.New()`.
+	UnmarshalTransformFunc UnmarshalTransformFunc
+	// The type of value we will manufacture an instance of and unmarshal
+	// into, then when done provide to the UnmarshalTransformFunc.
+	//
+	// The match between transform func and target type should be checked
+	// during construction of this AtlasEntry.
+	UnmarshalTransformTargetType reflect.Type
 
 	// A validation function which will be called for the whole value
 	// after unmarshalling reached the end of the object.
 	// If it returns an error, the entire unmarshal will error.
+	//
 	// Not used in marshalling.
+	// Not reachable if an UnmarshalTransform is set.
 	ValidateFn func(v interface{}) error
 }
 
