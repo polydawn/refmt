@@ -19,20 +19,6 @@ type Atlas struct {
 	// Each entry specifies the name by which each field should be referenced
 	// when serialized, and defines a way to get an address to the field.
 	Fields []Entry
-
-	// A validation function which will be called for the whole value
-	// after unmarshalling reached the end of the object.
-	// If it returns an error, the entire unmarshal will error.
-	// Not used in marshalling.
-	ValidateFn func(v interface{}) error
-
-	// If set, will be called after unmarshalling reached the end of the
-	// object, and given a list of keys that appeared, in order of appearance.
-	// This may be useful for knowing if a field was explicitly set to the zero
-	// value vs simply unspecified, or for recording the order for later use
-	// (e.g. so it can be serialized out again later in the same stable order).
-	// Not used in marshalling.
-	RecordFn func([]string)
 }
 
 type Entry struct {
