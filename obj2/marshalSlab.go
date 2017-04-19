@@ -32,6 +32,6 @@ type marshalSlabRow struct {
 	Errors -- including "no info in Atlas for this type" -- are expressed by
 	returning a machine that is a constantly-erroring thunk.
 */
-func (slab *marshalSlab) requisitionMachine(forThis reflect.Value) MarshalMachine {
+func (slab *marshalSlab) requisitionMachine(forThis reflect.Type) MarshalMachine {
 	return nil // TODO
 }

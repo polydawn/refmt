@@ -32,8 +32,9 @@ func (d *MarshalDriver) Bind(v interface{}) {
 	d.stack = d.stack[0:0]
 	d.marshalSlab.rows = d.marshalSlab.rows[0:0]
 	rv := reflect.ValueOf(v)
-	d.step = d.marshalSlab.requisitionMachine(rv)
-	d.step.Reset(&d.marshalSlab, rv)
+	rt := rv.Type()
+	d.step = d.marshalSlab.requisitionMachine(rt)
+	d.step.Reset(&d.marshalSlab, rv, rt)
 }
 
 type MarshalDriver struct {
@@ -43,7 +44,7 @@ type MarshalDriver struct {
 }
 
 type MarshalMachine interface {
-	Reset(*marshalSlab, reflect.Value) error
+	Reset(*marshalSlab, reflect.Value, reflect.Type) error
 	Step(*MarshalDriver, *marshalSlab, *Token) (done bool, err error)
 }
 
@@ -86,12 +87,12 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	with an object, and by the time we call back to your machine again,
 	that object will be traversed and the stream ready for you to continue.
 */
-func (d *MarshalDriver) Recurse(tok *Token, rv reflect.Value, nextMach MarshalMachine) (err error) {
+func (d *MarshalDriver) Recurse(tok *Token, rv reflect.Value, rt reflect.Type, nextMach MarshalMachine) (err error) {
 	//	fmt.Printf(">>> pushing into recursion with %#v\n", nextMach)
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	d.stack = append(d.stack, d.step)
 	// Initialize the machine for this new target value.
-	err = nextMach.Reset(&d.marshalSlab, rv)
+	err = nextMach.Reset(&d.marshalSlab, rv, rt)
 	if err != nil {
 		return
 	}
