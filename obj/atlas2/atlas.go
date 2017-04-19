@@ -35,9 +35,9 @@ type AtlasEntry struct {
 	// The reflect info of the type this morphism is regarding.
 	Type reflect.Type
 
-	// A mapping of fileds in a struct to serial keys.
-	// Only valid if `this.Type.Kind() == Struct`.
-	StructMap StructMap
+	// --------------------------------------------------------
+	// The big escape valves: wanna map to some other kind completely?
+	// --------------------------------------------------------
 
 	// Transforms the value we reached by walking (the 'live' value -- which
 	// must be of `this.Type`) into another value (the 'serialable' value --
@@ -75,6 +75,21 @@ type AtlasEntry struct {
 	// The match between transform func and target type should be checked
 	// during construction of this AtlasEntry.
 	UnmarshalTransformTargetType reflect.Type
+
+	// --------------------------------------------------------
+	// Standard options for how to map (varies by Kind)
+	// --------------------------------------------------------
+
+	// A mapping of fields in a struct to serial keys.
+	// Only valid if `this.Type.Kind() == Struct`.
+	StructMap StructMap
+
+	// FUTURE: enum-ish primitives, multiplexers for interfaces,
+	//  lots of such things will belong here.
+
+	// --------------------------------------------------------
+	// Hooks, validate helpers
+	// --------------------------------------------------------
 
 	// A validation function which will be called for the whole value
 	// after unmarshalling reached the end of the object.
