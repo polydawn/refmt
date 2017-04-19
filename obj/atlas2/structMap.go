@@ -3,7 +3,7 @@ package atlas
 import "reflect"
 
 type StructMap struct {
-	// An slice of descriptions of each field in the type.
+	// A slice of descriptions of each field in the type.
 	// Each entry specifies the name by which each field should be referenced
 	// when serialized, and defines a way to get an address to the field.
 	Fields []StructMapEntry

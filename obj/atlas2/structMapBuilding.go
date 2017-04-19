@@ -5,6 +5,18 @@ import (
 	"strings"
 )
 
+func (x *BuilderCore) StructMap() *BuilderStructMap {
+	return &BuilderStructMap{x.entry}
+}
+
+type BuilderStructMap struct {
+	entry *AtlasEntry
+}
+
+func (x *BuilderStructMap) Complete() AtlasEntry {
+	return *x.entry
+}
+
 /*
 	Add a field to the mapping based on its name.
 
@@ -19,24 +31,20 @@ import (
 	`AddField("Y.Z", {"z", ...})` will cause that *nested* field to be serialized
 	as key "z" in the same object (e.g. "x" and "z" will be siblings).
 
-	Returns mutated StructMap for convenient call chaining.
+	Returns the mutated builder for convenient call chaining.
 
 	If the fieldName string doesn't map onto the structure type info,
 	a panic will be raised.
 */
-func (sm *StructMap) AddField(fieldName string, mapping StructMapEntry) *StructMap {
+func (x *BuilderStructMap) AddField(fieldName string, mapping StructMapEntry) *BuilderStructMap {
 	fieldNameSplit := strings.Split(fieldName, ".")
-	// FIXME sigh need the rt obj again... it's all the way up in the AtlasEntry.
-	// Can we string together enough builder horseshit to get it down here?
-	// Coincidentally, I'd like to be able to define my level of panickyness
-	// a line lower at the AtlasBuilder scale.
 	rr, err := fieldNameToReflectRoute(nil, fieldNameSplit)
 	if err != nil {
-		panic(err)
+		panic(err) // REVIEW: now that we have the builder obj, we could just curry these into it until 'Complete' is called (or, thus, 'MustComplete'!).
 	}
 	mapping.reflectRoute = rr
-	sm.Fields = append(sm.Fields, mapping)
-	return sm
+	x.entry.StructMap.Fields = append(x.entry.StructMap.Fields, mapping)
+	return x
 }
 
 func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr reflectRoute, err error) {

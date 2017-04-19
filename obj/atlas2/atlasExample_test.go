@@ -1,7 +1,8 @@
-// +build none
-// this is only a syntax playground file at the moment
-
 package atlas_test
+
+import (
+	"."
+)
 
 // Design notes:
 //
@@ -16,11 +17,14 @@ package atlas_test
 //   let's start building any builder with that.  Then, diversify.
 
 func example() {
-	x := atlas.Build(
-		atlas.BuildEntry(typeHintObj{}).StructMap().
-			AddField("FieldName", StructMapEntry{SerialName: "fn", OmitEmpty: true}).
-			AddField("Nested.Thing", StructMapEntry{SerialName: "nt"}).
+	type typeExample1 struct{}
+
+	atl, err := atlas.Build(
+		atlas.BuildEntry(typeExample1{}).StructMap().
+			AddField("FieldName", atlas.StructMapEntry{SerialName: "fn", OmitEmpty: true}).
+			AddField("Nested.Thing", atlas.StructMapEntry{SerialName: "nt"}).
 			Complete(),
 		// and carry on; this `Build` method takes `AtlasEntry...`.
 	)
+	_, _ = atl, err
 }
