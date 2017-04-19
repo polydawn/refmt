@@ -1,9 +1,11 @@
 package obj
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/polydawn/go-xlate/obj2/atlas"
+	. "github.com/polydawn/go-xlate/tok"
 )
 
 /*
@@ -23,6 +25,8 @@ type marshalSlabRow struct {
 	//	marshalMachineSliceWildcard
 	//	marshalMachineWildcard
 	//	marshalMachineStructAtlas
+
+	errThunkMarshalMachine
 }
 
 /*
@@ -33,5 +37,29 @@ type marshalSlabRow struct {
 	returning a machine that is a constantly-erroring thunk.
 */
 func (slab *marshalSlab) requisitionMachine(forThis reflect.Type) MarshalMachine {
-	return nil // TODO
+	off := len(slab.rows)
+	slab.grow()
+	row := &slab.rows[off]
+	m := &row.errThunkMarshalMachine
+	m.err = fmt.Errorf("no machine found")
+	return m
+}
+
+func (s *marshalSlab) grow() {
+	s.rows = append(s.rows, marshalSlabRow{})
+}
+
+func (s *marshalSlab) release() {
+	s.rows = s.rows[0 : len(s.rows)-1]
+}
+
+type errThunkMarshalMachine struct {
+	err error
+}
+
+func (m *errThunkMarshalMachine) Reset(_ *marshalSlab, _ reflect.Value, _ reflect.Type) error {
+	return m.err
+}
+func (m *errThunkMarshalMachine) Step(d *MarshalDriver, s *marshalSlab, tok *Token) (done bool, err error) {
+	return true, m.err
 }
