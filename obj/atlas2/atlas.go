@@ -99,27 +99,3 @@ type AtlasEntry struct {
 	// Not reachable if an UnmarshalTransform is set.
 	ValidateFn func(v interface{}) error
 }
-
-type StructMap struct {
-	// An slice of descriptions of each field in the type.
-	// Each entry specifies the name by which each field should be referenced
-	// when serialized, and defines a way to get an address to the field.
-	Fields []StructMapEntry
-}
-
-type StructMapEntry struct {
-	// The field name; will be emitted as token during marshal, and used for
-	// lookup during unmarshal.  Required.
-	Name string
-
-	// *One* of the following:
-
-	ReflectRoute []int                         // reflection generates these.
-	AddrFunc     func(interface{}) interface{} // custom user function.
-
-	// If true, marshalling will skip this field if its the zero value.
-	// (If you need more complex behavior -- for example, a definition of
-	// "empty" other than the type's zero value -- this is not for you.
-	// Try using a MarshalTransform to make a custom field list dynamically.)
-	OmitEmpty bool
-}
