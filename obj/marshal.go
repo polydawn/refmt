@@ -70,13 +70,16 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 }
 
 /*
-	Traverses `target`,
-	first looking up the machine for that type just like it's a new top-level object,
-	then pushing the first step with `tok` (the upstream tends to have peeked at it
-	in order to decide what to do, but if recursing, it belongs to the next obj),
-	then saving this new machine: the driver will then continuing stepping the
-	new machine it returns a done status, at which point we'll finally
-	"return" by popping back to the last machine on the stack.
+	Starts the process of recursing marshalling over `target` value.
+
+	Caller provides the machine to use (this is an optimization for maps and slices,
+	which already know the machine and keep reusing it for all their entries).
+	This method pushes the first step with `tok` (the upstream tends to have peeked at
+	it in order to decide what to do, but if recursing, it belongs to the next obj),
+	then saves this new machine onto the driver's stack: future calls to step
+	the driver will then continuing stepping the new machine it returns a done status,
+	at which point we'll finally "return" by popping back to the last machine on the stack
+	(which is presumably the same one that just called this Recurse method).
 
 	In other words, your MarshalMachine calls this when it wants to deal
 	with an object, and by the time we call back to your machine again,
