@@ -83,10 +83,11 @@ var objFixtures = []struct {
 func TestMarshaller(t *testing.T) {
 	// Package all the values from one step into a struct, just so that
 	// we can assert on them all at once and make one green checkmark render per step.
-	type marshallerStep struct {
+	type step struct {
 		tok Token
 		err error
 	}
+
 	Convey("Marshaller suite:", t, func() {
 		for _, tr := range objFixtures {
 			Convey(fmt.Sprintf("%q fixture sequence:", tr.title), func() {
@@ -114,11 +115,19 @@ func TestMarshaller(t *testing.T) {
 							})
 							return
 						}
-						So(
-							marshallerStep{tok, err},
-							ShouldResemble,
-							marshallerStep{tr.sequence.Tokens[nStep], nil},
-						)
+						if nStep <= expectSteps {
+							So(
+								step{tok, err},
+								ShouldResemble,
+								step{tr.sequence.Tokens[nStep], nil},
+							)
+						} else {
+							So(
+								step{tok, err},
+								ShouldResemble,
+								step{Token{}, fmt.Errorf("overshoot")},
+							)
+						}
 						if done {
 							Convey("Result (halted correctly)", func() {
 								So(nStep, ShouldEqual, expectSteps)
