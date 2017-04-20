@@ -77,8 +77,6 @@ var objFixtures = []struct {
 
 func TestMarshaller(t *testing.T) {
 	for _, tr := range objFixtures {
-		t.Skip("WIP refactor")
-
 		// Set up marshaller.
 		marshaller := NewMarshaler(tr.atlas)
 		marshaller.Bind(tr.valueFn())
@@ -106,5 +104,6 @@ func TestMarshaller(t *testing.T) {
 			t.Errorf("test %q failed: still not done after %d tokens!",
 				tr.title, len(tr.sequence.Tokens))
 		}
+		t.Logf("test %q complete", tr.title)
 	}
 }
