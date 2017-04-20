@@ -1,0 +1,9 @@
+[submodule ".gopath/src/github.com/smartystreets/goconvey"]
+	path = .gopath/src/github.com/smartystreets/goconvey
+	url = https://github.com/smartystreets/goconvey
+[submodule ".gopath/src/github.com/smartystreets/assertions"]
+	path = .gopath/src/github.com/smartystreets/assertions
+	url = https://github.com/smartystreets/assertions
+[submodule ".gopath/src/github.com/jtolds/gls"]
+	path = .gopath/src/github.com/jtolds/gls
+	url = https://github.com/jtolds/gls
