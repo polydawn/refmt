@@ -16,11 +16,5 @@ action:
 			export GOROOT=/app/go/go
 			export PATH=$PATH:/app/go/go/bin
 
-			export GOPATH=$PWD/.gopath/
-			go fmt
-			go build -v
-			go test -v ./...
-outputs:
-	"/task":
-		type: "tar"
-		#silo: "file+ca:///tmp/lol/"
+			./goad fmt
+			./goad test
