@@ -31,7 +31,7 @@ func NewMarshaler(atl atlas.Atlas) *MarshalDriver {
 func (d *MarshalDriver) Bind(v interface{}) {
 	d.stack = d.stack[0:0]
 	d.marshalSlab.rows = d.marshalSlab.rows[0:0]
-	rv := reflect.ValueOf(v).Elem() // unwrap interface box.
+	rv := reflect.ValueOf(v)
 	rt := rv.Type()
 	d.step = d.marshalSlab.requisitionMachine(rt)
 	d.step.Reset(&d.marshalSlab, rv, rt)

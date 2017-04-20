@@ -46,7 +46,7 @@ var objFixtures = []struct {
 }{
 	{title: "string literal",
 		sequence:       fixtures.SequenceMap["flat string"],
-		valueFn:        func() interface{} { str := "value"; return &str },
+		valueFn:        func() interface{} { str := "value"; return str },
 		marshalResults: &marshalResults{},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
