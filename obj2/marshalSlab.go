@@ -19,7 +19,7 @@ type marshalSlab struct {
 }
 
 type marshalSlabRow struct {
-	//	ptrDerefDelegateMarshalMachine
+	ptrDerefDelegateMarshalMachine
 	//	marshalMachineLiteral
 	//	marshalMachineMapWildcard
 	//	marshalMachineSliceWildcard
@@ -41,7 +41,36 @@ func (slab *marshalSlab) requisitionMachine(rt reflect.Type) MarshalMachine {
 	off := len(slab.rows)
 	slab.grow()
 	row := &slab.rows[off]
-	// Flip to rtid.
+
+	// Indirect pointers as necessary.
+	//  Keep count of how many times we do this; we'll use this again at the end.
+	peelCount := 0
+	for rt.Kind() == reflect.Ptr {
+		rt = rt.Elem()
+		peelCount++
+	}
+
+	// Figure out what machinery to use at heart.
+	mach := _yieldMarshalMachinePtr(row, slab.atlas, rt)
+	// If nil answer, we had no match: yield an error thunk.
+	if mach == nil {
+		mach := &row.errThunkMarshalMachine
+		mach.err = fmt.Errorf("no machine found")
+		return mach
+	}
+
+	// If no indirection steps, return;
+	//  otherwise wrap it in the ptrDeref machine and return that.
+	if peelCount == 0 {
+		return mach
+	}
+	row.ptrDerefDelegateMarshalMachine.MarshalMachine = mach
+	row.ptrDerefDelegateMarshalMachine.peelCount = peelCount
+	row.ptrDerefDelegateMarshalMachine.isNil = false
+	return &row.ptrDerefDelegateMarshalMachine
+}
+
+func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Type) MarshalMachine {
 	rtid := reflect.ValueOf(rt).Pointer()
 
 	// Check primitives first; cheapest (and unoverridable).
@@ -81,7 +110,7 @@ func (slab *marshalSlab) requisitionMachine(rt reflect.Type) MarshalMachine {
 	}
 
 	// Consult atlas second.
-	if entry, ok := slab.atlas.Get(rtid); ok {
+	if entry, ok := atl.Get(rtid); ok {
 		_ = entry
 		panic("todo")
 	}
@@ -139,11 +168,6 @@ func (slab *marshalSlab) requisitionMachine(rt reflect.Type) MarshalMachine {
 	default:
 		panic(fmt.Errorf("excursion %s", rt.Kind()))
 	}
-
-	// If no joy yet, we're out of ideas: yield an error thunk.
-	m := &row.errThunkMarshalMachine
-	m.err = fmt.Errorf("no machine found")
-	return m
 }
 
 func (s *marshalSlab) grow() {
