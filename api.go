@@ -1,9 +1,9 @@
-package xlate
+package refmt
 
 import (
 	"fmt"
 
-	. "github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/refmt/tok"
 )
 
 type TokenSource interface {

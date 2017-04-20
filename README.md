@@ -1,7 +1,7 @@
-go-xlate
-========
+refmt
+=====
 
-[![GoDoc](https://godoc.org/github.com/polydawn/go-xlate?status.svg)](https://godoc.org/github.com/polydawn/go-xlate)
+[![GoDoc](https://godoc.org/github.com/polydawn/refmt?status.svg)](https://godoc.org/github.com/polydawn/refmt)
 
 
 
@@ -14,7 +14,7 @@ More broadly, I want a single library that can handle my serialization -- with t
 
 So it seems like there should be some way to define object walkers... and some way to define emitting a stream of values during such a walk... and they should be pretty separate.
 
-Thusly was this library thrust into the world: `xlate.Mapper` to define the walks, and `xlate.Destination` to marshal the value stream.
+Thusly was this library thrust into the world: `refmt.Mapper` to define the walks, and `refmt.Destination` to marshal the value stream.
 
 
 

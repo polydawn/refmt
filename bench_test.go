@@ -1,4 +1,4 @@
-package xlate
+package refmt
 
 import (
 	"bytes"
@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/polydawn/go-xlate/cbor"
-	xlatejson "github.com/polydawn/go-xlate/json"
-	"github.com/polydawn/go-xlate/obj"
-	"github.com/polydawn/go-xlate/obj/atlas"
+	"github.com/polydawn/refmt/cbor"
+	refmtjson "github.com/polydawn/refmt/json"
+	"github.com/polydawn/refmt/obj"
+	"github.com/polydawn/refmt/obj/atlas"
 )
 
 func checkAftermath(err error, result []byte, expect []byte) {
@@ -208,7 +208,7 @@ func Benchmark_StructToJson_XlateFieldRoute(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	marshaller := obj.NewMarshaler(fixture_suiteFieldRoute)
-	serializer := xlatejson.NewSerializer(&buf)
+	serializer := refmtjson.NewSerializer(&buf)
 	enc := TokenPump{
 		marshaller,
 		serializer,
@@ -242,7 +242,7 @@ func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	marshaller := obj.NewMarshaler(fixture_suiteAddrFunc)
-	serializer := xlatejson.NewSerializer(&buf)
+	serializer := refmtjson.NewSerializer(&buf)
 	enc := TokenPump{
 		marshaller,
 		serializer,

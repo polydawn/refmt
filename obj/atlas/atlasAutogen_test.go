@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/polydawn/go-xlate/testutil"
+	. "github.com/polydawn/refmt/testutil"
 )
 
 func TestGenerateAtlasAndTraversal(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	. "github.com/polydawn/go-xlate/testutil"
-	. "github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/refmt/testutil"
+	. "github.com/polydawn/refmt/tok"
 )
 
 type slotter interface {

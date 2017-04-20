@@ -5,7 +5,7 @@ import (
 	"io"
 	"strconv"
 
-	. "github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/refmt/tok"
 )
 
 func NewSerializer(wr io.Writer) *Serializer {

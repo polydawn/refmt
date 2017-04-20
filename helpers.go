@@ -1,11 +1,11 @@
-package xlate
+package refmt
 
 import (
 	"bytes"
 	"io"
 
-	"github.com/polydawn/go-xlate/json"
-	"github.com/polydawn/go-xlate/obj"
+	"github.com/polydawn/refmt/json"
+	"github.com/polydawn/refmt/obj"
 )
 
 func NewJsonEncoder(wr io.Writer) *JsonEncoder {

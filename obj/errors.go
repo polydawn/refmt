@@ -37,5 +37,5 @@ func (e ErrUnreachable) Fmt(format string, a ...interface{}) ErrUnreachable {
 }
 
 func (e ErrUnreachable) Error() string {
-	return "xlate bug: " + e.Msg
+	return "refmt bug: " + e.Msg
 }

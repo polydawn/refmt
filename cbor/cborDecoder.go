@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 
-	. "github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/refmt/tok"
 )
 
 type Decoder struct {

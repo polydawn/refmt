@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/polydawn/go-xlate/testutil"
-	"github.com/polydawn/go-xlate/tok/fixtures"
+	. "github.com/polydawn/refmt/testutil"
+	"github.com/polydawn/refmt/tok/fixtures"
 )
 
 func TestJsonSerializer(t *testing.T) {

@@ -3,7 +3,7 @@ package obj
 import (
 	"reflect"
 
-	. "github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/refmt/tok"
 )
 
 type ptrDerefDelegateMarshalMachine struct {

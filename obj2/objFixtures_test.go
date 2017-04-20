@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/polydawn/go-xlate/obj2/atlas"
-	. "github.com/polydawn/go-xlate/testutil"
-	. "github.com/polydawn/go-xlate/tok"
-	"github.com/polydawn/go-xlate/tok/fixtures"
+	"github.com/polydawn/refmt/obj2/atlas"
+	. "github.com/polydawn/refmt/testutil"
+	. "github.com/polydawn/refmt/tok"
+	"github.com/polydawn/refmt/tok/fixtures"
 )
 
 type marshalResults struct {
