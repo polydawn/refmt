@@ -28,8 +28,12 @@ func TestReflectInvariants(t *testing.T) {
 	// of the PkgPath function, and this seems much harder and less reliable
 	// than the "hack".
 
-	fmt.Printf("rtid: %v\n", reflect.ValueOf(reflect.TypeOf("")).Pointer())
-	fmt.Printf("rtid: %v\n", reflect.ValueOf(reflect.TypeOf("")).Pointer())
-	fmt.Printf("rtid: %v\n", reflect.ValueOf(reflect.TypeOf(StrTypedef(""))).Pointer())
-	fmt.Printf("rtid: %v\n", reflect.ValueOf(reflect.TypeOf(StrTypedef(""))).Pointer())
+	fmt.Printf("str rtid: %v\n", reflect.ValueOf(reflect.TypeOf("")).Pointer()) // Strings are ofc consistent.
+	fmt.Printf("str rtid: %v\n", reflect.ValueOf(reflect.TypeOf("")).Pointer())
+	fmt.Printf("typedstr rtid: %v\n", reflect.ValueOf(reflect.TypeOf(StrTypedef(""))).Pointer()) // Typedefs are consistent, and neq builtin string.
+	fmt.Printf("typedstr rtid: %v\n", reflect.ValueOf(reflect.TypeOf(StrTypedef(""))).Pointer())
+	fmt.Printf("nillarystruct rtid: %v\n", reflect.ValueOf(reflect.TypeOf(struct{}{})).Pointer()) // Nillary structs are consistent.
+	fmt.Printf("nillarystruct rtid: %v\n", reflect.ValueOf(reflect.TypeOf(struct{}{})).Pointer())
+	fmt.Printf("anonstruct rtid: %v\n", reflect.ValueOf(reflect.TypeOf(struct{ string }{})).Pointer()) // Anon structs with members are, remarkably, all considered the same.
+	fmt.Printf("anonstruct rtid: %v\n", reflect.ValueOf(reflect.TypeOf(struct{ string }{})).Pointer())
 }
