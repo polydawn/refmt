@@ -2,9 +2,12 @@ package obj
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/polydawn/go-xlate/obj2/atlas"
+	. "github.com/polydawn/go-xlate/testutil"
 	. "github.com/polydawn/go-xlate/tok"
 	"github.com/polydawn/go-xlate/tok/fixtures"
 )
@@ -51,24 +54,24 @@ var objFixtures = []struct {
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
 				slotFn:    func() interface{} { var str string; return str },
-				expectErr: fmt.Errorf("unsettable")},
-			{title: "into string handle",
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf("")}},
+			{title: "into *string",
 				slotFn: func() interface{} { var str string; return &str }},
 			{title: "into wildcard",
 				slotFn:    func() interface{} { var v interface{}; return v },
 				expectErr: fmt.Errorf("unsettable")},
-			{title: "into wildcard handle",
+			{title: "into *wildcard",
 				slotFn: func() interface{} { var v interface{}; return &v }},
 			{title: "into map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return v },
 				expectErr: fmt.Errorf("incompatable")},
-			{title: "into map[str]iface handle",
+			{title: "into *map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return &v },
 				expectErr: fmt.Errorf("incompatable")},
 			{title: "into []iface",
 				slotFn:    func() interface{} { var v []interface{}; return v },
 				expectErr: fmt.Errorf("incompatable")},
-			{title: "into []iface handle",
+			{title: "into *[]iface",
 				slotFn:    func() interface{} { var v []interface{}; return &v },
 				expectErr: fmt.Errorf("incompatable")},
 		},
@@ -105,5 +108,41 @@ func TestMarshaller(t *testing.T) {
 				tr.title, len(tr.sequence.Tokens))
 		}
 		t.Logf("test %q complete", tr.title)
+	}
+}
+
+func TestUnmarshaller(t *testing.T) {
+	for _, tr := range objFixtures {
+		for _, trr := range tr.unmarshalResults {
+			t.Skip("wip")
+
+			// Grab slot.
+			slot := trr.slotFn()
+
+			// Set up unmarshaller.
+			title := strings.Join([]string{tr.title, trr.title}, ", ")
+			unmarshaller := NewUnmarshaler(tr.atlas)
+			unmarshaller.Bind(slot)
+
+			// Run steps.
+			var done bool
+			var err error
+			for n, tok := range tr.sequence.Tokens {
+				done, err = unmarshaller.Step(&tok)
+				if err != nil {
+					t.Errorf("step %d (inputting %s) errored: %s", n, tok, err)
+				}
+				if done && n != len(tr.sequence.Tokens)-1 {
+					t.Errorf("done early! on step %d out of %d tokens", n, len(tr.sequence.Tokens))
+				}
+			}
+			if !done {
+				t.Errorf("still not done after %d tokens!", len(tr.sequence.Tokens))
+			}
+
+			// Check resulting object.
+			Assert(t, title, tr.valueFn(), slot)
+			t.Logf("test %q complete", tr.title)
+		}
 	}
 }
