@@ -38,7 +38,7 @@ func (x *BuilderStructMap) Complete() AtlasEntry {
 */
 func (x *BuilderStructMap) AddField(fieldName string, mapping StructMapEntry) *BuilderStructMap {
 	fieldNameSplit := strings.Split(fieldName, ".")
-	rr, err := fieldNameToReflectRoute(nil, fieldNameSplit)
+	rr, err := fieldNameToReflectRoute(x.entry.Type, fieldNameSplit)
 	if err != nil {
 		panic(err) // REVIEW: now that we have the builder obj, we could just curry these into it until 'Complete' is called (or, thus, 'MustComplete'!).
 	}
