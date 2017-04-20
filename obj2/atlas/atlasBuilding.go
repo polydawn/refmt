@@ -18,6 +18,13 @@ func Build(entries ...AtlasEntry) (Atlas, error) {
 	}
 	return atl, nil
 }
+func MustBuild(entries ...AtlasEntry) Atlas {
+	atl, err := Build(entries...)
+	if err != nil {
+		panic(err)
+	}
+	return atl
+}
 
 func BuildEntry(typeHintObj interface{}) *BuilderCore {
 	return &BuilderCore{
