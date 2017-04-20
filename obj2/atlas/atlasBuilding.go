@@ -1,9 +1,22 @@
 package atlas
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+)
 
 func Build(entries ...AtlasEntry) (Atlas, error) {
-	return Atlas{}, nil // TODO
+	atl := Atlas{
+		mappings: make(map[uintptr]AtlasEntry),
+	}
+	for _, entry := range entries {
+		rtid := reflect.ValueOf(entry.Type).Pointer()
+		if _, exists := atl.mappings[rtid]; exists {
+			return Atlas{}, fmt.Errorf("repeated entry for %v", entry.Type)
+		}
+		atl.mappings[rtid] = entry
+	}
+	return atl, nil
 }
 
 func BuildEntry(typeHintObj interface{}) *BuilderCore {

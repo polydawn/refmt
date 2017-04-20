@@ -18,6 +18,7 @@ func TestReflectInvariants(t *testing.T) {
 	fmt.Println()
 	type StrTypedef string
 	describe(StrTypedef(""))
+	fmt.Println()
 
 	// I guess the cheapest and sanest way to check if something is one of the
 	// builtin primitives is just checking the rtid pointer equality outright?
@@ -26,4 +27,9 @@ func TestReflectInvariants(t *testing.T) {
 	// but the documentation doesn't make it very clear if that's an intended use
 	// of the PkgPath function, and this seems much harder and less reliable
 	// than the "hack".
+
+	fmt.Printf("rtid: %v\n", reflect.ValueOf(reflect.TypeOf("")).Pointer())
+	fmt.Printf("rtid: %v\n", reflect.ValueOf(reflect.TypeOf("")).Pointer())
+	fmt.Printf("rtid: %v\n", reflect.ValueOf(reflect.TypeOf(StrTypedef(""))).Pointer())
+	fmt.Printf("rtid: %v\n", reflect.ValueOf(reflect.TypeOf(StrTypedef(""))).Pointer())
 }

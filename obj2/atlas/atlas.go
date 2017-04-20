@@ -9,8 +9,13 @@ type Atlas struct {
 	// (The internal machinery that will wield this information, and has memory of
 	// progress as it does so, is configured using the AtlasEntry, but allocated separately.
 	// The machinery is stateful and mutable; the AtlasEntry is not.)
-	mappings map[reflect.Type]AtlasEntry
-	// todo: others have used 'var rtid uintptr = reflect.ValueOf(rt).Pointer()' -- pointer of the value of the r.T info -- as an index
+	//
+	// We use 'var rtid uintptr = reflect.ValueOf(rt).Pointer()' -- pointer of the
+	// value of the reflect.Type info -- as an index.
+	// This is both unique and correctly converges when recomputed, and much
+	// faster to compare against than reflect.Type (which is an interface that
+	// tends to contain fairly large structures).
+	mappings map[uintptr]AtlasEntry
 }
 
 /*
