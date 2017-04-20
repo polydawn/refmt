@@ -20,7 +20,7 @@ type marshalSlab struct {
 
 type marshalSlabRow struct {
 	ptrDerefDelegateMarshalMachine
-	//	marshalMachineLiteral
+	marshalMachinePrimitive
 	//	marshalMachineMapWildcard
 	//	marshalMachineSliceWildcard
 	//	marshalMachineWildcard
@@ -75,38 +75,14 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 
 	// Check primitives first; cheapest (and unoverridable).
 	switch rtid {
-	case rtid_bool:
-		panic("todo")
-	case rtid_string:
-		panic("todo")
-	case rtid_bytes:
-		panic("todo")
-	case rtid_int:
-		panic("todo")
-	case rtid_int8:
-		panic("todo")
-	case rtid_int16:
-		panic("todo")
-	case rtid_int32:
-		panic("todo")
-	case rtid_int64:
-		panic("todo")
-	case rtid_uint:
-		panic("todo")
-	case rtid_uint8:
-		panic("todo")
-	case rtid_uint16:
-		panic("todo")
-	case rtid_uint32:
-		panic("todo")
-	case rtid_uint64:
-		panic("todo")
-	case rtid_uintptr:
-		panic("todo")
-	case rtid_float32:
-		panic("todo")
-	case rtid_float64:
-		panic("todo")
+	case rtid_bool,
+		rtid_string,
+		rtid_int, rtid_int8, rtid_int16, rtid_int32, rtid_int64,
+		rtid_uint, rtid_uint8, rtid_uint16, rtid_uint32, rtid_uint64, rtid_uintptr,
+		rtid_float32, rtid_float64,
+		rtid_bytes:
+		row.marshalMachinePrimitive.kind = rt.Kind()
+		return &row.marshalMachinePrimitive
 	}
 
 	// Consult atlas second.
