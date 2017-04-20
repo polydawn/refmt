@@ -16,11 +16,11 @@ type ptrDerefDelegateMarshalMachine struct {
 func (mach *ptrDerefDelegateMarshalMachine) Reset(slab *marshalSlab, rv reflect.Value, rt reflect.Type) error {
 	mach.isNil = false
 	for i := 0; i < mach.peelCount; i++ {
-		rv = rv.Elem()
 		if rv.IsNil() {
 			mach.isNil = true
 			return nil
 		}
+		rv = rv.Elem()
 	}
 	return mach.MarshalMachine.Reset(slab, rv, rt) // REVIEW: this rt should be peeled by here.  do we... ignore the arg and cache it at mach conf time?
 }
