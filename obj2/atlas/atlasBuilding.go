@@ -7,14 +7,14 @@ import (
 
 func Build(entries ...AtlasEntry) (Atlas, error) {
 	atl := Atlas{
-		mappings: make(map[uintptr]AtlasEntry),
+		mappings: make(map[uintptr]*AtlasEntry),
 	}
 	for _, entry := range entries {
 		rtid := reflect.ValueOf(entry.Type).Pointer()
 		if _, exists := atl.mappings[rtid]; exists {
 			return Atlas{}, fmt.Errorf("repeated entry for %v", entry.Type)
 		}
-		atl.mappings[rtid] = entry
+		atl.mappings[rtid] = &entry
 	}
 	return atl, nil
 }

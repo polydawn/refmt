@@ -15,7 +15,13 @@ type Atlas struct {
 	// This is both unique and correctly converges when recomputed, and much
 	// faster to compare against than reflect.Type (which is an interface that
 	// tends to contain fairly large structures).
-	mappings map[uintptr]AtlasEntry
+	mappings map[uintptr]*AtlasEntry
+}
+
+// Gets the AtlasEntry for a typeID.  Used by obj package, not meant for user facing.
+func (atl Atlas) Get(rtid uintptr) (*AtlasEntry, bool) {
+	ent, ok := atl.mappings[rtid]
+	return ent, ok
 }
 
 /*

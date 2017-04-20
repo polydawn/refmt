@@ -36,4 +36,6 @@ func TestReflectInvariants(t *testing.T) {
 	fmt.Printf("nillarystruct rtid: %v\n", reflect.ValueOf(reflect.TypeOf(struct{}{})).Pointer())
 	fmt.Printf("anonstruct rtid: %v\n", reflect.ValueOf(reflect.TypeOf(struct{ string }{})).Pointer()) // Anon structs with members are, remarkably, all considered the same.
 	fmt.Printf("anonstruct rtid: %v\n", reflect.ValueOf(reflect.TypeOf(struct{ string }{})).Pointer())
+	fmt.Printf("[]byte  rtid: %v\n", reflect.ValueOf(reflect.TypeOf([]byte{})).Pointer()) // byte slice and uint8 slice are an alias.
+	fmt.Printf("[]uint8 rtid: %v\n", reflect.ValueOf(reflect.TypeOf([]uint8(nil))).Pointer())
 }
