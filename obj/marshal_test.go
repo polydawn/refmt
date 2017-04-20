@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/polydawn/go-xlate/obj/atlas"
-	. "github.com/polydawn/go-xlate/testutil"
-	. "github.com/polydawn/go-xlate/tok"
+	"github.com/polydawn/refmt/obj/atlas"
+	. "github.com/polydawn/refmt/testutil"
+	. "github.com/polydawn/refmt/tok"
 )
 
 func TestMarshaller(t *testing.T) {

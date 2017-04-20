@@ -3,8 +3,8 @@ package obj
 import (
 	"fmt"
 
-	"github.com/polydawn/go-xlate/obj/atlas"
-	. "github.com/polydawn/go-xlate/tok"
+	"github.com/polydawn/refmt/obj/atlas"
+	. "github.com/polydawn/refmt/tok"
 )
 
 type MarshalMachineStructAtlas struct {

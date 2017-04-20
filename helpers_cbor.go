@@ -1,11 +1,11 @@
-package xlate
+package refmt
 
 import (
 	"bytes"
 	"io"
 
-	"github.com/polydawn/go-xlate/cbor"
-	"github.com/polydawn/go-xlate/obj"
+	"github.com/polydawn/refmt/cbor"
+	"github.com/polydawn/refmt/obj"
 )
 
 func NewCborEncoder(wr io.Writer) *CborEncoder {

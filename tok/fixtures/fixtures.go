@@ -3,7 +3,7 @@ package fixtures
 import (
 	"errors"
 
-	. "github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/refmt/tok"
 )
 
 type Sequence struct {

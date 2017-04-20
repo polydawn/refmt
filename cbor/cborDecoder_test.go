@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/refmt/tok"
 )
 
 func TestCborDecoder(t *testing.T) {

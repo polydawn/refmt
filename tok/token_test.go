@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	. "github.com/polydawn/go-xlate/testutil"
+	. "github.com/polydawn/refmt/testutil"
 )
 
 func TestTokenEqualityDefn(t *testing.T) {

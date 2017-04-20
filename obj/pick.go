@@ -3,7 +3,7 @@ package obj
 import (
 	"reflect"
 
-	"github.com/polydawn/go-xlate/obj/atlas"
+	"github.com/polydawn/refmt/obj/atlas"
 )
 
 type Suite struct {

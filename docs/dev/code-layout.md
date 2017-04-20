@@ -4,7 +4,7 @@ code layout
 Package layout
 --------------
 
-- `xlate` -- main package.  All major interface types and helpful factory methods.
+- `refmt` -- main package.  All major interface types and helpful factory methods.
   - `json` -- `json.Serializer` and `json.Deserializer`
   - `cbor` -- `cbor.Serializer` and `cbor.Deserializer`
   - `obj` -- `obj.Marshaller` and `obj.Unmarshaller`
@@ -20,7 +20,7 @@ User-facing
 
 - example code:
   ```
-  xlate.NewJsonEncoder(stdout).Marshal(123)
+  refmt.NewJsonEncoder(stdout).Marshal(123)
   ```
   - Creates a `MarshalDriver` as the `TokenSource` for walking the object (`123`).
   - Creates a `JsonSerializer` as the `TokenSink` outputting to `stdout`.
@@ -38,9 +38,9 @@ Xlate handles every translation by converting things into a token stream,
 then processing the token stream into the desired result format.
 
 `TokenSource` and `TokenSink` describe how to produce and process token streams, respectively.
-Listing their implementations effectively lists every format that xlate can convert to and from.
+Listing their implementations effectively lists every format that refmt can convert to and from.
 
-`Token`s the interal lingua franca of xlate.
+`Token`s the interal lingua franca of refmt.
 A handful of special tokens signal the beginning and ending of maps and arrays.
 All other values are their own tokens -- we simply use the address of the real data
 (only primitives, of course; it's a stream, not a tree, after all).

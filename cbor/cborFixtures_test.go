@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/base64"
 
-	. "github.com/polydawn/go-xlate/tok"
-	"github.com/polydawn/go-xlate/tok/fixtures"
+	. "github.com/polydawn/refmt/tok"
+	"github.com/polydawn/refmt/tok/fixtures"
 )
 
 func bcat(bss ...[]byte) []byte {

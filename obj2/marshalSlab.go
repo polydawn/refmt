@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/polydawn/go-xlate/obj2/atlas"
-	. "github.com/polydawn/go-xlate/tok"
+	"github.com/polydawn/refmt/obj2/atlas"
+	. "github.com/polydawn/refmt/tok"
 )
 
 /*

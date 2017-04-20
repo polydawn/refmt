@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	. "github.com/polydawn/go-xlate/tok"
+	. "github.com/polydawn/refmt/tok"
 )
 
 // Force bench.N to a fixed number.
