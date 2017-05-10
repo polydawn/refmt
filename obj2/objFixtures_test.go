@@ -12,6 +12,8 @@ import (
 	"github.com/polydawn/refmt/tok/fixtures"
 )
 
+var skipMe = fmt.Errorf("skipme")
+
 type marshalResults struct {
 	expectErr error
 	errString string
@@ -59,21 +61,22 @@ var objFixtures = []struct {
 				slotFn: func() interface{} { var str string; return &str }},
 			{title: "into wildcard",
 				slotFn:    func() interface{} { var v interface{}; return v },
-				expectErr: fmt.Errorf("unsettable")},
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
 			{title: "into *wildcard",
-				slotFn: func() interface{} { var v interface{}; return &v }},
+				slotFn:    func() interface{} { var v interface{}; return &v },
+				expectErr: skipMe},
 			{title: "into map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return v },
-				expectErr: fmt.Errorf("incompatable")},
+				expectErr: skipMe},
 			{title: "into *map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return &v },
-				expectErr: fmt.Errorf("incompatable")},
+				expectErr: skipMe},
 			{title: "into []iface",
 				slotFn:    func() interface{} { var v []interface{}; return v },
-				expectErr: fmt.Errorf("incompatable")},
+				expectErr: skipMe},
 			{title: "into *[]iface",
 				slotFn:    func() interface{} { var v []interface{}; return &v },
-				expectErr: fmt.Errorf("incompatable")},
+				expectErr: skipMe},
 		},
 	},
 }
@@ -152,7 +155,11 @@ func TestUnmarshaller(t *testing.T) {
 		for _, tr := range objFixtures {
 			Convey(fmt.Sprintf("%q fixture sequence:", tr.title), func() {
 				for _, trr := range tr.unmarshalResults {
-					SkipConvey(fmt.Sprintf("targetting %s:", trr.title), func() {
+					maybe := Convey
+					if trr.expectErr == skipMe {
+						maybe = SkipConvey
+					}
+					maybe(fmt.Sprintf("targetting %s:", trr.title), func() {
 						// Grab slot.
 						slot := trr.slotFn()
 
