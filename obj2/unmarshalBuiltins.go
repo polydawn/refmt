@@ -108,7 +108,27 @@ func (mach *unmarshalMachinePrimitive) Step(_ *UnmarshalDriver, _ *unmarshalSlab
 		default:
 			return true, fmt.Errorf("cannot assign %s to []byte field", tok)
 		}
+	case reflect.Interface:
+		switch tok.Type {
+		case TString:
+			mach.rv.Set(reflect.ValueOf(tok.Str))
+		case TBytes:
+			mach.rv.Set(reflect.ValueOf(tok.Bytes))
+		case TBool:
+			mach.rv.Set(reflect.ValueOf(tok.Bool))
+		case TInt:
+			mach.rv.Set(reflect.ValueOf(tok.Int))
+		case TUint:
+			mach.rv.Set(reflect.ValueOf(tok.Uint))
+		case TFloat64:
+			mach.rv.Set(reflect.ValueOf(tok.Float64))
+		case TNull:
+			mach.rv.Set(reflect.ValueOf(nil))
+		default: // any of the other token types should not have been routed here to begin with.
+			panic(fmt.Errorf("unhandled: %v", mach.kind))
+		}
+		return true, nil
 	default:
-		panic("unhandled")
+		panic(fmt.Errorf("unhandled: %v", mach.kind))
 	}
 }
