@@ -15,6 +15,10 @@ import (
 var skipMe = fmt.Errorf("skipme")
 
 type marshalResults struct {
+	// Yields a value to hand to the marshaller.
+	// A func returning a wildcard is used rather than just an `interface{}`, because `&target` conveys very different type information.
+	valueFn func() interface{}
+
 	expectErr error
 	errString string
 }
@@ -22,7 +26,11 @@ type unmarshalResults struct {
 	title string
 	// Yields the handle we should give to the unmarshaller to fill.
 	// Like `valueFn`, the indirection here is to help
-	slotFn    func() interface{}
+	slotFn func() interface{}
+
+	// Yields the value we will compare the unmarshal result against.
+	// A func returning a wildcard is used rather than just an `interface{}`, because `&target` conveys very different type information.
+	valueFn   func() interface{}
 	expectErr error
 	errString string
 }
@@ -37,10 +45,6 @@ var objFixtures = []struct {
 	// The serial sequence of tokens the value is isomorphic to.
 	sequence fixtures.Sequence
 
-	// Yields a value to hand to the marshaller; or, the value we will compare the result against for unmarshal.
-	// A func returning a wildcard is used rather than just an `interface{}`, because `&target` conveys very different type information.
-	valueFn func() interface{}
-
 	// The suite of mappings to use.
 	atlas atlas.Atlas
 
@@ -54,20 +58,23 @@ var objFixtures = []struct {
 	unmarshalResults []unmarshalResults
 }{
 	{title: "string literal",
-		sequence:       fixtures.SequenceMap["flat string"],
-		valueFn:        func() interface{} { str := "value"; return str },
-		marshalResults: &marshalResults{},
+		sequence: fixtures.SequenceMap["flat string"],
+		marshalResults: &marshalResults{
+			valueFn: func() interface{} { str := "value"; return str },
+		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
 				slotFn:    func() interface{} { var str string; return str },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf("")}},
 			{title: "into *string",
-				slotFn: func() interface{} { var str string; return &str }},
+				slotFn:  func() interface{} { var str string; return &str },
+				valueFn: func() interface{} { str := "value"; return str }},
 			{title: "into wildcard",
 				slotFn:    func() interface{} { var v interface{}; return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
 			{title: "into *wildcard",
-				slotFn: func() interface{} { var v interface{}; return &v }},
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { str := "value"; return str }},
 			{title: "into map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return v },
 				expectErr: skipMe},
@@ -84,13 +91,14 @@ var objFixtures = []struct {
 	},
 	{title: "object with one string field, with atlas entry",
 		sequence: fixtures.SequenceMap["single row map"],
-		valueFn:  func() interface{} { return tObjStr{"value"} },
 		atlas: atlas.MustBuild(
 			atlas.BuildEntry(tObjStr{}).StructMap().
 				AddField("X", atlas.StructMapEntry{SerialName: "key"}).
 				Complete(),
 		),
-		marshalResults: &marshalResults{},
+		marshalResults: &marshalResults{
+			valueFn: func() interface{} { return tObjStr{"value"} },
+		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
 				slotFn:    func() interface{} { var str string; return str },
@@ -102,8 +110,8 @@ var objFixtures = []struct {
 				slotFn:    func() interface{} { var v interface{}; return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
 			{title: "into *wildcard",
-				slotFn:    func() interface{} { var v interface{}; return &v },
-				expectErr: skipMe},
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { return map[string]interface{}{"key": "value"} }},
 			{title: "into map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return v },
 				expectErr: skipMe},
@@ -134,7 +142,7 @@ func TestMarshaller(t *testing.T) {
 			Convey(fmt.Sprintf("%q fixture sequence:", tr.title), func() {
 				// Set up marshaller.
 				marshaller := NewMarshaler(tr.atlas)
-				marshaller.Bind(tr.valueFn())
+				marshaller.Bind(tr.marshalResults.valueFn())
 
 				Convey("Steps...", func() {
 					// Run steps until the marshaller says done or error.
@@ -239,7 +247,7 @@ func TestUnmarshaller(t *testing.T) {
 									So(
 										step{tok.String(), err, done},
 										ShouldResemble,
-										step{Token{}.String(), nil, false},
+										step{tr.sequence.Tokens[nStep].String(), nil, false},
 									)
 								}
 							}
@@ -247,7 +255,7 @@ func TestUnmarshaller(t *testing.T) {
 							Convey("Result", func() {
 								// Get value back out.  Some reflection required to get around pointers.
 								v := reflect.ValueOf(slot).Elem().Interface()
-								So(v, ShouldResemble, tr.valueFn())
+								So(v, ShouldResemble, trr.valueFn())
 							})
 						})
 					})

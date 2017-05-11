@@ -29,15 +29,14 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, slab *
 	//  but we may also need to initialize a container type and then hand off.
 	switch tok.Type {
 	case TMapOpen:
-		panic("todo")
-		//	child := make(map[string]interface{})
-		//	child_rv := reflect.ValueOf(child)
-		//	mach.target_rv.Set(child_rv)
-		//	mach.delegate = slab.unmarshalMachineMapStringWildcard
-		//	if err := mach.delegate.Reset(slab, child_rv, child_rv.Type()); err != nil {
-		//		return true, err
-		//	}
-		//	return mach.delegate.Step(driver, slab, tok)
+		child := make(map[string]interface{})
+		child_rv := reflect.ValueOf(child)
+		mach.target_rv.Set(child_rv)
+		mach.delegate = &slab.tip().unmarshalMachineMapStringWildcard
+		if err := mach.delegate.Reset(slab, child_rv, child_rv.Type()); err != nil {
+			return true, err
+		}
+		return mach.delegate.Step(driver, slab, tok)
 
 	case TArrOpen:
 		panic("todo")

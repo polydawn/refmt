@@ -22,7 +22,7 @@ type unmarshalSlabRow struct {
 	ptrDerefDelegateUnmarshalMachine
 	unmarshalMachinePrimitive
 	unmarshalMachineWildcard
-	//	unmarshalMachineMapStringWildcard
+	unmarshalMachineMapStringWildcard
 	//	unmarshalMachineSliceWildcard
 	//	unmarshalMachineStructAtlas
 
