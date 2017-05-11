@@ -83,8 +83,9 @@ var objFixtures = []struct {
 func TestMarshaller(t *testing.T) {
 	// Package all the values from one step into a struct, just so that
 	// we can assert on them all at once and make one green checkmark render per step.
+	// Stringify the token first so extraneous fields in the union are hidden.
 	type step struct {
-		tok Token
+		tok string
 		err error
 	}
 
@@ -117,15 +118,15 @@ func TestMarshaller(t *testing.T) {
 						}
 						if nStep <= expectSteps {
 							So(
-								step{tok, err},
+								step{tok.String(), err},
 								ShouldResemble,
-								step{tr.sequence.Tokens[nStep], nil},
+								step{tr.sequence.Tokens[nStep].String(), nil},
 							)
 						} else {
 							So(
-								step{tok, err},
+								step{tok.String(), err},
 								ShouldResemble,
-								step{Token{}, fmt.Errorf("overshoot")},
+								step{Token{}.String(), fmt.Errorf("overshoot")},
 							)
 						}
 						if done {
@@ -144,8 +145,9 @@ func TestMarshaller(t *testing.T) {
 func TestUnmarshaller(t *testing.T) {
 	// Package all the values from one step into a struct, just so that
 	// we can assert on them all at once and make one green checkmark render per step.
+	// Stringify the token first so extraneous fields in the union are hidden.
 	type step struct {
-		tok  Token
+		tok  string
 		err  error
 		done bool
 	}
@@ -189,15 +191,15 @@ func TestUnmarshaller(t *testing.T) {
 								}
 								if nStep == expectSteps {
 									So(
-										step{tok, err, done},
+										step{tok.String(), err, done},
 										ShouldResemble,
-										step{tr.sequence.Tokens[nStep], nil, true},
+										step{tr.sequence.Tokens[nStep].String(), nil, true},
 									)
 								} else {
 									So(
-										step{tok, err, done},
+										step{tok.String(), err, done},
 										ShouldResemble,
-										step{Token{}, nil, false},
+										step{Token{}.String(), nil, false},
 									)
 								}
 							}
