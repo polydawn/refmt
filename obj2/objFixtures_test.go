@@ -39,6 +39,11 @@ type tObjStr struct {
 	X string
 }
 
+type tObjStr2 struct {
+	X string
+	Y string
+}
+
 var objFixtures = []struct {
 	title string
 
@@ -124,6 +129,50 @@ var objFixtures = []struct {
 			{title: "into *map[str]str",
 				slotFn:  func() interface{} { var v map[string]string; return &v },
 				valueFn: func() interface{} { return map[string]string{"key": "value"} }},
+			{title: "into []iface",
+				slotFn:    func() interface{} { var v []interface{}; return v },
+				expectErr: skipMe},
+			{title: "into *[]iface",
+				slotFn:    func() interface{} { var v []interface{}; return &v },
+				expectErr: skipMe},
+		},
+	},
+	{title: "object with two string fields, with atlas entry",
+		sequence: fixtures.SequenceMap["duo row map"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr2{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "key"}).
+				AddField("Y", atlas.StructMapEntry{SerialName: "k2"}).
+				Complete(),
+		),
+		marshalResults: &marshalResults{
+			valueFn: func() interface{} { return tObjStr2{"value", "v2"} },
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into string",
+				slotFn:    func() interface{} { var str string; return str },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf("")}},
+			{title: "into *string",
+				slotFn:    func() interface{} { var str string; return &str },
+				expectErr: ErrUnmarshalIncongruent{Token{Type: TMapOpen, Length: 2}, reflect.ValueOf("")}},
+			{title: "into wildcard",
+				slotFn:    func() interface{} { var v interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
+			{title: "into *wildcard",
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { return map[string]interface{}{"key": "value", "k2": "v2"} }},
+			{title: "into map[str]iface",
+				slotFn:    func() interface{} { var v map[string]interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(map[string]interface{}(nil))}},
+			{title: "into made map[str]iface",
+				slotFn:  func() interface{} { v := make(map[string]interface{}); return v },
+				valueFn: func() interface{} { return map[string]interface{}{"key": "value", "k2": "v2"} }},
+			{title: "into *map[str]iface",
+				slotFn:  func() interface{} { var v map[string]interface{}; return &v },
+				valueFn: func() interface{} { return map[string]interface{}{"key": "value", "k2": "v2"} }},
+			{title: "into *map[str]str",
+				slotFn:  func() interface{} { var v map[string]string; return &v },
+				valueFn: func() interface{} { return map[string]string{"key": "value", "k2": "v2"} }},
 			{title: "into []iface",
 				slotFn:    func() interface{} { var v []interface{}; return v },
 				expectErr: skipMe},
