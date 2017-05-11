@@ -16,16 +16,17 @@ type StructMapEntry struct {
 
 	// *One* of the following:
 
-	reflectRoute reflectRoute                  // reflection generates these.
-	addrFunc     func(interface{}) interface{} // custom user function.
+	ReflectRoute ReflectRoute // reflection generates these.
+	// Theoretical feature.  Support dropped for the moment.
+	//addrFunc     func(interface{}) interface{} // custom user function.
 
 	// If true, marshalling will skip this field if its the zero value.
 	OmitEmpty bool
 }
 
-type reflectRoute []int
+type ReflectRoute []int
 
-func (rr reflectRoute) TraverseToValue(v reflect.Value) reflect.Value {
+func (rr ReflectRoute) TraverseToValue(v reflect.Value) reflect.Value {
 	for _, i := range rr {
 		if v.Kind() == reflect.Ptr {
 			if v.IsNil() {

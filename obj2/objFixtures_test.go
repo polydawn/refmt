@@ -27,6 +27,10 @@ type unmarshalResults struct {
 	errString string
 }
 
+type tObjStr struct {
+	X string
+}
+
 var objFixtures = []struct {
 	title string
 
@@ -64,6 +68,42 @@ var objFixtures = []struct {
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
 			{title: "into *wildcard",
 				slotFn: func() interface{} { var v interface{}; return &v }},
+			{title: "into map[str]iface",
+				slotFn:    func() interface{} { var v map[string]interface{}; return v },
+				expectErr: skipMe},
+			{title: "into *map[str]iface",
+				slotFn:    func() interface{} { var v map[string]interface{}; return &v },
+				expectErr: skipMe},
+			{title: "into []iface",
+				slotFn:    func() interface{} { var v []interface{}; return v },
+				expectErr: skipMe},
+			{title: "into *[]iface",
+				slotFn:    func() interface{} { var v []interface{}; return &v },
+				expectErr: skipMe},
+		},
+	},
+	{title: "object with one string field, with atlas entry",
+		sequence: fixtures.SequenceMap["single row map"],
+		valueFn:  func() interface{} { return tObjStr{"value"} },
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "key"}).
+				Complete(),
+		),
+		marshalResults: &marshalResults{},
+		unmarshalResults: []unmarshalResults{
+			{title: "into string",
+				slotFn:    func() interface{} { var str string; return str },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf("")}},
+			{title: "into *string",
+				slotFn:    func() interface{} { var str string; return &str },
+				expectErr: skipMe},
+			{title: "into wildcard",
+				slotFn:    func() interface{} { var v interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
+			{title: "into *wildcard",
+				slotFn:    func() interface{} { var v interface{}; return &v },
+				expectErr: skipMe},
 			{title: "into map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return v },
 				expectErr: skipMe},

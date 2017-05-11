@@ -6,6 +6,7 @@ import (
 )
 
 func (x *BuilderCore) StructMap() *BuilderStructMap {
+	x.entry.StructMap = &StructMap{}
 	return &BuilderStructMap{x.entry}
 }
 
@@ -42,12 +43,12 @@ func (x *BuilderStructMap) AddField(fieldName string, mapping StructMapEntry) *B
 	if err != nil {
 		panic(err) // REVIEW: now that we have the builder obj, we could just curry these into it until 'Complete' is called (or, thus, 'MustComplete'!).
 	}
-	mapping.reflectRoute = rr
+	mapping.ReflectRoute = rr
 	x.entry.StructMap.Fields = append(x.entry.StructMap.Fields, mapping)
 	return x
 }
 
-func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr reflectRoute, err error) {
+func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr ReflectRoute, err error) {
 	for _, fn := range fieldNameSplit {
 		rf, ok := rt.FieldByName(fn)
 		if !ok {
