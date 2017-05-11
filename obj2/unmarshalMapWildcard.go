@@ -39,14 +39,14 @@ func (mach *unmarshalMachineMapStringWildcard) step_Initial(_ *UnmarshalDriver, 
 			mach.target_rv.Set(reflect.MakeMap(mach.target_rv.Type()))
 		}
 		return false, nil
-	case TArrOpen:
-		return true, fmt.Errorf("unexpected arrOpen; expected start of map")
 	case TMapClose:
 		return true, fmt.Errorf("unexpected mapClose; expected start of map")
 	case TArrClose:
 		return true, fmt.Errorf("unexpected arrClose; expected start of map")
+	case TArrOpen:
+		fallthrough
 	default:
-		return true, fmt.Errorf("unexpected token %s; expected start of map", tok)
+		return true, ErrUnmarshalIncongruent{*tok, mach.target_rv}
 	}
 }
 
