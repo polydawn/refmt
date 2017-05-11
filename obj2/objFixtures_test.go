@@ -114,7 +114,10 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return map[string]interface{}{"key": "value"} }},
 			{title: "into map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return v },
-				expectErr: skipMe},
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(map[string]interface{}(nil))}},
+			{title: "into made map[str]iface",
+				slotFn:  func() interface{} { v := make(map[string]interface{}); return v },
+				valueFn: func() interface{} { return map[string]interface{}{"key": "value"} }},
 			{title: "into *map[str]iface",
 				slotFn:  func() interface{} { var v map[string]interface{}; return &v },
 				valueFn: func() interface{} { return map[string]interface{}{"key": "value"} }},
@@ -208,7 +211,7 @@ func TestUnmarshaller(t *testing.T) {
 					if trr.expectErr == skipMe {
 						maybe = SkipConvey
 					}
-					maybe(fmt.Sprintf("targetting %s:", trr.title), func() {
+					maybe(fmt.Sprintf("targetting %s (%T):", trr.title, trr.slotFn()), func() {
 						// Grab slot.
 						slot := trr.slotFn()
 
@@ -254,8 +257,11 @@ func TestUnmarshaller(t *testing.T) {
 
 							Convey("Result", func() {
 								// Get value back out.  Some reflection required to get around pointers.
-								v := reflect.ValueOf(slot).Elem().Interface()
-								So(v, ShouldResemble, trr.valueFn())
+								rv := reflect.ValueOf(slot)
+								if rv.Kind() == reflect.Ptr {
+									rv = rv.Elem()
+								}
+								So(rv.Interface(), ShouldResemble, trr.valueFn())
 							})
 						})
 					})
