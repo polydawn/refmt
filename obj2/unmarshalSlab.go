@@ -132,7 +132,7 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 	case reflect.Array:
 		panic("todo")
 	case reflect.Map:
-		panic("todo")
+		return &row.unmarshalMachineMapStringWildcard
 	case reflect.Struct:
 		panic("todo")
 	case reflect.Interface:

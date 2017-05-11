@@ -34,6 +34,10 @@ func (mach *unmarshalMachineMapStringWildcard) step_Initial(_ *UnmarshalDriver, 
 	case TMapOpen:
 		// Great.  Consumed.
 		mach.step = mach.step_AcceptKey
+		// Initialize the map if it's nil.
+		if mach.target_rv.IsNil() {
+			mach.target_rv.Set(reflect.MakeMap(mach.target_rv.Type()))
+		}
 		return false, nil
 	case TArrOpen:
 		return true, fmt.Errorf("unexpected arrOpen; expected start of map")
