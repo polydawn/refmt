@@ -55,7 +55,7 @@ func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *UnmarshalDriver
 	//  (This is fiddly: the delay comes mostly from the handling of slices, which may end up re-allocating
 	//   themselves during their decoding.)
 	if mach.key_rv != (reflect.Value{}) {
-		mach.target_rv.SetMapIndex(mach.key_rv, mach.tmp_rv)
+		mach.target_rv.SetMapIndex(mach.key_rv, mach.tmp_rv.Elem())
 	}
 	// Now switch on tokens.
 	switch tok.Type {
