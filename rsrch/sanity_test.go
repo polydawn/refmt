@@ -1,4 +1,4 @@
-package obj
+package rsrch
 
 import (
 	"fmt"
