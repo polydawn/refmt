@@ -97,7 +97,7 @@ var objFixtures = []struct {
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf("")}},
 			{title: "into *string",
 				slotFn:    func() interface{} { var str string; return &str },
-				expectErr: skipMe},
+				expectErr: ErrUnmarshalIncongruent{Token{Type: TMapOpen, Length: 1}, reflect.ValueOf("")}},
 			{title: "into wildcard",
 				slotFn:    func() interface{} { var v interface{}; return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
@@ -152,7 +152,7 @@ func TestMarshaller(t *testing.T) {
 						done, err = marshaller.Step(&tok)
 						if err != nil && tr.marshalResults.expectErr != nil {
 							Convey("Result (error expected)", func() {
-								So(err, ShouldResemble, tr.marshalResults.expectErr)
+								So(err.Error(), ShouldResemble, tr.marshalResults.expectErr.Error())
 							})
 							return
 						}
@@ -209,7 +209,7 @@ func TestUnmarshaller(t *testing.T) {
 						err := unmarshaller.Bind(slot)
 						if err != nil && trr.expectErr != nil {
 							Convey("Result (error expected)", func() {
-								So(err, ShouldResemble, trr.expectErr)
+								So(err.Error(), ShouldResemble, trr.expectErr.Error())
 							})
 							return
 						}
@@ -225,7 +225,7 @@ func TestUnmarshaller(t *testing.T) {
 								done, err = unmarshaller.Step(&tok)
 								if err != nil && trr.expectErr != nil {
 									Convey("Result (error expected)", func() {
-										So(err, ShouldResemble, trr.expectErr)
+										So(err.Error(), ShouldResemble, trr.expectErr.Error())
 									})
 									return
 								}
