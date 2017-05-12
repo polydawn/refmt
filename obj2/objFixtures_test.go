@@ -69,6 +69,8 @@ var objFixtures = []struct {
 		marshalResults: []marshalResults{
 			{title: "from string literal",
 				valueFn: func() interface{} { str := "value"; return str }},
+			{title: "from string in iface slot",
+				valueFn: func() interface{} { var iface interface{}; iface = "value"; return iface }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
