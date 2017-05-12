@@ -23,7 +23,7 @@ type marshalSlabRow struct {
 	marshalMachinePrimitive
 	marshalMachineWildcard
 	marshalMachineMapWildcard
-	//	marshalMachineSliceWildcard
+	marshalMachineSliceWildcard
 	marshalMachineStructAtlas
 
 	errThunkMarshalMachine
@@ -140,9 +140,9 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 		if rt.Elem().Kind() == reflect.Uint8 {
 			panic("todo")
 		}
-		panic("todo")
+		return &row.marshalMachineSliceWildcard
 	case reflect.Array:
-		panic("todo")
+		return &row.marshalMachineSliceWildcard.marshalMachineArrayWildcard
 	case reflect.Map:
 		return &row.marshalMachineMapWildcard
 	case reflect.Struct:
