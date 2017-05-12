@@ -107,8 +107,10 @@ var objFixtures = []struct {
 		marshalResults: []marshalResults{
 			{title: "from object with one field",
 				valueFn: func() interface{} { return tObjStr{"value"} }},
-			{title: "from map with one entry",
+			{title: "from map[str]iface with one entry",
 				valueFn: func() interface{} { return map[string]interface{}{"key": "value"} }},
+			{title: "from map[str]str with one entry",
+				valueFn: func() interface{} { return map[string]string{"key": "value"} }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
