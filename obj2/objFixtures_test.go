@@ -243,8 +243,8 @@ var objFixtures = []struct {
 				slotFn:    func() interface{} { var v []interface{}; return v },
 				expectErr: skipMe},
 			{title: "into *[]iface",
-				slotFn:    func() interface{} { var v []interface{}; return &v },
-				expectErr: skipMe},
+				slotFn:  func() interface{} { var v []interface{}; return &v },
+				valueFn: func() interface{} { return []interface{}{} }},
 		},
 	},
 }

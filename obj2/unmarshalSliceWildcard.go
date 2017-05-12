@@ -37,6 +37,10 @@ func (mach *unmarshalMachineSliceWildcard) step_Initial(_ *UnmarshalDriver, slab
 	case TArrOpen:
 		// Great.  Consumed.
 		mach.step = mach.step_AcceptValue
+		// Initialize the slice if it's nil.
+		if mach.target_rv.IsNil() {
+			mach.target_rv.Set(reflect.MakeSlice(mach.target_rv.Type(), 0, 0))
+		}
 		return false, nil
 	case TMapClose:
 		return true, fmt.Errorf("unexpected mapClose; expected start of array")
