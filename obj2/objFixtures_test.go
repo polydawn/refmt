@@ -209,6 +209,10 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return [0]int{} }},
 			{title: "from int slice",
 				valueFn: func() interface{} { return []int{} }},
+			{title: "from iface array",
+				valueFn: func() interface{} { return [0]interface{}{} }},
+			{title: "from iface slice",
+				valueFn: func() interface{} { return []interface{}{} }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
