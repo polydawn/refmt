@@ -217,11 +217,13 @@ func TestMarshaller(t *testing.T) {
 		for _, tr := range objFixtures {
 			Convey(fmt.Sprintf("%q fixture sequence:", tr.title), func() {
 				for _, trr := range tr.marshalResults {
-					Convey(fmt.Sprintf("working %s (%T):", trr.title, trr.valueFn()), func() {
-
+					// Conjure value.  Also format title for test, using its type info.
+					value := trr.valueFn()
+					valueKind := reflect.ValueOf(value).Kind()
+					Convey(fmt.Sprintf("working %s (%s|%T):", trr.title, valueKind, value), func() {
 						// Set up marshaller.
 						marshaller := NewMarshaler(tr.atlas)
-						marshaller.Bind(trr.valueFn())
+						marshaller.Bind(value)
 
 						Convey("Steps...", func() {
 							// Run steps until the marshaller says done or error.
@@ -289,9 +291,10 @@ func TestUnmarshaller(t *testing.T) {
 					if trr.expectErr == skipMe {
 						maybe = SkipConvey
 					}
-					maybe(fmt.Sprintf("targetting %s (%T):", trr.title, trr.slotFn()), func() {
-						// Grab slot.
-						slot := trr.slotFn()
+					// Conjure slot.  Also format title for test, using its type info.
+					slot := trr.slotFn()
+					slotKind := reflect.ValueOf(slot).Kind()
+					maybe(fmt.Sprintf("targetting %s (%s|%T):", trr.title, slotKind, slot), func() {
 
 						// Set up unmarshaller.
 						unmarshaller := NewUnmarshaler(tr.atlas)
