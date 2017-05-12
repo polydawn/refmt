@@ -21,9 +21,9 @@ type marshalSlab struct {
 type marshalSlabRow struct {
 	ptrDerefDelegateMarshalMachine
 	marshalMachinePrimitive
-	//	marshalMachineMapWildcard
+	marshalMachineWildcard
+	marshalMachineMapWildcard
 	//	marshalMachineSliceWildcard
-	//	marshalMachineWildcard
 	marshalMachineStructAtlas
 
 	errThunkMarshalMachine
@@ -144,11 +144,11 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 	case reflect.Array:
 		panic("todo")
 	case reflect.Map:
-		panic("todo")
+		return &row.marshalMachineMapWildcard
 	case reflect.Struct:
 		panic("todo")
 	case reflect.Interface:
-		panic("todo")
+		return &row.marshalMachineWildcard
 	case reflect.Func:
 		panic(fmt.Errorf("functions cannot be marshalled!"))
 	case reflect.Ptr:
