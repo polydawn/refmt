@@ -75,6 +75,10 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { var iface interface{}; iface = "value"; return iface }},
 			{title: "from string in *iface slot",
 				valueFn: func() interface{} { var iface interface{}; iface = "value"; return &iface }},
+			{title: "from *string in iface slot",
+				valueFn: func() interface{} { str := "value"; var iface interface{}; iface = &str; return iface }},
+			{title: "from *string in *iface slot",
+				valueFn: func() interface{} { str := "value"; var iface interface{}; iface = &str; return &iface }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
