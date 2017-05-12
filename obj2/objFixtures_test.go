@@ -121,6 +121,8 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return map[string]interface{}{"key": "value"} }},
 			{title: "from map[str]str with one entry",
 				valueFn: func() interface{} { return map[string]string{"key": "value"} }},
+			{title: "from *map[str]str",
+				valueFn: func() interface{} { m := map[string]string{"key": "value"}; return &m }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",

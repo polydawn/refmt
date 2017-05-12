@@ -23,7 +23,7 @@ func (mach *ptrDerefDelegateUnmarshalMachine) Reset(slab *unmarshalSlab, rv refl
 		}
 		rv = rv.Elem()
 	}
-	return mach.UnmarshalMachine.Reset(slab, rv, rt) // REVIEW: this rt should be peeled by here.  do we... ignore the arg and cache it at mach conf time?
+	return mach.UnmarshalMachine.Reset(slab, rv, rv.Type()) // REVIEW: we could have cached the peeled rt at mach conf time; worth it?
 }
 func (mach *ptrDerefDelegateUnmarshalMachine) Step(driver *UnmarshalDriver, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	if mach.isNil {
