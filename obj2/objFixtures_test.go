@@ -246,6 +246,18 @@ var objFixtures = []struct {
 			{title: "into *[]iface",
 				slotFn:  func() interface{} { var v []interface{}; return &v },
 				valueFn: func() interface{} { return []interface{}{} }},
+			{title: "into []str",
+				slotFn:    func() interface{} { var v []string; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]string{})}},
+			{title: "into *[]str",
+				slotFn:  func() interface{} { var v []string; return &v },
+				valueFn: func() interface{} { return []string{} }},
+			{title: "into []int",
+				slotFn:    func() interface{} { var v []int; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]int{})}},
+			{title: "into *[]int",
+				slotFn:  func() interface{} { var v []int; return &v },
+				valueFn: func() interface{} { return []int{} }}, // fine *despite the type mismatch* because with no tokens, well, nobody's the wiser.
 		},
 	},
 }
