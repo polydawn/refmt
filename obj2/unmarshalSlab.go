@@ -23,7 +23,7 @@ type unmarshalSlabRow struct {
 	unmarshalMachinePrimitive
 	unmarshalMachineWildcard
 	unmarshalMachineMapStringWildcard
-	//	unmarshalMachineSliceWildcard
+	unmarshalMachineSliceWildcard
 	//	unmarshalMachineStructAtlas
 
 	errThunkUnmarshalMachine
@@ -128,7 +128,7 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 		if rt.Elem().Kind() == reflect.Uint8 {
 			panic("todo")
 		}
-		panic("todo")
+		return &row.unmarshalMachineSliceWildcard
 	case reflect.Array:
 		panic("todo")
 	case reflect.Map:

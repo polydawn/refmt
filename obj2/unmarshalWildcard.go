@@ -39,7 +39,14 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, slab *
 		return mach.delegate.Step(driver, slab, tok)
 
 	case TArrOpen:
-		panic("todo")
+		child := make([]interface{}, 0) // TODO if we have length hint info, use it.
+		child_rv := reflect.ValueOf(child)
+		mach.target_rv.Set(child_rv) // REVIEW this seems unlikely to be The Way for slices...
+		mach.delegate = &slab.tip().unmarshalMachineSliceWildcard
+		if err := mach.delegate.Reset(slab, child_rv, child_rv.Type()); err != nil {
+			return true, err
+		}
+		return mach.delegate.Step(driver, slab, tok)
 
 	case TMapClose:
 		return true, fmt.Errorf("unexpected mapClose; expected start of value")
