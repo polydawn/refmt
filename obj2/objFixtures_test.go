@@ -240,8 +240,9 @@ var objFixtures = []struct {
 				slotFn:    func() interface{} { var v map[string]string; return &v },
 				expectErr: skipMe},
 			{title: "into []iface",
-				slotFn:    func() interface{} { var v []interface{}; return v },
-				expectErr: skipMe},
+				slotFn: func() interface{} { var v []interface{}; return v },
+				// array/slice direct: theoretically possible, as long as it's short enough.  but not supported right now.
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]interface{}{})}},
 			{title: "into *[]iface",
 				slotFn:  func() interface{} { var v []interface{}; return &v },
 				valueFn: func() interface{} { return []interface{}{} }},
