@@ -283,9 +283,8 @@ var objFixtures = []struct {
 				slotFn:    func() interface{} { var v interface{}; return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
 			{title: "into *wildcard",
-				slotFn: func() interface{} { var v interface{}; return &v },
-				//valueFn: func() interface{} { return []interface{}{"value", "v2"} }},
-				expectErr: skipMe}, // FIXME currently returns empty because of setter issues
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { return []interface{}{"value", "v2"} }},
 			{title: "into map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return v },
 				expectErr: skipMe},

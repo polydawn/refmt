@@ -10,6 +10,7 @@ import (
 type unmarshalMachineWildcard struct {
 	target_rv reflect.Value
 	delegate  UnmarshalMachine // actual machine, once we've demuxed with the first token.
+	holder_rv reflect.Value    // if set, handle to slot where slice is stored; content must be placed into target at end.
 }
 
 func (mach *unmarshalMachineWildcard) Reset(_ *unmarshalSlab, rv reflect.Value, _ reflect.Type) error {
@@ -21,7 +22,14 @@ func (mach *unmarshalMachineWildcard) Step(driver *UnmarshalDriver, slab *unmars
 	if mach.delegate == nil {
 		return mach.step_demux(driver, slab, tok)
 	}
-	return mach.delegate.Step(driver, slab, tok)
+	done, err = mach.delegate.Step(driver, slab, tok)
+	if !done {
+		return
+	}
+	if mach.holder_rv.IsValid() {
+		mach.target_rv.Set(mach.holder_rv)
+	}
+	return
 }
 
 func (mach *unmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, slab *unmarshalSlab, tok *Token) (done bool, err error) {
@@ -50,10 +58,9 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, slab *
 		// - https://play.golang.org/p/jV9VFDht6F -- finally getting somewhere good
 
 		holder := make([]interface{}, 0)
-		holder_rv := reflect.ValueOf(&holder).Elem()
-		mach.target_rv.Set(holder_rv) // FIXME yeah still don't think so, need post step
+		mach.holder_rv = reflect.ValueOf(&holder).Elem()
 		mach.delegate = &slab.tip().unmarshalMachineSliceWildcard
-		if err := mach.delegate.Reset(slab, holder_rv, holder_rv.Type()); err != nil {
+		if err := mach.delegate.Reset(slab, mach.holder_rv, mach.holder_rv.Type()); err != nil {
 			return true, err
 		}
 		return mach.delegate.Step(driver, slab, tok)
