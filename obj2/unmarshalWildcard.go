@@ -15,6 +15,8 @@ type unmarshalMachineWildcard struct {
 
 func (mach *unmarshalMachineWildcard) Reset(_ *unmarshalSlab, rv reflect.Value, _ reflect.Type) error {
 	mach.target_rv = rv
+	mach.delegate = nil
+	mach.holder_rv = reflect.Value{}
 	return nil
 }
 

@@ -393,7 +393,14 @@ var objFixtures = []struct {
 				}},
 		},
 		unmarshalResults: []unmarshalResults{
-		//
+			{title: "into oh-so-much type info",
+				slotFn: func() interface{} { return make(map[string][]map[string]int) },
+				valueFn: func() interface{} {
+					return map[string][]map[string]int{"k": []map[string]int{
+						map[string]int{"r1": 1},
+						map[string]int{"r2": 2},
+					}}
+				}},
 		},
 	},
 }

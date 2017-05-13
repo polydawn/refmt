@@ -9,17 +9,21 @@ import (
 
 type unmarshalMachineMapStringWildcard struct {
 	target_rv reflect.Value
+	value_rt  reflect.Type
+	valueMach UnmarshalMachine
 	step      unmarshalMachineStep
 	key_rv    reflect.Value // The key consumed by the prev `step_AcceptKey`.
-	tmp       interface{}   // A slot to we hand out as a ref to fill during recursions.
-	tmp_rv    reflect.Value // Reflective handle to the tmp slot.
+	tmp_rv    reflect.Value // Addressable handle to a slot for values to unmarshal into.
 }
 
-func (mach *unmarshalMachineMapStringWildcard) Reset(_ *unmarshalSlab, rv reflect.Value, _ reflect.Type) error {
+func (mach *unmarshalMachineMapStringWildcard) Reset(slab *unmarshalSlab, rv reflect.Value, rt reflect.Type) error {
 	mach.target_rv = rv
+	mach.value_rt = rt.Elem()
+	mach.valueMach = slab.requisitionMachine(mach.value_rt)
 	mach.step = mach.step_Initial
 	mach.key_rv = reflect.Value{}
-	mach.tmp_rv = reflect.ValueOf(&mach.tmp).Elem() // redundant on resets :/
+	slot_rv := reflect.New(mach.value_rt)
+	mach.tmp_rv = slot_rv.Elem()
 	return nil
 }
 
@@ -55,7 +59,7 @@ func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *UnmarshalDriver
 	//  (This is fiddly: the delay comes mostly from the handling of slices, which may end up re-allocating
 	//   themselves during their decoding.)
 	if mach.key_rv != (reflect.Value{}) {
-		mach.target_rv.SetMapIndex(mach.key_rv, mach.tmp_rv.Elem())
+		mach.target_rv.SetMapIndex(mach.key_rv, mach.tmp_rv)
 	}
 	// Now switch on tokens.
 	switch tok.Type {
@@ -92,14 +96,10 @@ func (mach *unmarshalMachineMapStringWildcard) mustAcceptKey(key_rv reflect.Valu
 
 func (mach *unmarshalMachineMapStringWildcard) step_AcceptValue(driver *UnmarshalDriver, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	mach.step = mach.step_AcceptKey
-	// We're in the unusual position of knowing exactly what machine we need,
-	//  since we just declared and constructed the value we're about to recurse into.
-	slab.grow()
-	driver.Recurse(
+	return false, driver.Recurse(
 		tok,
 		mach.tmp_rv,
-		nil, /* can get away with it */
-		&slab.tip().unmarshalMachineWildcard,
+		mach.value_rt,
+		mach.valueMach,
 	)
-	return false, nil
 }
