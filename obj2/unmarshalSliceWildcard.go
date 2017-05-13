@@ -64,6 +64,11 @@ func (mach *unmarshalMachineSliceWildcard) step_AcceptValue(driver *UnmarshalDri
 		// REVIEW does this even require an action anymore? // *(mach.target) = mach.slice
 		return true, nil
 	}
+
+	// Grow the slice if necessary.
+	// FIXME this is ridiculously inefficient, can do much better, this is placeholder quality
+	mach.target_rv.Set(reflect.Append(mach.target_rv, reflect.Zero(mach.value_rt)))
+
 	// Recurse on a handle to the next index.
 	rv := mach.target_rv.Index(mach.index)
 	mach.index++

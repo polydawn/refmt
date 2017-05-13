@@ -39,11 +39,21 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, slab *
 		return mach.delegate.Step(driver, slab, tok)
 
 	case TArrOpen:
-		child := make([]interface{}, 0) // TODO if we have length hint info, use it.
-		child_rv := reflect.ValueOf(child)
-		mach.target_rv.Set(child_rv) // REVIEW this seems unlikely to be The Way for slices...
+		// Stdlib has very interesting branch here: 'case reflect.Interface: if v.NumMethod() == 0 {'
+		//  If that matches, it goes on a *totally different* branch that leaves the reflective path entirely forever.
+		//   (Which is kind of interesting, because it also means it will never reuse memory there.  If you wanted that.)
+
+		// This definitely went through a few discovery steps...
+		// - https://play.golang.org/p/Qbtpxwh68e
+		// - https://play.golang.org/p/l5RQujLnDN
+		// - https://play.golang.org/p/Z2ilpPk0vk
+		// - https://play.golang.org/p/jV9VFDht6F -- finally getting somewhere good
+
+		holder := make([]interface{}, 0)
+		holder_rv := reflect.ValueOf(&holder).Elem()
+		mach.target_rv.Set(holder_rv) // FIXME yeah still don't think so, need post step
 		mach.delegate = &slab.tip().unmarshalMachineSliceWildcard
-		if err := mach.delegate.Reset(slab, child_rv, child_rv.Type()); err != nil {
+		if err := mach.delegate.Reset(slab, holder_rv, holder_rv.Type()); err != nil {
 			return true, err
 		}
 		return mach.delegate.Step(driver, slab, tok)
