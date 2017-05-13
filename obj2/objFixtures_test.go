@@ -381,6 +381,21 @@ var objFixtures = []struct {
 				expectErr: skipMe}, // should certainly error, but not well spec'd yet
 		},
 	},
+	{title: "nested maps and arrays with no wildcards",
+		sequence: fixtures.SequenceMap["map[str][]map[str]int"],
+		marshalResults: []marshalResults{
+			{title: "from oh-so-much type info",
+				valueFn: func() interface{} {
+					return map[string][]map[string]int{"k": []map[string]int{
+						map[string]int{"r1": 1},
+						map[string]int{"r2": 2},
+					}}
+				}},
+		},
+		unmarshalResults: []unmarshalResults{
+		//
+		},
+	},
 }
 
 func TestMarshaller(t *testing.T) {
