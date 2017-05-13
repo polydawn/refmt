@@ -317,6 +317,70 @@ var objFixtures = []struct {
 				expectErr: ErrUnmarshalIncongruent{Token{Type: TString, Str: "value"}, reflect.ValueOf(0)}},
 		},
 	},
+	{title: "array nest in map pt1",
+		sequence: fixtures.SequenceMap["array nested in map as non-first and final entry"],
+		marshalResults: []marshalResults{
+			{title: "from map[str]iface with nested []iface",
+				valueFn: func() interface{} {
+					return map[string]interface{}{"k1": "v1", "ke": []interface{}{"oh", "whee", "wow"}}
+				}},
+			{title: "from map[str]iface with nested []str",
+				valueFn: func() interface{} {
+					return map[string]interface{}{"k1": "v1", "ke": []string{"oh", "whee", "wow"}}
+				}},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into string",
+				slotFn:    func() interface{} { var str string; return str },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf("")}},
+			{title: "into *string",
+				slotFn:    func() interface{} { var str string; return &str },
+				expectErr: ErrUnmarshalIncongruent{Token{Type: TMapOpen, Length: 2}, reflect.ValueOf("")}},
+			{title: "into wildcard",
+				slotFn:    func() interface{} { var v interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
+			{title: "into *wildcard",
+				slotFn: func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} {
+					return map[string]interface{}{"k1": "v1", "ke": []interface{}{"oh", "whee", "wow"}}
+				}},
+			{title: "into map[str]iface",
+				slotFn:    func() interface{} { var v map[string]interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(map[string]interface{}(nil))}},
+			{title: "into made map[str]iface",
+				slotFn: func() interface{} { v := make(map[string]interface{}); return v },
+				valueFn: func() interface{} {
+					return map[string]interface{}{"k1": "v1", "ke": []interface{}{"oh", "whee", "wow"}}
+				}},
+			{title: "into *map[str]iface",
+				slotFn: func() interface{} { var v map[string]interface{}; return &v },
+				valueFn: func() interface{} {
+					return map[string]interface{}{"k1": "v1", "ke": []interface{}{"oh", "whee", "wow"}}
+				}},
+			{title: "into *map[str]str",
+				slotFn: func() interface{} { var v map[string]string; return &v },
+				//expectErr: ErrUnmarshalIncongruent{Token{Type: TArrOpen, Length: 3}, reflect.ValueOf("")}},
+				expectErr: skipMe}, // big tricky todo: currently falls in the cracks where reflect core panics.
+			{title: "into []iface",
+				slotFn:    func() interface{} { var v []interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]interface{}{})}},
+			{title: "into *[]iface",
+				slotFn:    func() interface{} { var v []interface{}; return &v },
+				expectErr: skipMe}, // should certainly error, but not well spec'd yet
+			{title: "into []str",
+				slotFn:    func() interface{} { var v []string; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]string{})}},
+			{title: "into *[]str",
+				slotFn:    func() interface{} { var v []string; return &v },
+				expectErr: skipMe}, // should certainly error, but not well spec'd yet
+			{title: "into []int",
+				slotFn:    func() interface{} { var v []int; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]int{})}},
+			{title: "into *[]int",
+				slotFn:    func() interface{} { var v []int; return &v },
+				expectErr: skipMe}, // should certainly error, but not well spec'd yet
+		},
+	},
 }
 
 func TestMarshaller(t *testing.T) {
