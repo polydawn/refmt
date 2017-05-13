@@ -21,9 +21,9 @@ type unmarshalSlab struct {
 type unmarshalSlabRow struct {
 	ptrDerefDelegateUnmarshalMachine
 	unmarshalMachinePrimitive
-	//	unmarshalMachineMapWildcard
-	//	unmarshalMachineSliceWildcard
-	//	unmarshalMachineWildcard
+	unmarshalMachineWildcard
+	unmarshalMachineMapStringWildcard
+	unmarshalMachineSliceWildcard
 	//	unmarshalMachineStructAtlas
 
 	errThunkUnmarshalMachine
@@ -128,15 +128,15 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 		if rt.Elem().Kind() == reflect.Uint8 {
 			panic("todo")
 		}
-		panic("todo")
+		return &row.unmarshalMachineSliceWildcard
 	case reflect.Array:
 		panic("todo")
 	case reflect.Map:
-		panic("todo")
+		return &row.unmarshalMachineMapStringWildcard
 	case reflect.Struct:
 		panic("todo")
 	case reflect.Interface:
-		panic("todo")
+		return &row.unmarshalMachineWildcard
 	case reflect.Func:
 		panic(fmt.Errorf("functions cannot be unmarshalled!"))
 	case reflect.Ptr:
@@ -144,6 +144,12 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 	default:
 		panic(fmt.Errorf("excursion %s", rt.Kind()))
 	}
+}
+
+// Returns the top row of the slab.  Useful for machines that need to delegate
+//  to another type that's definitely not their own (comes up for the wildcard delegators).
+func (s *unmarshalSlab) tip() *unmarshalSlabRow {
+	return &s.rows[len(s.rows)-1]
 }
 
 func (s *unmarshalSlab) grow() {

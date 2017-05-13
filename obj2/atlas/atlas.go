@@ -93,7 +93,7 @@ type AtlasEntry struct {
 
 	// A mapping of fields in a struct to serial keys.
 	// Only valid if `this.Type.Kind() == Struct`.
-	StructMap StructMap
+	StructMap *StructMap
 
 	// FUTURE: enum-ish primitives, multiplexers for interfaces,
 	//  lots of such things will belong here.

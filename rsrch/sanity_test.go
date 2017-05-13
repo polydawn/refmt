@@ -1,4 +1,4 @@
-package obj
+package rsrch
 
 import (
 	"fmt"
@@ -38,4 +38,15 @@ func TestReflectInvariants(t *testing.T) {
 	fmt.Printf("anonstruct rtid: %v\n", reflect.ValueOf(reflect.TypeOf(struct{ string }{})).Pointer())
 	fmt.Printf("[]byte  rtid: %v\n", reflect.ValueOf(reflect.TypeOf([]byte{})).Pointer()) // byte slice and uint8 slice are an alias.
 	fmt.Printf("[]uint8 rtid: %v\n", reflect.ValueOf(reflect.TypeOf([]uint8(nil))).Pointer())
+}
+
+func TestMapSetSemanitcsLiterallyEven(t *testing.T) {
+	anInt := 0
+	rv := reflect.ValueOf(anInt)
+	anMap := make(map[string]int)
+	map_rv := reflect.ValueOf(anMap)
+	key := "asdf"
+	key_rv := reflect.ValueOf(key)
+	map_rv.SetMapIndex(key_rv, rv)
+	fmt.Printf("themap: %v\n", anMap)
 }

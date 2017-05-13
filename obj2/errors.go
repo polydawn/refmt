@@ -1,6 +1,11 @@
 package obj
 
-import "reflect"
+import (
+	"fmt"
+	"reflect"
+
+	. "github.com/polydawn/refmt/tok"
+)
 
 // ErrInvalidUnmarshalTarget describes an invalid argument passed to UnmarshalDriver.Bind.
 // (Unmarshalling must target a non-nil pointer so that it can address the value.)
@@ -16,4 +21,16 @@ func (e ErrInvalidUnmarshalTarget) Error() string {
 		return "invalid unmarshal target (non-pointer " + e.Type.String() + ")"
 	}
 	return "invalid unmarshal target: (nil " + e.Type.String() + ")"
+}
+
+// ErrUnmarshalIncongruent is the error returned when unmarshalling cannot
+// coerce the tokens in the stream into the variables the unmarshal is targetting,
+// for example if a map open token comes when an int is expected.
+type ErrUnmarshalIncongruent struct {
+	Token Token
+	Value reflect.Value
+}
+
+func (e ErrUnmarshalIncongruent) Error() string {
+	return fmt.Sprintf("cannot assign %s to %s field", e.Token, e.Value.Kind())
 }

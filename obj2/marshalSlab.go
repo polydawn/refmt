@@ -21,10 +21,10 @@ type marshalSlab struct {
 type marshalSlabRow struct {
 	ptrDerefDelegateMarshalMachine
 	marshalMachinePrimitive
-	//	marshalMachineMapWildcard
-	//	marshalMachineSliceWildcard
-	//	marshalMachineWildcard
-	//	marshalMachineStructAtlas
+	marshalMachineWildcard
+	marshalMachineMapWildcard
+	marshalMachineSliceWildcard
+	marshalMachineStructAtlas
 
 	errThunkMarshalMachine
 }
@@ -87,8 +87,20 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 
 	// Consult atlas second.
 	if entry, ok := atl.Get(rtid); ok {
-		_ = entry
-		panic("todo")
+		// Switch across which of the union of configurations is applicable.
+		switch {
+		case entry.MarshalTransformFunc != nil:
+			// Return a machine that calls the func(s), then later a real machine.
+			// The entry.MarshalTransformTargetType is used to do a recursive lookup.
+			// We can't just call the func here because we're still working off typeinfo
+			// and don't have a real value to transform until later.
+			panic("todo: MarshalTransformFunc support")
+		case entry.StructMap != nil:
+			row.marshalMachineStructAtlas.cfg = entry.StructMap
+			return &row.marshalMachineStructAtlas
+		default:
+			panic("invalid atlas entry")
+		}
 	}
 
 	// If no specific behavior found, use default behavior based on kind.
@@ -128,15 +140,15 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 		if rt.Elem().Kind() == reflect.Uint8 {
 			panic("todo")
 		}
-		panic("todo")
+		return &row.marshalMachineSliceWildcard
 	case reflect.Array:
-		panic("todo")
+		return &row.marshalMachineSliceWildcard.marshalMachineArrayWildcard
 	case reflect.Map:
-		panic("todo")
+		return &row.marshalMachineMapWildcard
 	case reflect.Struct:
 		panic("todo")
 	case reflect.Interface:
-		panic("todo")
+		return &row.marshalMachineWildcard
 	case reflect.Func:
 		panic(fmt.Errorf("functions cannot be marshalled!"))
 	case reflect.Ptr:

@@ -139,6 +139,24 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"map[str][]map[str]int",
+		// this one is primarily for the objmapper tests
+		[]Token{
+			{Type: TMapOpen, Length: 1},
+			TokStr("k"),
+			{Type: TArrOpen, Length: 2},
+			{Type: TMapOpen, Length: 1},
+			TokStr("r1"),
+			TokInt(1),
+			{Type: TMapClose},
+			{Type: TMapOpen, Length: 1},
+			TokStr("r2"),
+			TokInt(2),
+			{Type: TMapClose},
+			{Type: TArrClose},
+			{Type: TMapClose},
+		},
+	},
 
 	// Numbers.
 	// Warning: surprisingly contentious topic.

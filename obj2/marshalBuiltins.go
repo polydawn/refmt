@@ -13,7 +13,7 @@ type ptrDerefDelegateMarshalMachine struct {
 	isNil bool
 }
 
-func (mach *ptrDerefDelegateMarshalMachine) Reset(slab *marshalSlab, rv reflect.Value, rt reflect.Type) error {
+func (mach *ptrDerefDelegateMarshalMachine) Reset(slab *marshalSlab, rv reflect.Value, _ reflect.Type) error {
 	mach.isNil = false
 	for i := 0; i < mach.peelCount; i++ {
 		if rv.IsNil() {
@@ -22,7 +22,7 @@ func (mach *ptrDerefDelegateMarshalMachine) Reset(slab *marshalSlab, rv reflect.
 		}
 		rv = rv.Elem()
 	}
-	return mach.MarshalMachine.Reset(slab, rv, rt) // REVIEW: this rt should be peeled by here.  do we... ignore the arg and cache it at mach conf time?
+	return mach.MarshalMachine.Reset(slab, rv, rv.Type()) // REVIEW: we could have cached the peeled rt at mach conf time; worth it?
 }
 func (mach *ptrDerefDelegateMarshalMachine) Step(driver *MarshalDriver, slab *marshalSlab, tok *Token) (done bool, err error) {
 	if mach.isNil {
