@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/polydawn/refmt/cbor"
-	refmtjson "github.com/polydawn/refmt/json"
 	"github.com/polydawn/refmt/objLegacy"
 	atlasLegacy "github.com/polydawn/refmt/objLegacy/atlas"
 )
@@ -247,34 +245,20 @@ var fixture_suiteAddrFunc = (&objLegacy.Suite{}).
 func Benchmark_StructToJson_RefmtLegacyFieldRoute(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	marshaller := objLegacy.NewMarshaler(fixture_suiteFieldRoute)
-	serializer := refmtjson.NewSerializer(&buf)
-	enc := TokenPump{
-		marshaller,
-		serializer,
-	}
+	enc := NewAtlasedJsonLegacyEncoder(&buf, fixture_suiteFieldRoute)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
-		marshaller.Bind(&fixture_struct)
-		serializer.Reset()
-		err = enc.Run()
+		err = enc.Marshal(&fixture_struct)
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
 func Benchmark_StructToJson_RefmtLegacyAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	marshaller := objLegacy.NewMarshaler(fixture_suiteAddrFunc)
-	serializer := refmtjson.NewSerializer(&buf)
-	enc := TokenPump{
-		marshaller,
-		serializer,
-	}
+	enc := NewAtlasedJsonLegacyEncoder(&buf, fixture_suiteAddrFunc)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
-		marshaller.Bind(&fixture_struct)
-		serializer.Reset()
-		err = enc.Run()
+		err = enc.Marshal(&fixture_struct)
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
@@ -292,34 +276,20 @@ func Benchmark_StructToJson_Stdlib(b *testing.B) {
 func Benchmark_StructToCbor_RefmtLegacyFieldRoute(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	marshaller := objLegacy.NewMarshaler(fixture_suiteFieldRoute)
-	encoder := cbor.NewEncoder(&buf)
-	serializer := TokenPump{
-		marshaller,
-		encoder,
-	}
+	enc := NewAtlasedCborLegacyEncoder(&buf, fixture_suiteFieldRoute)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
-		marshaller.Bind(&fixture_struct)
-		encoder.Reset()
-		err = serializer.Run()
+		err = enc.Marshal(&fixture_struct)
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_cbor)
 }
 func Benchmark_StructToCbor_RefmtLegacyAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	marshaller := objLegacy.NewMarshaler(fixture_suiteAddrFunc)
-	encoder := cbor.NewEncoder(&buf)
-	serializer := TokenPump{
-		marshaller,
-		encoder,
-	}
+	enc := NewAtlasedCborLegacyEncoder(&buf, fixture_suiteAddrFunc)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
-		marshaller.Bind(&fixture_struct)
-		encoder.Reset()
-		err = serializer.Run()
+		err = enc.Marshal(&fixture_struct)
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_cbor)
 }

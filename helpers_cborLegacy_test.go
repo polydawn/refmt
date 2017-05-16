@@ -12,8 +12,12 @@ import (
 )
 
 func NewCborLegacyEncoder(wr io.Writer) *CborLegacyEncoder {
+	return NewAtlasedCborLegacyEncoder(wr, &objLegacy.Suite{})
+}
+
+func NewAtlasedCborLegacyEncoder(wr io.Writer, suite *objLegacy.Suite) *CborLegacyEncoder {
 	enc := &CborLegacyEncoder{
-		marshaller: objLegacy.NewMarshaler(&objLegacy.Suite{}),
+		marshaller: objLegacy.NewMarshaler(suite),
 		encoder:    cbor.NewEncoder(wr),
 	}
 	enc.pump = TokenPump{

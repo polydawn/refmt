@@ -12,8 +12,12 @@ import (
 )
 
 func NewJsonLegacyEncoder(wr io.Writer) *JsonLegacyEncoder {
+	return NewAtlasedJsonLegacyEncoder(wr, &objLegacy.Suite{})
+}
+
+func NewAtlasedJsonLegacyEncoder(wr io.Writer, suite *objLegacy.Suite) *JsonLegacyEncoder {
 	enc := &JsonLegacyEncoder{
-		marshaller: objLegacy.NewMarshaler(&objLegacy.Suite{}),
+		marshaller: objLegacy.NewMarshaler(suite),
 		serializer: json.NewSerializer(wr),
 	}
 	enc.pump = TokenPump{
