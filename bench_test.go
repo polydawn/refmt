@@ -40,16 +40,6 @@ func Benchmark_ArrayFlatIntToJson_Refmt(b *testing.B) {
 	}
 	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_json)
 }
-func Benchmark_ArrayFlatIntToCbor_Refmt(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewCborEncoder(&buf)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_arrayFlatInt)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_cbor)
-}
 func Benchmark_ArrayFlatIntToJson_RefmtLegacy(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
@@ -59,16 +49,6 @@ func Benchmark_ArrayFlatIntToJson_RefmtLegacy(b *testing.B) {
 		err = enc.Marshal(&fixture_arrayFlatInt)
 	}
 	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_json)
-}
-func Benchmark_ArrayFlatIntToCbor_RefmtLegacy(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewCborLegacyEncoder(&buf)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_arrayFlatInt)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_cbor)
 }
 func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
@@ -80,6 +60,26 @@ func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 	}
 	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
 	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_json)
+}
+func Benchmark_ArrayFlatIntToCbor_Refmt(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := NewCborEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatInt)
+	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_cbor)
+}
+func Benchmark_ArrayFlatIntToCbor_RefmtLegacy(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := NewCborLegacyEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatInt)
+	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_cbor)
 }
 
 //
@@ -100,16 +100,6 @@ func Benchmark_ArrayFlatStrToJson_Refmt(b *testing.B) {
 	}
 	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_json)
 }
-func Benchmark_ArrayFlatStrToCbor_Refmt(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewCborEncoder(&buf)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_arrayFlatStr)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_cbor)
-}
 func Benchmark_ArrayFlatStrToJson_RefmtLegacy(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
@@ -119,16 +109,6 @@ func Benchmark_ArrayFlatStrToJson_RefmtLegacy(b *testing.B) {
 		err = enc.Marshal(&fixture_arrayFlatStr)
 	}
 	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_json)
-}
-func Benchmark_ArrayFlatStrToCbor_RefmtLegacy(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewCborLegacyEncoder(&buf)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_arrayFlatStr)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_cbor)
 }
 func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
@@ -140,6 +120,26 @@ func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 	}
 	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
 	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_json)
+}
+func Benchmark_ArrayFlatStrToCbor_Refmt(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := NewCborEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatStr)
+	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_cbor)
+}
+func Benchmark_ArrayFlatStrToCbor_RefmtLegacy(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := NewCborLegacyEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatStr)
+	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_cbor)
 }
 
 //
@@ -261,23 +261,6 @@ func Benchmark_StructToJson_RefmtLegacyFieldRoute(b *testing.B) {
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
-func Benchmark_StructToCbor_RefmtLegacyFieldRoute(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	marshaller := objLegacy.NewMarshaler(fixture_suiteFieldRoute)
-	encoder := cbor.NewEncoder(&buf)
-	serializer := TokenPump{
-		marshaller,
-		encoder,
-	}
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		marshaller.Bind(&fixture_struct)
-		encoder.Reset()
-		err = serializer.Run()
-	}
-	checkAftermath(err, buf.Bytes(), fixture_struct_cbor)
-}
 func Benchmark_StructToJson_RefmtLegacyAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
@@ -295,6 +278,34 @@ func Benchmark_StructToJson_RefmtLegacyAddrFunc(b *testing.B) {
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
+func Benchmark_StructToJson_Stdlib(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := json.NewEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Encode(&fixture_struct)
+	}
+	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
+	checkAftermath(err, buf.Bytes(), fixture_struct_json)
+}
+func Benchmark_StructToCbor_RefmtLegacyFieldRoute(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	marshaller := objLegacy.NewMarshaler(fixture_suiteFieldRoute)
+	encoder := cbor.NewEncoder(&buf)
+	serializer := TokenPump{
+		marshaller,
+		encoder,
+	}
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		marshaller.Bind(&fixture_struct)
+		encoder.Reset()
+		err = serializer.Run()
+	}
+	checkAftermath(err, buf.Bytes(), fixture_struct_cbor)
+}
 func Benchmark_StructToCbor_RefmtLegacyAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
@@ -311,15 +322,4 @@ func Benchmark_StructToCbor_RefmtLegacyAddrFunc(b *testing.B) {
 		err = serializer.Run()
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_cbor)
-}
-func Benchmark_StructToJson_Stdlib(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := json.NewEncoder(&buf)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Encode(&fixture_struct)
-	}
-	buf.Truncate(buf.Len() - 1) // Stdlib suffixes a linebreak.
-	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
