@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func Build(entries ...AtlasEntry) (Atlas, error) {
+func Build(entries ...*AtlasEntry) (Atlas, error) {
 	atl := Atlas{
 		mappings: make(map[uintptr]*AtlasEntry),
 	}
@@ -14,11 +14,11 @@ func Build(entries ...AtlasEntry) (Atlas, error) {
 		if _, exists := atl.mappings[rtid]; exists {
 			return Atlas{}, fmt.Errorf("repeated entry for %v", entry.Type)
 		}
-		atl.mappings[rtid] = &entry
+		atl.mappings[rtid] = entry
 	}
 	return atl, nil
 }
-func MustBuild(entries ...AtlasEntry) Atlas {
+func MustBuild(entries ...*AtlasEntry) Atlas {
 	atl, err := Build(entries...)
 	if err != nil {
 		panic(err)
