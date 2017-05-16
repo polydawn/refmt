@@ -30,7 +30,7 @@ var fixture_arrayFlatInt = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
 var fixture_arrayFlatInt_json = []byte(`[1,2,3,4,5,6,7,8,9,0]`)
 var fixture_arrayFlatInt_cbor = []byte{0x80 + 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
 
-func Benchmark_ArrayFlatIntToJson_Xlate(b *testing.B) {
+func Benchmark_ArrayFlatIntToJson_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	enc := NewJsonEncoder(&buf)
@@ -40,10 +40,30 @@ func Benchmark_ArrayFlatIntToJson_Xlate(b *testing.B) {
 	}
 	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_json)
 }
-func Benchmark_ArrayFlatIntToCbor_Xlate(b *testing.B) {
+func Benchmark_ArrayFlatIntToCbor_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	enc := NewCborEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatInt)
+	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_cbor)
+}
+func Benchmark_ArrayFlatIntToJson_RefmtLegacy(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := NewJsonLegacyEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatInt)
+	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_json)
+}
+func Benchmark_ArrayFlatIntToCbor_RefmtLegacy(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := NewCborLegacyEncoder(&buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatInt)
@@ -70,7 +90,7 @@ var fixture_arrayFlatStr = []string{"1", "2", "3", "4", "5", "6", "7", "8", "9",
 var fixture_arrayFlatStr_json = []byte(`["1","2","3","4","5","6","7","8","9","0"]`)
 var fixture_arrayFlatStr_cbor = []byte{0x80 + 10, 0x60 + 1, 0x30 + 1, 0x60 + 1, 0x30 + 2, 0x60 + 1, 0x30 + 3, 0x60 + 1, 0x30 + 4, 0x60 + 1, 0x30 + 5, 0x60 + 1, 0x30 + 6, 0x60 + 1, 0x30 + 7, 0x60 + 1, 0x30 + 8, 0x60 + 1, 0x30 + 9, 0x60 + 1, 0x30 + 0}
 
-func Benchmark_ArrayFlatStrToJson_Xlate(b *testing.B) {
+func Benchmark_ArrayFlatStrToJson_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	enc := NewJsonEncoder(&buf)
@@ -80,10 +100,30 @@ func Benchmark_ArrayFlatStrToJson_Xlate(b *testing.B) {
 	}
 	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_json)
 }
-func Benchmark_ArrayFlatStrToCbor_Xlate(b *testing.B) {
+func Benchmark_ArrayFlatStrToCbor_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	enc := NewCborEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatStr)
+	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_cbor)
+}
+func Benchmark_ArrayFlatStrToJson_RefmtLegacy(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := NewJsonLegacyEncoder(&buf)
+	for i := 0; i < b.N; i++ {
+		buf.Reset()
+		err = enc.Marshal(&fixture_arrayFlatStr)
+	}
+	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_json)
+}
+func Benchmark_ArrayFlatStrToCbor_RefmtLegacy(b *testing.B) {
+	var buf bytes.Buffer
+	var err error
+	enc := NewCborLegacyEncoder(&buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatStr)
@@ -204,7 +244,7 @@ var fixture_suiteAddrFunc = (&objLegacy.Suite{}).
 		},
 	}})
 
-func Benchmark_StructToJson_XlateFieldRoute(b *testing.B) {
+func Benchmark_StructToJson_RefmtLegacyFieldRoute(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	marshaller := objLegacy.NewMarshaler(fixture_suiteFieldRoute)
@@ -221,7 +261,7 @@ func Benchmark_StructToJson_XlateFieldRoute(b *testing.B) {
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
-func Benchmark_StructToCbor_XlateFieldRoute(b *testing.B) {
+func Benchmark_StructToCbor_RefmtLegacyFieldRoute(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	marshaller := objLegacy.NewMarshaler(fixture_suiteFieldRoute)
@@ -238,7 +278,7 @@ func Benchmark_StructToCbor_XlateFieldRoute(b *testing.B) {
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_cbor)
 }
-func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
+func Benchmark_StructToJson_RefmtLegacyAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	marshaller := objLegacy.NewMarshaler(fixture_suiteAddrFunc)
@@ -255,7 +295,7 @@ func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
 	}
 	checkAftermath(err, buf.Bytes(), fixture_struct_json)
 }
-func Benchmark_StructToCbor_XlateAddrFunc(b *testing.B) {
+func Benchmark_StructToCbor_RefmtLegacyAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
 	marshaller := objLegacy.NewMarshaler(fixture_suiteAddrFunc)
