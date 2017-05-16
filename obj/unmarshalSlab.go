@@ -24,7 +24,7 @@ type unmarshalSlabRow struct {
 	unmarshalMachineWildcard
 	unmarshalMachineMapStringWildcard
 	unmarshalMachineSliceWildcard
-	//	unmarshalMachineStructAtlas
+	unmarshalMachineStructAtlas
 
 	errThunkUnmarshalMachine
 }
@@ -87,8 +87,20 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 
 	// Consult atlas second.
 	if entry, ok := atl.Get(rtid); ok {
-		_ = entry
-		panic("todo")
+		// Switch across which of the union of configurations is applicable.
+		switch {
+		case entry.UnmarshalTransformFunc != nil:
+			// Return a machine that calls the func(s), then later a real machine.
+			// The entry.UnmarshalTransformTargetType is used to do a recursive lookup.
+			// We can't just call the func here because we're still working off typeinfo
+			// and don't have a real value to transform until later.
+			panic("todo: UnarshalTransformFunc support")
+		case entry.StructMap != nil:
+			row.unmarshalMachineStructAtlas.cfg = entry.StructMap
+			return &row.unmarshalMachineStructAtlas
+		default:
+			panic("invalid atlas entry")
+		}
 	}
 
 	// If no specific behavior found, use default behavior based on kind.
