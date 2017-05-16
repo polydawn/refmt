@@ -8,8 +8,8 @@ import (
 
 	"github.com/polydawn/refmt/cbor"
 	refmtjson "github.com/polydawn/refmt/json"
-	"github.com/polydawn/refmt/obj"
-	"github.com/polydawn/refmt/obj/atlas"
+	"github.com/polydawn/refmt/objLegacy"
+	atlasLegacy "github.com/polydawn/refmt/objLegacy/atlas"
 )
 
 func checkAftermath(err error, result []byte, expect []byte) {
@@ -145,38 +145,38 @@ var fixture_struct = structAlpha{
 // note: 18 string keys, 7 string values; total 25 strings.
 var fixture_struct_json = []byte(`{"B":{"R":{"R":{"R":{"R":null,"M":""},"M":"asdf"},"M":"quir"}},"C":{"N":"n","M":13},"C2":{"N":"n2","M":14},"X":1,"Y":2,"Z":"3","W":"4"}`)
 var fixture_struct_cbor = []byte{0xa7, 0x61, 0x42, 0xa1, 0x61, 0x52, 0xa2, 0x61, 0x52, 0xa2, 0x61, 0x52, 0xa2, 0x61, 0x52, 0xff, 0x61, 0x4d, 0x60, 0x61, 0x4d, 0x64, 0x61, 0x73, 0x64, 0x66, 0x61, 0x4d, 0x64, 0x71, 0x75, 0x69, 0x72, 0x61, 0x43, 0xa2, 0x61, 0x4e, 0x61, 0x6e, 0x61, 0x4d, 0x0d, 0x62, 0x43, 0x32, 0xa2, 0x61, 0x4e, 0x62, 0x6e, 0x32, 0x61, 0x4d, 0x0e, 0x61, 0x58, 0x01, 0x61, 0x59, 0x02, 0x61, 0x5a, 0x61, 0x33, 0x61, 0x57, 0x61, 0x34}
-var fixture_suiteFieldRoute = (&obj.Suite{}).
-	Add(structAlpha{}, obj.Morphism{Atlas: atlas.Atlas{
-		Fields: []atlas.Entry{
-			{Name: "B", FieldRoute: atlas.FieldRoute{0}},
-			{Name: "C", FieldRoute: atlas.FieldRoute{1}},
-			{Name: "C2", FieldRoute: atlas.FieldRoute{2}},
-			{Name: "X", FieldRoute: atlas.FieldRoute{3}},
-			{Name: "Y", FieldRoute: atlas.FieldRoute{4}},
-			{Name: "Z", FieldRoute: atlas.FieldRoute{5}},
-			{Name: "W", FieldRoute: atlas.FieldRoute{6}},
+var fixture_suiteFieldRoute = (&objLegacy.Suite{}).
+	Add(structAlpha{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
+		Fields: []atlasLegacy.Entry{
+			{Name: "B", FieldRoute: atlasLegacy.FieldRoute{0}},
+			{Name: "C", FieldRoute: atlasLegacy.FieldRoute{1}},
+			{Name: "C2", FieldRoute: atlasLegacy.FieldRoute{2}},
+			{Name: "X", FieldRoute: atlasLegacy.FieldRoute{3}},
+			{Name: "Y", FieldRoute: atlasLegacy.FieldRoute{4}},
+			{Name: "Z", FieldRoute: atlasLegacy.FieldRoute{5}},
+			{Name: "W", FieldRoute: atlasLegacy.FieldRoute{6}},
 		},
 	}}).
-	Add(structBeta{}, obj.Morphism{Atlas: atlas.Atlas{
-		Fields: []atlas.Entry{
-			{Name: "R", FieldRoute: atlas.FieldRoute{0}},
+	Add(structBeta{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
+		Fields: []atlasLegacy.Entry{
+			{Name: "R", FieldRoute: atlasLegacy.FieldRoute{0}},
 		},
 	}}).
-	Add(structGamma{}, obj.Morphism{Atlas: atlas.Atlas{
-		Fields: []atlas.Entry{
-			{Name: "N", FieldRoute: atlas.FieldRoute{0}},
-			{Name: "M", FieldRoute: atlas.FieldRoute{1}},
+	Add(structGamma{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
+		Fields: []atlasLegacy.Entry{
+			{Name: "N", FieldRoute: atlasLegacy.FieldRoute{0}},
+			{Name: "M", FieldRoute: atlasLegacy.FieldRoute{1}},
 		},
 	}}).
-	Add(structRecursive{}, obj.Morphism{Atlas: atlas.Atlas{
-		Fields: []atlas.Entry{
-			{Name: "R", FieldRoute: atlas.FieldRoute{0}},
-			{Name: "M", FieldRoute: atlas.FieldRoute{1}},
+	Add(structRecursive{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
+		Fields: []atlasLegacy.Entry{
+			{Name: "R", FieldRoute: atlasLegacy.FieldRoute{0}},
+			{Name: "M", FieldRoute: atlasLegacy.FieldRoute{1}},
 		},
 	}})
-var fixture_suiteAddrFunc = (&obj.Suite{}).
-	Add(structAlpha{}, obj.Morphism{Atlas: atlas.Atlas{
-		Fields: []atlas.Entry{
+var fixture_suiteAddrFunc = (&objLegacy.Suite{}).
+	Add(structAlpha{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
+		Fields: []atlasLegacy.Entry{
 			{Name: "B", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).B) }},
 			{Name: "C", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).C) }},
 			{Name: "C2", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).C2) }},
@@ -186,19 +186,19 @@ var fixture_suiteAddrFunc = (&obj.Suite{}).
 			{Name: "W", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).W) }},
 		},
 	}}).
-	Add(structBeta{}, obj.Morphism{Atlas: atlas.Atlas{
-		Fields: []atlas.Entry{
+	Add(structBeta{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
+		Fields: []atlasLegacy.Entry{
 			{Name: "R", AddrFunc: func(v interface{}) interface{} { return &(v.(*structBeta).R) }},
 		},
 	}}).
-	Add(structGamma{}, obj.Morphism{Atlas: atlas.Atlas{
-		Fields: []atlas.Entry{
+	Add(structGamma{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
+		Fields: []atlasLegacy.Entry{
 			{Name: "N", AddrFunc: func(v interface{}) interface{} { return &(v.(*structGamma).N) }},
 			{Name: "M", AddrFunc: func(v interface{}) interface{} { return &(v.(*structGamma).M) }},
 		},
 	}}).
-	Add(structRecursive{}, obj.Morphism{Atlas: atlas.Atlas{
-		Fields: []atlas.Entry{
+	Add(structRecursive{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
+		Fields: []atlasLegacy.Entry{
 			{Name: "R", AddrFunc: func(v interface{}) interface{} { return &(v.(*structRecursive).R) }},
 			{Name: "M", AddrFunc: func(v interface{}) interface{} { return &(v.(*structRecursive).M) }},
 		},
@@ -207,7 +207,7 @@ var fixture_suiteAddrFunc = (&obj.Suite{}).
 func Benchmark_StructToJson_XlateFieldRoute(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	marshaller := obj.NewMarshaler(fixture_suiteFieldRoute)
+	marshaller := objLegacy.NewMarshaler(fixture_suiteFieldRoute)
 	serializer := refmtjson.NewSerializer(&buf)
 	enc := TokenPump{
 		marshaller,
@@ -224,7 +224,7 @@ func Benchmark_StructToJson_XlateFieldRoute(b *testing.B) {
 func Benchmark_StructToCbor_XlateFieldRoute(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	marshaller := obj.NewMarshaler(fixture_suiteFieldRoute)
+	marshaller := objLegacy.NewMarshaler(fixture_suiteFieldRoute)
 	encoder := cbor.NewEncoder(&buf)
 	serializer := TokenPump{
 		marshaller,
@@ -241,7 +241,7 @@ func Benchmark_StructToCbor_XlateFieldRoute(b *testing.B) {
 func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	marshaller := obj.NewMarshaler(fixture_suiteAddrFunc)
+	marshaller := objLegacy.NewMarshaler(fixture_suiteAddrFunc)
 	serializer := refmtjson.NewSerializer(&buf)
 	enc := TokenPump{
 		marshaller,
@@ -258,7 +258,7 @@ func Benchmark_StructToJson_XlateAddrFunc(b *testing.B) {
 func Benchmark_StructToCbor_XlateAddrFunc(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	marshaller := obj.NewMarshaler(fixture_suiteAddrFunc)
+	marshaller := objLegacy.NewMarshaler(fixture_suiteAddrFunc)
 	encoder := cbor.NewEncoder(&buf)
 	serializer := TokenPump{
 		marshaller,
