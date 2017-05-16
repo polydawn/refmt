@@ -14,8 +14,8 @@ type BuilderStructMap struct {
 	entry *AtlasEntry
 }
 
-func (x *BuilderStructMap) Complete() AtlasEntry {
-	return *x.entry
+func (x *BuilderStructMap) Complete() *AtlasEntry {
+	return x.entry
 }
 
 /*

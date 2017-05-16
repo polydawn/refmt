@@ -45,6 +45,13 @@ type tObjStr2 struct {
 	Y string
 }
 
+type tObjK struct {
+	K []tObjK2
+}
+type tObjK2 struct {
+	K2 int
+}
+
 var objFixtures = []struct {
 	title string
 
@@ -387,8 +394,8 @@ var objFixtures = []struct {
 			{title: "from oh-so-much type info",
 				valueFn: func() interface{} {
 					return map[string][]map[string]int{"k": []map[string]int{
-						map[string]int{"r1": 1},
-						map[string]int{"r2": 2},
+						map[string]int{"k2": 1},
+						map[string]int{"k2": 2},
 					}}
 				}},
 		},
@@ -397,9 +404,26 @@ var objFixtures = []struct {
 				slotFn: func() interface{} { return make(map[string][]map[string]int) },
 				valueFn: func() interface{} {
 					return map[string][]map[string]int{"k": []map[string]int{
-						map[string]int{"r1": 1},
-						map[string]int{"r2": 2},
+						map[string]int{"k2": 1},
+						map[string]int{"k2": 2},
 					}}
+				}},
+		},
+	},
+	{title: "nested maps and arrays as atlased structs",
+		sequence: fixtures.SequenceMap["map[str][]map[str]int"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjK{}).StructMap().
+				AddField("K", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
+			atlas.BuildEntry(tObjK2{}).StructMap().
+				AddField("K2", atlas.StructMapEntry{SerialName: "k2"}).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from tObjK{[]tObjK2{}}",
+				valueFn: func() interface{} {
+					return tObjK{[]tObjK2{{1}, {2}}}
 				}},
 		},
 	},
