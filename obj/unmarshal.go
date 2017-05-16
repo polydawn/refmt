@@ -3,55 +3,60 @@ package obj
 import (
 	"reflect"
 
-	"github.com/polydawn/refmt/obj2/atlas"
+	"github.com/polydawn/refmt/obj/atlas"
 	. "github.com/polydawn/refmt/tok"
 )
 
 /*
-	Allocates the machinery for treating an object like a `TokenSource`.
-	This machinery will walk over structures in memory,
-	emitting tokens representing values and fields as it visits them.
+	Allocates the machinery for treating an in-memory object like a `TokenSink`.
+	This machinery will walk over values,	using received tokens to fill in
+	fields as it visits them.
 
 	Initialization must be finished by calling `Bind` to set the value to visit;
 	after this, the `Step` function is ready to be pumped.
 	Subsequent calls to `Bind` do a full reset, leaving `Step` ready to call
 	again and making all of the machinery reusable without re-allocating.
 */
-func NewMarshaler(atl atlas.Atlas) *MarshalDriver {
-	d := &MarshalDriver{
-		marshalSlab: marshalSlab{
+func NewUnmarshaler(atl atlas.Atlas) *UnmarshalDriver {
+	d := &UnmarshalDriver{
+		unmarshalSlab: unmarshalSlab{
 			atlas: atl,
-			rows:  make([]marshalSlabRow, 0, 10),
+			rows:  make([]unmarshalSlabRow, 0, 10),
 		},
-		stack: make([]MarshalMachine, 0, 10),
+		stack: make([]UnmarshalMachine, 0, 10),
 	}
 	return d
 }
 
-func (d *MarshalDriver) Bind(v interface{}) {
+func (d *UnmarshalDriver) Bind(v interface{}) error {
 	d.stack = d.stack[0:0]
-	d.marshalSlab.rows = d.marshalSlab.rows[0:0]
+	d.unmarshalSlab.rows = d.unmarshalSlab.rows[0:0]
 	rv := reflect.ValueOf(v)
+	if !(rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Map) || rv.IsNil() {
+		err := ErrInvalidUnmarshalTarget{reflect.TypeOf(v)}
+		d.step = &errThunkUnmarshalMachine{err}
+		return err
+	}
 	rt := rv.Type()
-	d.step = d.marshalSlab.requisitionMachine(rt)
-	d.step.Reset(&d.marshalSlab, rv, rt)
+	d.step = d.unmarshalSlab.requisitionMachine(rt)
+	return d.step.Reset(&d.unmarshalSlab, rv, rt)
 }
 
-type MarshalDriver struct {
-	marshalSlab marshalSlab
-	stack       []MarshalMachine
-	step        MarshalMachine
+type UnmarshalDriver struct {
+	unmarshalSlab unmarshalSlab
+	stack         []UnmarshalMachine
+	step          UnmarshalMachine
 }
 
-type MarshalMachine interface {
-	Reset(*marshalSlab, reflect.Value, reflect.Type) error
-	Step(*MarshalDriver, *marshalSlab, *Token) (done bool, err error)
+type UnmarshalMachine interface {
+	Reset(*unmarshalSlab, reflect.Value, reflect.Type) error
+	Step(*UnmarshalDriver, *unmarshalSlab, *Token) (done bool, err error)
 }
 
-func (d *MarshalDriver) Step(tok *Token) (bool, error) {
-	//	fmt.Printf("> next step is %#v\n", d.step)
-	done, err := d.step.Step(d, &d.marshalSlab, tok)
-	//	fmt.Printf(">> yield is %#v\n", TokenToString(*tok))
+type unmarshalMachineStep func(*UnmarshalDriver, *unmarshalSlab, *Token) (done bool, err error)
+
+func (d *UnmarshalDriver) Step(tok *Token) (bool, error) {
+	done, err := d.step.Step(d, &d.unmarshalSlab, tok)
 	// If the step errored: out, entirely.
 	if err != nil {
 		return true, err
@@ -65,14 +70,13 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	if nSteps == -1 {
 		return true, nil // that's all folks
 	}
-	//	fmt.Printf(">> popping up from %#v\n", d.stack)
 	d.step = d.stack[nSteps]
 	d.stack = d.stack[0:nSteps]
 	return false, nil
 }
 
 /*
-	Starts the process of recursing marshalling over value `rv`.
+	Starts the process of recursing unmarshalling over value `rv`.
 
 	Caller provides the machine to use (this is an optimization for maps and slices,
 	which already know the machine and keep reusing it for all their entries).
@@ -83,16 +87,16 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	at which point we'll finally "return" by popping back to the last machine on the stack
 	(which is presumably the same one that just called this Recurse method).
 
-	In other words, your MarshalMachine calls this when it wants to deal
+	In other words, your UnmarshalMachine calls this when it wants to deal
 	with an object, and by the time we call back to your machine again,
 	that object will be traversed and the stream ready for you to continue.
 */
-func (d *MarshalDriver) Recurse(tok *Token, rv reflect.Value, rt reflect.Type, nextMach MarshalMachine) (err error) {
+func (d *UnmarshalDriver) Recurse(tok *Token, rv reflect.Value, rt reflect.Type, nextMach UnmarshalMachine) (err error) {
 	//	fmt.Printf(">>> pushing into recursion with %#v\n", nextMach)
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	d.stack = append(d.stack, d.step)
 	// Initialize the machine for this new target value.
-	err = nextMach.Reset(&d.marshalSlab, rv, rt)
+	err = nextMach.Reset(&d.unmarshalSlab, rv, rt)
 	if err != nil {
 		return
 	}

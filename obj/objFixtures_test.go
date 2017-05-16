@@ -7,7 +7,7 @@ import (
 
 	. "github.com/smartystreets/goconvey/convey"
 
-	"github.com/polydawn/refmt/obj2/atlas"
+	"github.com/polydawn/refmt/obj/atlas"
 	. "github.com/polydawn/refmt/tok"
 	"github.com/polydawn/refmt/tok/fixtures"
 )

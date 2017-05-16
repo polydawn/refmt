@@ -5,8 +5,8 @@ import (
 	"io"
 
 	"github.com/polydawn/refmt/cbor"
-	"github.com/polydawn/refmt/obj2"
-	"github.com/polydawn/refmt/obj2/atlas"
+	"github.com/polydawn/refmt/obj"
+	"github.com/polydawn/refmt/obj/atlas"
 )
 
 func NewCborEncoder(wr io.Writer) *CborEncoder {
