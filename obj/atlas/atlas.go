@@ -1,124 +1,112 @@
-/*
-	Atlas provides declarative descriptions of how to visit the fields of an object
-	(as well as helpful functions to reflect on type declarations and generate
-	default atlases that "do the right thing" for your types, following
-	familiar conventions like struct tagging).
-*/
 package atlas
 
 import (
-	"fmt"
 	"reflect"
 )
 
 type Atlas struct {
-	// The type this atlas describes.
-	Type reflect.Type
-
-	// An slice of descriptions of each field in the type.
-	// Each entry specifies the name by which each field should be referenced
-	// when serialized, and defines a way to get an address to the field.
-	Fields []Entry
+	// Map typeinfo to a static description of how that type should be handled.
+	// (The internal machinery that will wield this information, and has memory of
+	// progress as it does so, is configured using the AtlasEntry, but allocated separately.
+	// The machinery is stateful and mutable; the AtlasEntry is not.)
+	//
+	// We use 'var rtid uintptr = reflect.ValueOf(rt).Pointer()' -- pointer of the
+	// value of the reflect.Type info -- as an index.
+	// This is both unique and correctly converges when recomputed, and much
+	// faster to compare against than reflect.Type (which is an interface that
+	// tends to contain fairly large structures).
+	mappings map[uintptr]*AtlasEntry
 }
 
-type Entry struct {
-	// The field name; will be emitted as token during marshal, and used for
-	// lookup during unmarshal.  Required.
-	Name string
-
-	// *One* of the following:
-
-	FieldName  FieldName                     // look up the fields by string name.
-	FieldRoute FieldRoute                    // autoatlas fills these.
-	AddrFunc   func(interface{}) interface{} // custom user function.
-
-	// Optionally, specify exactly what should handle the field value:
-	// TODO this is one of {Atlas, func()(Atlas), or TokenSourceMachine|TokenSinkMachine}
-	//  the latter is certainly the most correct, but also pretty wicked to export publicly
-
-	// If true, marshalling will skip this field if its the zero value.
-	// (If you need more complex behavior -- for example, a definition of
-	// "empty" other than the type's zero value -- this is not for you.
-	// Try using an AtlasFactory to make a custom field list dynamically.)
-	OmitEmpty bool
-}
-
-type FieldName []string
-
-type FieldRoute []int
-
-func (atl *Atlas) Init() {
-	for i, _ := range atl.Fields {
-		atl.Fields[i].init(atl.Type)
-	}
-}
-
-func (ent *Entry) init(rt reflect.Type) {
-	// Validate reference options: only one may be used.
-	// If it's a FieldName though, generate a FieldRoute for faster use.
-	switch {
-	case ent.FieldRoute != nil:
-		if ent.FieldName != nil || ent.AddrFunc != nil {
-			panic(ErrEntryInvalid{"if FieldRoute is used, no other field selectors may be specified"})
-		}
-		if len(ent.FieldRoute) == 0 {
-			panic(ErrEntryInvalid{"FieldRoute cannot be length zero (would be inf recursion)"})
-		}
-	case ent.FieldName != nil:
-		if ent.FieldRoute != nil || ent.AddrFunc != nil {
-			panic(ErrEntryInvalid{"if FieldName is used, no other field selectors may be specified"})
-		}
-		if len(ent.FieldName) == 0 {
-			panic(ErrEntryInvalid{"FieldName cannot be length zero (would be inf recursion)"})
-		}
-		// transform `FieldName` to a `FieldRoute`.
-		for _, fn := range ent.FieldName {
-			f, ok := rt.FieldByName(fn)
-			if !ok {
-				panic(ErrStructureMismatch{rt.Name(), "does not have field named " + fn})
-			}
-			ent.FieldRoute = append(ent.FieldRoute, f.Index...)
-		}
-	case ent.AddrFunc != nil:
-		if ent.FieldRoute != nil || ent.FieldName != nil {
-			panic(ErrEntryInvalid{"if AddrFunc is used, no other field selectors may be specified"})
-		}
-	default:
-		panic(ErrEntryInvalid{"one field selector must be specified"})
-	}
+// Gets the AtlasEntry for a typeID.  Used by obj package, not meant for user facing.
+func (atl Atlas) Get(rtid uintptr) (*AtlasEntry, bool) {
+	ent, ok := atl.mappings[rtid]
+	return ent, ok
 }
 
 /*
-	Returns a reference to a field.
-	(If the field is type `T`, the returned `interface{}` contains a `*T`.)
-*/
-func (ent Entry) Grab(v interface{}) interface{} {
-	if ent.AddrFunc != nil {
-		return ent.AddrFunc(v)
-	}
-	if ent.FieldRoute == nil {
-		panic(fmt.Errorf("atlas.Entry not initialized"))
-	}
-	// Jump through the defacto first pointer.
-	// We're about to check if our traversal will be able to return an addressable field;
-	//  but we don't care if the *pointer* itself we have here is addressable.
-	v_rv := reflect.ValueOf(v).Elem()
-	if !v_rv.CanAddr() {
-		panic(fmt.Errorf("values for atlas traversal must be addressable"))
-	}
-	field_rv := ent.FieldRoute.TraverseToValue(v_rv)
-	return field_rv.Addr().Interface()
-}
+	The AtlasEntry is a declarative roadmap of what we should do for
+	marshal and unmarshal of a single object, keyed by type.
 
-func (fr FieldRoute) TraverseToValue(v reflect.Value) reflect.Value {
-	for _, i := range fr {
-		if v.Kind() == reflect.Ptr {
-			if v.IsNil() {
-				return reflect.Value{}
-			}
-			v = v.Elem()
-		}
-		v = v.Field(i)
-	}
-	return v
+	There are a lot of paths your mappings might want to take:
+
+	  - For a struct type, you may simply want to specify some alternate keys, or some to leave out, etc.
+	  - For an interface type, you probably want to specify one of our interface muxing strategies
+	     with a mapping between enumstr:typeinfo (and, what to do if we get a struct we don't recognize).
+	  - For a string, int, or other primitive, you don't need to say anything: defaults will DTRT.
+	  - For a typedef'd string, int, or other primitive, you *still* don't need to say anything: but,
+	     if you want custom behavior (say, transform the string to an int at the last second, and back again),
+		 you can specify transformer functions for that.
+	  - For a struct type that you want to turn into a whole different kind (like a string): use
+	     those same transform functions.  (You'll no longer need a FieldMap.)
+	  - For the most esoteric needs, you can fall all the way back to providing a custom MarshalMachine
+	     (but avoid that; it's a lot of work, and one of these other transform methods should suffice).
+*/
+type AtlasEntry struct {
+	// The reflect info of the type this morphism is regarding.
+	Type reflect.Type
+
+	// --------------------------------------------------------
+	// The big escape valves: wanna map to some other kind completely?
+	// --------------------------------------------------------
+
+	// Transforms the value we reached by walking (the 'live' value -- which
+	// must be of `this.Type`) into another value (the 'serialable' value --
+	// which will be of `this.MarshalTransformTargetType`).
+	//
+	// The target type may be anything, even of a completely different Kind!
+	//
+	// This transform func runs first, then the resulting value is
+	// serialized (by running through the path through Atlas again, so
+	// chaining of transform funcs is supported, though not recommended).
+	MarshalTransformFunc MarshalTransformFunc
+	// The type of value we expect after using the MarshalTransformFunc.
+	//
+	// The match between transform func and target type should be checked
+	// during construction of this AtlasEntry.
+	MarshalTransformTargetType reflect.Type
+
+	// Expects a different type (the 'serialable' value -- which will be of
+	// 'this.UnmarshalTransformTargetType') than the value we reached by
+	// walking (the 'live' value -- which must be of `this.Type`).
+	//
+	// The target type may be anything, even of a completely different Kind!
+	//
+	// The unmarshal of that target type will be run first, then the
+	// resulting value is fed through this function to produce the real value,
+	// which is then placed correctly into bigger mid-unmarshal object tree.
+	//
+	// For non-primitives, unmarshal of the target type will always target
+	// an empty pointer or empty slice, roughly as per if it was
+	// operating on a value produced by `TargetType.New()`.
+	UnmarshalTransformFunc UnmarshalTransformFunc
+	// The type of value we will manufacture an instance of and unmarshal
+	// into, then when done provide to the UnmarshalTransformFunc.
+	//
+	// The match between transform func and target type should be checked
+	// during construction of this AtlasEntry.
+	UnmarshalTransformTargetType reflect.Type
+
+	// --------------------------------------------------------
+	// Standard options for how to map (varies by Kind)
+	// --------------------------------------------------------
+
+	// A mapping of fields in a struct to serial keys.
+	// Only valid if `this.Type.Kind() == Struct`.
+	StructMap *StructMap
+
+	// FUTURE: enum-ish primitives, multiplexers for interfaces,
+	//  lots of such things will belong here.
+
+	// --------------------------------------------------------
+	// Hooks, validate helpers
+	// --------------------------------------------------------
+
+	// A validation function which will be called for the whole value
+	// after unmarshalling reached the end of the object.
+	// If it returns an error, the entire unmarshal will error.
+	//
+	// Not used in marshalling.
+	// Not reachable if an UnmarshalTransform is set.
+	ValidateFn func(v interface{}) error
 }

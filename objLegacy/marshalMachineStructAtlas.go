@@ -1,9 +1,9 @@
-package obj
+package objLegacy
 
 import (
 	"fmt"
 
-	"github.com/polydawn/refmt/obj/atlas"
+	"github.com/polydawn/refmt/objLegacy/atlas"
 	. "github.com/polydawn/refmt/tok"
 )
 

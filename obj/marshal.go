@@ -1,6 +1,9 @@
 package obj
 
 import (
+	"reflect"
+
+	"github.com/polydawn/refmt/obj/atlas"
 	. "github.com/polydawn/refmt/tok"
 )
 
@@ -14,10 +17,10 @@ import (
 	Subsequent calls to `Bind` do a full reset, leaving `Step` ready to call
 	again and making all of the machinery reusable without re-allocating.
 */
-func NewMarshaler(s *Suite) *MarshalDriver {
+func NewMarshaler(atl atlas.Atlas) *MarshalDriver {
 	d := &MarshalDriver{
 		marshalSlab: marshalSlab{
-			suite: s,
+			atlas: atl,
 			rows:  make([]marshalSlabRow, 0, 10),
 		},
 		stack: make([]MarshalMachine, 0, 10),
@@ -28,8 +31,10 @@ func NewMarshaler(s *Suite) *MarshalDriver {
 func (d *MarshalDriver) Bind(v interface{}) {
 	d.stack = d.stack[0:0]
 	d.marshalSlab.rows = d.marshalSlab.rows[0:0]
-	d.step = d.marshalSlab.mustPickMarshalMachine(v)
-	d.step.Reset(&d.marshalSlab, v)
+	rv := reflect.ValueOf(v)
+	rt := rv.Type()
+	d.step = d.marshalSlab.requisitionMachine(rt)
+	d.step.Reset(&d.marshalSlab, rv, rt)
 }
 
 type MarshalDriver struct {
@@ -39,12 +44,9 @@ type MarshalDriver struct {
 }
 
 type MarshalMachine interface {
-	Reset(*marshalSlab, interface{}) error
+	Reset(*marshalSlab, reflect.Value, reflect.Type) error
 	Step(*MarshalDriver, *marshalSlab, *Token) (done bool, err error)
 }
-
-// for convenience in declaring fields of state machines with internal step funcs
-type marshalMachineStep func(*MarshalDriver, *Token) (done bool, err error)
 
 func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	//	fmt.Printf("> next step is %#v\n", d.step)
@@ -70,7 +72,7 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 }
 
 /*
-	Starts the process of recursing marshalling over `target` value.
+	Starts the process of recursing marshalling over value `rv`.
 
 	Caller provides the machine to use (this is an optimization for maps and slices,
 	which already know the machine and keep reusing it for all their entries).
@@ -85,12 +87,12 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 	with an object, and by the time we call back to your machine again,
 	that object will be traversed and the stream ready for you to continue.
 */
-func (d *MarshalDriver) Recurse(tok *Token, target interface{}, nextMach MarshalMachine) (err error) {
+func (d *MarshalDriver) Recurse(tok *Token, rv reflect.Value, rt reflect.Type, nextMach MarshalMachine) (err error) {
 	//	fmt.Printf(">>> pushing into recursion with %#v\n", nextMach)
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	d.stack = append(d.stack, d.step)
 	// Initialize the machine for this new target value.
-	err = nextMach.Reset(&d.marshalSlab, target)
+	err = nextMach.Reset(&d.marshalSlab, rv, rt)
 	if err != nil {
 		return
 	}

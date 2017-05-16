@@ -1,4 +1,4 @@
-package obj
+package objLegacy
 
 import (
 	"encoding/json"

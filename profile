@@ -7,17 +7,21 @@ cd "$( dirname "${BASH_SOURCE[0]}" )"
 export GOPATH="$PWD/.gopath/"
 
 funcs=()
-funcs+=("Benchmark_ArrayFlatIntToJson_Xlate")
-funcs+=("Benchmark_ArrayFlatIntToCbor_Xlate")
+funcs+=("Benchmark_ArrayFlatIntToJson_Refmt")
+funcs+=("Benchmark_ArrayFlatIntToCbor_Refmt")
+funcs+=("Benchmark_ArrayFlatIntToJson_RefmtLegacy")
+funcs+=("Benchmark_ArrayFlatIntToCbor_RefmtLegacy")
 funcs+=("Benchmark_ArrayFlatIntToJson_Stdlib")
-funcs+=("Benchmark_ArrayFlatStrToJson_Xlate")
-funcs+=("Benchmark_ArrayFlatStrToCbor_Xlate")
+funcs+=("Benchmark_ArrayFlatStrToJson_Refmt")
+funcs+=("Benchmark_ArrayFlatStrToCbor_Refmt")
+funcs+=("Benchmark_ArrayFlatStrToJson_RefmtLegacy")
+funcs+=("Benchmark_ArrayFlatStrToCbor_RefmtLegacy")
 funcs+=("Benchmark_ArrayFlatStrToJson_Stdlib")
 
-funcs+=("Benchmark_StructToJson_XlateFieldRoute")
-funcs+=("Benchmark_StructToCbor_XlateFieldRoute")
-funcs+=("Benchmark_StructToJson_XlateAddrFunc")
-funcs+=("Benchmark_StructToCbor_XlateAddrFunc")
+funcs+=("Benchmark_StructToJson_RefmtLegacyFieldRoute")
+funcs+=("Benchmark_StructToCbor_RefmtLegacyFieldRoute")
+funcs+=("Benchmark_StructToJson_RefmtLegacyAddrFunc")
+funcs+=("Benchmark_StructToCbor_RefmtLegacyAddrFunc")
 funcs+=("Benchmark_StructToJson_Stdlib")
 
 profPath=".gopath/tmp/prof/" ; mkdir -p "$profPath"

@@ -1,33 +1,62 @@
 package obj
 
 import (
+	"reflect"
+
+	"github.com/polydawn/refmt/obj/atlas"
 	. "github.com/polydawn/refmt/tok"
 )
 
 /*
-	Returns a `TokenSink` that will unmarshal tokens into an in-memory value.
+	Allocates the machinery for treating an in-memory object like a `TokenSink`.
+	This machinery will walk over values,	using received tokens to fill in
+	fields as it visits them.
+
+	Initialization must be finished by calling `Bind` to set the value to visit;
+	after this, the `Step` function is ready to be pumped.
+	Subsequent calls to `Bind` do a full reset, leaving `Step` ready to call
+	again and making all of the machinery reusable without re-allocating.
 */
-func NewUnmarshaler(v interface{} /* TODO visitmagicks */) *UnmarshalDriver {
+func NewUnmarshaler(atl atlas.Atlas) *UnmarshalDriver {
 	d := &UnmarshalDriver{
-		step: pickUnmarshalMachine(v),
+		unmarshalSlab: unmarshalSlab{
+			atlas: atl,
+			rows:  make([]unmarshalSlabRow, 0, 10),
+		},
+		stack: make([]UnmarshalMachine, 0, 10),
 	}
 	return d
 }
 
+func (d *UnmarshalDriver) Bind(v interface{}) error {
+	d.stack = d.stack[0:0]
+	d.unmarshalSlab.rows = d.unmarshalSlab.rows[0:0]
+	rv := reflect.ValueOf(v)
+	if !(rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Map) || rv.IsNil() {
+		err := ErrInvalidUnmarshalTarget{reflect.TypeOf(v)}
+		d.step = &errThunkUnmarshalMachine{err}
+		return err
+	}
+	rt := rv.Type()
+	d.step = d.unmarshalSlab.requisitionMachine(rt)
+	return d.step.Reset(&d.unmarshalSlab, rv, rt)
+}
+
 type UnmarshalDriver struct {
-	stack []UnmarshalMachine
-	step  UnmarshalMachine
+	unmarshalSlab unmarshalSlab
+	stack         []UnmarshalMachine
+	step          UnmarshalMachine
 }
 
 type UnmarshalMachine interface {
-	Step(*UnmarshalDriver, *Token) (done bool, err error)
+	Reset(*unmarshalSlab, reflect.Value, reflect.Type) error
+	Step(*UnmarshalDriver, *unmarshalSlab, *Token) (done bool, err error)
 }
 
-// for convenience in declaring fields of state machines with internal step funcs
-type unmarshalMachineStep func(*UnmarshalDriver, *Token) (done bool, err error)
+type unmarshalMachineStep func(*UnmarshalDriver, *unmarshalSlab, *Token) (done bool, err error)
 
 func (d *UnmarshalDriver) Step(tok *Token) (bool, error) {
-	done, err := d.step.Step(d, tok)
+	done, err := d.step.Step(d, &d.unmarshalSlab, tok)
 	// If the step errored: out, entirely.
 	if err != nil {
 		return true, err
@@ -47,47 +76,32 @@ func (d *UnmarshalDriver) Step(tok *Token) (bool, error) {
 }
 
 /*
-	Fills `target`,
-	first looking up the machine for that type just like it's a new top-level object,
-	then pushing the first step with `tok` (the upstream tends to have peeked at it
-	in order to decide what to do, but if recursing, it belongs to the next obj),
-	then saving this new machine: the driver will then continuing stepping the
-	new machine it returns a done status, at which point we'll finally
-	"return" by popping back to the last machine on the stack.
+	Starts the process of recursing unmarshalling over value `rv`.
+
+	Caller provides the machine to use (this is an optimization for maps and slices,
+	which already know the machine and keep reusing it for all their entries).
+	This method pushes the first step with `tok` (the upstream tends to have peeked at
+	it in order to decide what to do, but if recursing, it belongs to the next obj),
+	then saves this new machine onto the driver's stack: future calls to step
+	the driver will then continuing stepping the new machine it returns a done status,
+	at which point we'll finally "return" by popping back to the last machine on the stack
+	(which is presumably the same one that just called this Recurse method).
 
 	In other words, your UnmarshalMachine calls this when it wants to deal
 	with an object, and by the time we call back to your machine again,
-	that object will be filled and the stream ready for you to continue.
+	that object will be traversed and the stream ready for you to continue.
 */
-func (d *UnmarshalDriver) Recurse(tok *Token, target interface{}) error {
+func (d *UnmarshalDriver) Recurse(tok *Token, rv reflect.Value, rt reflect.Type, nextMach UnmarshalMachine) (err error) {
+	//	fmt.Printf(">>> pushing into recursion with %#v\n", nextMach)
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
-	// and pick a machine to start in on our next item to cover.
 	d.stack = append(d.stack, d.step)
-	d.step = pickUnmarshalMachine(target) // TODO caller should be able to override this
-	// Immediately make a step (we're still the delegate in charge of someone else's step).
-	_, err := d.Step(tok)
-	return err
-}
-
-// Picks an unmarshal machine, returning the custom impls for any
-// common/primitive types, and advanced machines where structs get involved.
-func pickUnmarshalMachine(v interface{}) UnmarshalMachine {
-	switch v2 := v.(type) {
-	// For total wildcards:
-	//  Return a machine that will pick between a literal or `map[string]interface{}`
-	//  or `[]interface{}` based on the next token.
-	case *interface{}:
-		return newUnmarshalMachineWildcard(v2)
-	// For single literals:
-	//  we have a single machine that handles all these.
-	case *string, *[]byte,
-		*int, *int8, *int16, *int32, *int64,
-		*uint, *uint8, *uint16, *uint32, *uint64:
-		return UnmarshalMachineLiteral{v}
-	// Anything that has real type info:
-	//  Look up what kind of machine to use, based on the type info, and use it.
-	default:
-		// TODO mustAddressable check goes here.
-		panic(ErrUnreachable{"TODO mappersuite lookup"})
+	// Initialize the machine for this new target value.
+	err = nextMach.Reset(&d.unmarshalSlab, rv, rt)
+	if err != nil {
+		return
 	}
+	d.step = nextMach
+	// Immediately make a step (we're still the delegate in charge of someone else's step).
+	_, err = d.Step(tok)
+	return
 }

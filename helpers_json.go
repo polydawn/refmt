@@ -6,11 +6,12 @@ import (
 
 	"github.com/polydawn/refmt/json"
 	"github.com/polydawn/refmt/obj"
+	"github.com/polydawn/refmt/obj/atlas"
 )
 
 func NewJsonEncoder(wr io.Writer) *JsonEncoder {
 	enc := &JsonEncoder{
-		marshaller: obj.NewMarshaler(&obj.Suite{}),
+		marshaller: obj.NewMarshaler(atlas.MustBuild()),
 		serializer: json.NewSerializer(wr),
 	}
 	enc.pump = TokenPump{
@@ -51,6 +52,6 @@ type JsonDecoder struct {
 func (d *JsonDecoder) Unmarshal(v interface{}) {
 	TokenPump{
 		nil, // todo get the whole json package in place
-		obj.NewUnmarshaler(v),
+		obj.NewUnmarshaler(atlas.MustBuild()),
 	}.Run()
 }

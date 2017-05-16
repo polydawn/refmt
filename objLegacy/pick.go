@@ -1,9 +1,9 @@
-package obj
+package objLegacy
 
 import (
 	"reflect"
 
-	"github.com/polydawn/refmt/obj/atlas"
+	"github.com/polydawn/refmt/objLegacy/atlas"
 )
 
 type Suite struct {

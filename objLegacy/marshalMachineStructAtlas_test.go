@@ -1,10 +1,10 @@
-package obj
+package objLegacy
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/polydawn/refmt/obj/atlas"
+	"github.com/polydawn/refmt/objLegacy/atlas"
 	. "github.com/polydawn/refmt/testutil"
 	. "github.com/polydawn/refmt/tok"
 )

@@ -6,11 +6,12 @@ import (
 
 	"github.com/polydawn/refmt/cbor"
 	"github.com/polydawn/refmt/obj"
+	"github.com/polydawn/refmt/obj/atlas"
 )
 
 func NewCborEncoder(wr io.Writer) *CborEncoder {
 	enc := &CborEncoder{
-		marshaller: obj.NewMarshaler(&obj.Suite{}),
+		marshaller: obj.NewMarshaler(atlas.MustBuild()),
 		encoder:    cbor.NewEncoder(wr),
 	}
 	enc.pump = TokenPump{
@@ -51,7 +52,7 @@ type CborDecoder struct {
 func (d *CborDecoder) Unmarshal(v interface{}) error {
 	return TokenPump{
 		cbor.NewDecoder(d.r),
-		obj.NewUnmarshaler(v),
+		obj.NewUnmarshaler(atlas.MustBuild()),
 	}.Run()
 }
 

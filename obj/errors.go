@@ -3,39 +3,34 @@ package obj
 import (
 	"fmt"
 	"reflect"
+
+	. "github.com/polydawn/refmt/tok"
 )
 
-var (
-	_ error = ErrNoHandler{}
-	_ error = ErrUnreachable{}
-)
-
-/*
-	Error raised as a panic when marshalling or unmarshalling an object, and
-	no handler can be found for a referenced type.
-*/
-type ErrNoHandler struct {
-	Valptr interface{}
+// ErrInvalidUnmarshalTarget describes an invalid argument passed to UnmarshalDriver.Bind.
+// (Unmarshalling must target a non-nil pointer so that it can address the value.)
+type ErrInvalidUnmarshalTarget struct {
+	Type reflect.Type
 }
 
-func (e ErrNoHandler) Error() string {
-	val_rv := reflect.ValueOf(e.Valptr).Elem()
-	return fmt.Sprintf("no machine available in suite for %s of type %T",
-		val_rv.Kind(),
-		val_rv.Interface())
+func (e ErrInvalidUnmarshalTarget) Error() string {
+	if e.Type == nil {
+		return "invalid unmarshal target (nil)"
+	}
+	if e.Type.Kind() != reflect.Ptr {
+		return "invalid unmarshal target (non-pointer " + e.Type.String() + ")"
+	}
+	return "invalid unmarshal target: (nil " + e.Type.String() + ")"
 }
 
-/*
-	Error raised from paths the library should be unable to reach.  File bugs.
-*/
-type ErrUnreachable struct {
-	Msg string
+// ErrUnmarshalIncongruent is the error returned when unmarshalling cannot
+// coerce the tokens in the stream into the variables the unmarshal is targetting,
+// for example if a map open token comes when an int is expected.
+type ErrUnmarshalIncongruent struct {
+	Token Token
+	Value reflect.Value
 }
 
-func (e ErrUnreachable) Fmt(format string, a ...interface{}) ErrUnreachable {
-	return ErrUnreachable{fmt.Sprintf(format, a...)}
-}
-
-func (e ErrUnreachable) Error() string {
-	return "refmt bug: " + e.Msg
+func (e ErrUnmarshalIncongruent) Error() string {
+	return fmt.Sprintf("cannot assign %s to %s field", e.Token, e.Value.Kind())
 }

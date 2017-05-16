@@ -1,15 +1,5 @@
 package atlas
 
-// Error type raised when an atlas.Entry is invalid, missing required values,
-// or otherwise extremely wrong.
-type ErrEntryInvalid struct {
-	Msg string
-}
-
-func (e ErrEntryInvalid) Error() string {
-	return "atlas.Entry invalid: " + e.Msg
-}
-
 // Error type raised when initializing an Atlas, and field entries do
 // not resolve against the type.
 // (If you recently refactored names of fields in your types, check
@@ -20,5 +10,5 @@ type ErrStructureMismatch struct {
 }
 
 func (e ErrStructureMismatch) Error() string {
-	return "atlas does not match type: " + e.TypeName + " " + e.Reason
+	return "structure mismatch: " + e.TypeName + " " + e.Reason
 }
