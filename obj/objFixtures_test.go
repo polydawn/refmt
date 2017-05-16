@@ -426,6 +426,13 @@ var objFixtures = []struct {
 					return tObjK{[]tObjK2{{1}, {2}}}
 				}},
 		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into tObjK{[]tObjK2{}}",
+				slotFn: func() interface{} { return &tObjK{} },
+				valueFn: func() interface{} {
+					return tObjK{[]tObjK2{{1}, {2}}}
+				}},
+		},
 	},
 }
 
