@@ -5,12 +5,13 @@ import (
 	"io"
 
 	"github.com/polydawn/refmt/json"
-	"github.com/polydawn/refmt/objLegacy"
+	"github.com/polydawn/refmt/obj"
+	"github.com/polydawn/refmt/obj/atlas"
 )
 
 func NewJsonEncoder(wr io.Writer) *JsonEncoder {
 	enc := &JsonEncoder{
-		marshaller: objLegacy.NewMarshaler(&objLegacy.Suite{}),
+		marshaller: obj.NewMarshaler(atlas.MustBuild()),
 		serializer: json.NewSerializer(wr),
 	}
 	enc.pump = TokenPump{
@@ -21,7 +22,7 @@ func NewJsonEncoder(wr io.Writer) *JsonEncoder {
 }
 
 type JsonEncoder struct {
-	marshaller *objLegacy.MarshalDriver
+	marshaller *obj.MarshalDriver
 	serializer *json.Serializer
 	pump       TokenPump
 }
@@ -51,6 +52,6 @@ type JsonDecoder struct {
 func (d *JsonDecoder) Unmarshal(v interface{}) {
 	TokenPump{
 		nil, // todo get the whole json package in place
-		objLegacy.NewUnmarshaler(v),
+		obj.NewUnmarshaler(atlas.MustBuild()),
 	}.Run()
 }
