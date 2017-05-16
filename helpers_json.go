@@ -10,8 +10,12 @@ import (
 )
 
 func NewJsonEncoder(wr io.Writer) *JsonEncoder {
+	return NewAtlasedJsonEncoder(wr, atlas.MustBuild())
+}
+
+func NewAtlasedJsonEncoder(wr io.Writer, atl atlas.Atlas) *JsonEncoder {
 	enc := &JsonEncoder{
-		marshaller: obj.NewMarshaler(atlas.MustBuild()),
+		marshaller: obj.NewMarshaler(atl),
 		serializer: json.NewSerializer(wr),
 	}
 	enc.pump = TokenPump{

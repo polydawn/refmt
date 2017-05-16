@@ -18,9 +18,11 @@ funcs+=("Benchmark_ArrayFlatStrToJson_Stdlib")
 funcs+=("Benchmark_ArrayFlatStrToCbor_Refmt")
 funcs+=("Benchmark_ArrayFlatStrToCbor_RefmtLegacy")
 
+funcs+=("Benchmark_StructToJson_Refmt")
 funcs+=("Benchmark_StructToJson_RefmtLegacyFieldRoute")
 funcs+=("Benchmark_StructToJson_RefmtLegacyAddrFunc")
 funcs+=("Benchmark_StructToJson_Stdlib")
+funcs+=("Benchmark_StructToCbor_Refmt")
 funcs+=("Benchmark_StructToCbor_RefmtLegacyFieldRoute")
 funcs+=("Benchmark_StructToCbor_RefmtLegacyAddrFunc")
 
