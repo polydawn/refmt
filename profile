@@ -8,21 +8,23 @@ export GOPATH="$PWD/.gopath/"
 
 funcs=()
 funcs+=("Benchmark_ArrayFlatIntToJson_Refmt")
-funcs+=("Benchmark_ArrayFlatIntToCbor_Refmt")
 funcs+=("Benchmark_ArrayFlatIntToJson_RefmtLegacy")
-funcs+=("Benchmark_ArrayFlatIntToCbor_RefmtLegacy")
 funcs+=("Benchmark_ArrayFlatIntToJson_Stdlib")
+funcs+=("Benchmark_ArrayFlatIntToCbor_Refmt")
+funcs+=("Benchmark_ArrayFlatIntToCbor_RefmtLegacy")
 funcs+=("Benchmark_ArrayFlatStrToJson_Refmt")
-funcs+=("Benchmark_ArrayFlatStrToCbor_Refmt")
 funcs+=("Benchmark_ArrayFlatStrToJson_RefmtLegacy")
-funcs+=("Benchmark_ArrayFlatStrToCbor_RefmtLegacy")
 funcs+=("Benchmark_ArrayFlatStrToJson_Stdlib")
+funcs+=("Benchmark_ArrayFlatStrToCbor_Refmt")
+funcs+=("Benchmark_ArrayFlatStrToCbor_RefmtLegacy")
 
+funcs+=("Benchmark_StructToJson_Refmt")
 funcs+=("Benchmark_StructToJson_RefmtLegacyFieldRoute")
-funcs+=("Benchmark_StructToCbor_RefmtLegacyFieldRoute")
 funcs+=("Benchmark_StructToJson_RefmtLegacyAddrFunc")
-funcs+=("Benchmark_StructToCbor_RefmtLegacyAddrFunc")
 funcs+=("Benchmark_StructToJson_Stdlib")
+funcs+=("Benchmark_StructToCbor_Refmt")
+funcs+=("Benchmark_StructToCbor_RefmtLegacyFieldRoute")
+funcs+=("Benchmark_StructToCbor_RefmtLegacyAddrFunc")
 
 profPath=".gopath/tmp/prof/" ; mkdir -p "$profPath"
 go test -i .

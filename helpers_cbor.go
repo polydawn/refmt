@@ -10,8 +10,12 @@ import (
 )
 
 func NewCborEncoder(wr io.Writer) *CborEncoder {
+	return NewAtlasedCborEncoder(wr, atlas.MustBuild())
+}
+
+func NewAtlasedCborEncoder(wr io.Writer, atl atlas.Atlas) *CborEncoder {
 	enc := &CborEncoder{
-		marshaller: obj.NewMarshaler(atlas.MustBuild()),
+		marshaller: obj.NewMarshaler(atl),
 		encoder:    cbor.NewEncoder(wr),
 	}
 	enc.pump = TokenPump{
