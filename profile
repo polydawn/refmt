@@ -30,7 +30,7 @@ profPath=".gopath/tmp/prof/" ; mkdir -p "$profPath"
 go test -i .
 echo "${funcs[@]}" | tr " " "\n" | xargs -n1 -I{} \
 	go test \
-		-run=XXX -bench={} \
+		-run=XXX -bench=^{}\$ \
 		-o "$profPath/bench.bin" \
 		-cpuprofile="$profPath/{}.cpu.pprof" \
 		2> /dev/null | grep "^Benchmark_"
