@@ -9,7 +9,7 @@ import (
 	"github.com/polydawn/refmt/tok/fixtures"
 )
 
-func TestJsonSerializer(t *testing.T) {
+func TestJsonEncoder(t *testing.T) {
 	tt := []struct {
 		title    string
 		sequence fixtures.Sequence
@@ -75,7 +75,7 @@ func TestJsonSerializer(t *testing.T) {
 			title = strings.Join([]string{tr.sequence.Title, tr.title}, ", ")
 		}
 		buf := &bytes.Buffer{}
-		sink := NewSerializer(buf)
+		sink := NewEncoder(buf)
 
 		// Run steps.
 		var done bool

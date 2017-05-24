@@ -8,23 +8,23 @@ import (
 	. "github.com/polydawn/refmt/tok"
 )
 
-func NewSerializer(wr io.Writer) *Serializer {
-	return &Serializer{
+func NewEncoder(wr io.Writer) *Encoder {
+	return &Encoder{
 		wr:    wr,
 		stack: make([]phase, 0, 10),
 	}
 }
 
-func (d *Serializer) Reset() {
+func (d *Encoder) Reset() {
 	d.stack = d.stack[0:0]
 	d.current = phase_anyExpectValue
 	d.some = false
 }
 
 /*
-	A json.Serializer is a TokenSink implementation that emits json bytes.
+	A json.Encoder is a TokenSink implementation that emits json bytes.
 */
-type Serializer struct {
+type Encoder struct {
 	wr io.Writer
 
 	// Stack, tracking how many array and map opens are outstanding.
@@ -46,7 +46,7 @@ const (
 	phase_arrExpectValueOrEnd
 )
 
-func (d *Serializer) Step(tok *Token) (done bool, err error) {
+func (d *Encoder) Step(tok *Token) (done bool, err error) {
 	switch d.current {
 	case phase_anyExpectValue:
 		switch tok.Type {
@@ -139,20 +139,20 @@ func (d *Serializer) Step(tok *Token) (done bool, err error) {
 	}
 }
 
-func (d *Serializer) pushPhase(p phase) {
+func (d *Encoder) pushPhase(p phase) {
 	d.current = p
 	d.stack = append(d.stack, d.current)
 	d.some = false
 }
 
 // Pop a phase from the stack; return 'true' if stack now empty.
-func (d *Serializer) popPhase() (bool, error) {
+func (d *Encoder) popPhase() (bool, error) {
 	n := len(d.stack) - 1
 	if n == 0 {
 		return true, nil
 	}
 	if n < 0 { // the state machines are supposed to have already errored better
-		panic("jsonSerializer stack overpopped")
+		panic("jsonEncoder stack overpopped")
 	}
 	d.current = d.stack[n-1]
 	d.stack = d.stack[0:n]
@@ -175,14 +175,14 @@ var (
 
 // Emit an entry separater (comma), unless we're at the start of an object.
 // Mark that we *do* have some content, regardless, so next time will need a sep.
-func (d *Serializer) entrySep() {
+func (d *Encoder) entrySep() {
 	if d.some {
 		d.wr.Write(wordComma)
 	}
 	d.some = true
 }
 
-func (d *Serializer) flushValue(tok *Token) {
+func (d *Encoder) flushValue(tok *Token) {
 	switch tok.Type {
 	case TString:
 		d.emitString(tok.Str)
@@ -192,11 +192,11 @@ func (d *Serializer) flushValue(tok *Token) {
 	case TNull:
 		d.wr.Write(wordNull)
 	default:
-		panic(fmt.Errorf("TODO finish more jsonSerializer primitives support: unhandled token %s", tok))
+		panic(fmt.Errorf("TODO finish more jsonEncoder primitives support: unhandled token %s", tok))
 	}
 }
 
-func (d *Serializer) writeByte(b byte) {
+func (d *Encoder) writeByte(b byte) {
 	d.scratch[0] = b
 	d.wr.Write(d.scratch[0:1])
 }
