@@ -7,7 +7,7 @@ import (
 
 var hex = "0123456789abcdef"
 
-func (d *Serializer) emitString(s string) {
+func (d *Encoder) emitString(s string) {
 	d.writeByte('"')
 	start := 0
 	for i := 0; i < len(s); {

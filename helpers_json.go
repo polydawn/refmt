@@ -16,24 +16,24 @@ func NewJsonEncoder(wr io.Writer) *JsonEncoder {
 func NewAtlasedJsonEncoder(wr io.Writer, atl atlas.Atlas) *JsonEncoder {
 	enc := &JsonEncoder{
 		marshaller: obj.NewMarshaler(atl),
-		serializer: json.NewSerializer(wr),
+		encoder:    json.NewEncoder(wr),
 	}
 	enc.pump = TokenPump{
 		enc.marshaller,
-		enc.serializer,
+		enc.encoder,
 	}
 	return enc
 }
 
 type JsonEncoder struct {
 	marshaller *obj.MarshalDriver
-	serializer *json.Serializer
+	encoder    *json.Encoder
 	pump       TokenPump
 }
 
 func (d *JsonEncoder) Marshal(v interface{}) error {
 	d.marshaller.Bind(v)
-	d.serializer.Reset()
+	d.encoder.Reset()
 	return d.pump.Run()
 }
 
