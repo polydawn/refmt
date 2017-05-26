@@ -16,15 +16,22 @@ import (
 //   given that keeping a reflect.Type instance on hand appears to be common,
 //   let's start building any builder with that.  Then, diversify.
 
-func example() {
-	type typeExample1 struct{}
+func ExampleAtlasBuilding() {
+	type typeExample1 struct {
+		FieldName string
+		Nested    struct {
+			Thing int
+		}
+	}
 
 	atl, err := atlas.Build(
 		atlas.BuildEntry(typeExample1{}).StructMap().
 			AddField("FieldName", atlas.StructMapEntry{SerialName: "fn", OmitEmpty: true}).
 			AddField("Nested.Thing", atlas.StructMapEntry{SerialName: "nt"}).
 			Complete(),
-		// and carry on; this `Build` method takes `AtlasEntry...`.
+		// and carry on; this `Build` method takes `AtlasEntry...` as a vararg.
 	)
 	_, _ = atl, err
+
+	// Output:
 }
