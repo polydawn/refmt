@@ -449,17 +449,17 @@ var objFixtures = []struct {
 				Complete(),
 		),
 		marshalResults: []marshalResults{
-			{title: "from tObjStr{\"value\"}",
-				valueFn: func() interface{} {
-					return tObjStr{"value"}
-				}},
+			{title: "from tObjStr",
+				valueFn: func() interface{} { return tObjStr{"value"} }},
+			{title: "from *tObjStr",
+				valueFn: func() interface{} { return &tObjStr{"value"} }},
 		},
 		unmarshalResults: []unmarshalResults{
-			{title: "into tObjStr{}",
-				slotFn: func() interface{} { return &tObjStr{} },
-				valueFn: func() interface{} {
-					return tObjStr{"value"}
-				}},
+			{title: "into *tObjStr",
+				slotFn:  func() interface{} { return &tObjStr{} },
+				valueFn: func() interface{} { return tObjStr{"value"} }},
+			// There are no tests here for "into interface{}" because by definition
+			//  those situations wouldn't provide type info that would trigger these paths.
 		},
 	},
 }
