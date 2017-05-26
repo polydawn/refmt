@@ -449,8 +449,7 @@ var objFixtures = []struct {
 			{title: "from tObjStr{\"value\"}",
 				valueFn: func() interface{} {
 					return tObjStr{"value"}
-				},
-				expectErr: skipMe},
+				}},
 		},
 		//	unmarshalResults: []unmarshalResults{
 		//		{title: "into tObjStr{}",

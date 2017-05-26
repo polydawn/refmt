@@ -30,6 +30,9 @@ func MakeMarshalTransformFunc(fn interface{}) (MarshalTransformFunc, reflect.Typ
 	}
 	return func(liveForm reflect.Value) (serialForm reflect.Value, err error) {
 		results := fn_rv.Call([]reflect.Value{liveForm})
+		if results[1].IsNil() {
+			return results[0], nil
+		}
 		return results[0], results[1].Interface().(error)
 	}, out_rt
 }
