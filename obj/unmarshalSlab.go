@@ -25,6 +25,7 @@ type unmarshalSlabRow struct {
 	unmarshalMachineMapStringWildcard
 	unmarshalMachineSliceWildcard
 	unmarshalMachineStructAtlas
+	unmarshalMachineTransform
 
 	errThunkUnmarshalMachine
 }
@@ -94,7 +95,11 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 			// The entry.UnmarshalTransformTargetType is used to do a recursive lookup.
 			// We can't just call the func here because we're still working off typeinfo
 			// and don't have a real value to transform until later.
-			panic("todo: UnarshalTransformFunc support")
+			row.unmarshalMachineTransform.trFunc = entry.UnmarshalTransformFunc
+			row.unmarshalMachineTransform.recv_rt = entry.UnmarshalTransformTargetType
+			// Pick delegate without growing stack.  (This currently means recursive transform won't fly.)
+			row.unmarshalMachineTransform.delegate = _yieldUnmarshalMachinePtr(row, atl, entry.UnmarshalTransformTargetType)
+			return &row.unmarshalMachineTransform
 		case entry.StructMap != nil:
 			row.unmarshalMachineStructAtlas.cfg = entry.StructMap
 			return &row.unmarshalMachineStructAtlas

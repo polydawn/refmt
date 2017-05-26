@@ -25,6 +25,7 @@ type marshalSlabRow struct {
 	marshalMachineMapWildcard
 	marshalMachineSliceWildcard
 	marshalMachineStructAtlas
+	marshalMachineTransform
 
 	errThunkMarshalMachine
 }
@@ -94,7 +95,10 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 			// The entry.MarshalTransformTargetType is used to do a recursive lookup.
 			// We can't just call the func here because we're still working off typeinfo
 			// and don't have a real value to transform until later.
-			panic("todo: MarshalTransformFunc support")
+			row.marshalMachineTransform.trFunc = entry.MarshalTransformFunc
+			// Pick delegate without growing stack.  (This currently means recursive transform won't fly.)
+			row.marshalMachineTransform.delegate = _yieldMarshalMachinePtr(row, atl, entry.MarshalTransformTargetType)
+			return &row.marshalMachineTransform
 		case entry.StructMap != nil:
 			row.marshalMachineStructAtlas.cfg = entry.StructMap
 			return &row.marshalMachineStructAtlas
