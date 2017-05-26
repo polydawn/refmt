@@ -442,7 +442,10 @@ var objFixtures = []struct {
 					func(x tObjStr) (string, error) {
 						return x.X, nil
 					})).
-				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(func() {})).
+				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+					func(x string) (tObjStr, error) {
+						return tObjStr{x}, nil
+					})).
 				Complete(),
 		),
 		marshalResults: []marshalResults{
@@ -451,13 +454,13 @@ var objFixtures = []struct {
 					return tObjStr{"value"}
 				}},
 		},
-		//	unmarshalResults: []unmarshalResults{
-		//		{title: "into tObjStr{}",
-		//			slotFn: func() interface{} { return &tObjStr{} },
-		//			valueFn: func() interface{} {
-		//				return tObjStr{"value"}
-		//			}},
-		//	},
+		unmarshalResults: []unmarshalResults{
+			{title: "into tObjStr{}",
+				slotFn: func() interface{} { return &tObjStr{} },
+				valueFn: func() interface{} {
+					return tObjStr{"value"}
+				}},
+		},
 	},
 }
 
