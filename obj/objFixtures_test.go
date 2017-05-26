@@ -434,6 +434,32 @@ var objFixtures = []struct {
 				}},
 		},
 	},
+	{title: "transform funks (struct<->string)",
+		sequence: fixtures.SequenceMap["flat string"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).Transform().
+				TransformMarshal(atlas.MakeMarshalTransformFunc(
+					func(x tObjStr) (string, error) {
+						return x.X, nil
+					})).
+				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(func() {})).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from tObjStr{\"value\"}",
+				valueFn: func() interface{} {
+					return tObjStr{"value"}
+				},
+				expectErr: skipMe},
+		},
+		//	unmarshalResults: []unmarshalResults{
+		//		{title: "into tObjStr{}",
+		//			slotFn: func() interface{} { return &tObjStr{} },
+		//			valueFn: func() interface{} {
+		//				return tObjStr{"value"}
+		//			}},
+		//	},
+	},
 }
 
 func TestMarshaller(t *testing.T) {
@@ -449,10 +475,14 @@ func TestMarshaller(t *testing.T) {
 		for _, tr := range objFixtures {
 			Convey(fmt.Sprintf("%q fixture sequence:", tr.title), func() {
 				for _, trr := range tr.marshalResults {
+					maybe := Convey
+					if trr.expectErr == skipMe {
+						maybe = SkipConvey
+					}
 					// Conjure value.  Also format title for test, using its type info.
 					value := trr.valueFn()
 					valueKind := reflect.ValueOf(value).Kind()
-					Convey(fmt.Sprintf("working %s (%s|%T):", trr.title, valueKind, value), func() {
+					maybe(fmt.Sprintf("working %s (%s|%T):", trr.title, valueKind, value), func() {
 						// Set up marshaller.
 						marshaller := NewMarshaler(tr.atlas)
 						marshaller.Bind(value)
