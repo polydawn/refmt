@@ -55,6 +55,7 @@ func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr Refle
 			return nil, ErrStructureMismatch{rt.Name(), "does not have field named " + fn}
 		}
 		rr = append(rr, rf.Index...)
+		rt = rf.Type
 	}
 	return rr, nil
 }
