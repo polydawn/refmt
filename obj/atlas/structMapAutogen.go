@@ -2,6 +2,7 @@ package atlas
 
 import (
 	"reflect"
+	"sort"
 	"strings"
 	"unicode"
 )
@@ -105,9 +106,117 @@ func exploreFields(rt reflect.Type, tagName string) []StructMapEntry {
 		}
 	}
 
-	// TODO get the sorting and annihilation in here
+	sort.Sort(StructMapEntry_byName(fields))
+
+	// Delete all fields that are hidden by the Go rules for embedded fields,
+	// except that fields with JSON tags are promoted.
+
+	// The fields are sorted in primary order of name, secondary order
+	// of field index length. Loop over names; for each name, delete
+	// hidden fields by choosing the one dominant field that survives.
+	out := fields[:0]
+	for advance, i := 0, 0; i < len(fields); i += advance {
+		// One iteration per name.
+		// Find the sequence of fields with the name of this first field.
+		fi := fields[i]
+		name := fi.SerialName
+		for advance = 1; i+advance < len(fields); advance++ {
+			fj := fields[i+advance]
+			if fj.SerialName != name {
+				break
+			}
+		}
+		if advance == 1 { // Only one field with this name
+			out = append(out, fi)
+			continue
+		}
+		dominant, ok := dominantField(fields[i : i+advance])
+		if ok {
+			out = append(out, dominant)
+		}
+	}
+
+	fields = out
+	sort.Sort(StructMapEntry_byFieldRoute(fields))
 
 	return fields
+}
+
+// dominantField looks through the fields, all of which are known to
+// have the same name, to find the single field that dominates the
+// others using Go's embedding rules, modified by the presence of
+// JSON tags. If there are multiple top-level fields, the boolean
+// will be false: This condition is an error in Go and we skip all
+// the fields.
+func dominantField(fields []StructMapEntry) (StructMapEntry, bool) {
+	// The fields are sorted in increasing index-length order. The winner
+	// must therefore be one with the shortest index length. Drop all
+	// longer entries, which is easy: just truncate the slice.
+	length := len(fields[0].ReflectRoute)
+	tagged := -1 // Index of first tagged field.
+	for i, f := range fields {
+		if len(f.ReflectRoute) > length {
+			fields = fields[:i]
+			break
+		}
+		if f.tagged {
+			if tagged >= 0 {
+				// Multiple tagged fields at the same level: conflict.
+				// Return no field.
+				return StructMapEntry{}, false
+			}
+			tagged = i
+		}
+	}
+	if tagged >= 0 {
+		return fields[tagged], true
+	}
+	// All remaining fields have the same length. If there's more than one,
+	// we have a conflict (two fields named "X" at the same level) and we
+	// return no field.
+	if len(fields) > 1 {
+		return StructMapEntry{}, false
+	}
+	return fields[0], true
+}
+
+// StructMapEntry_byName sorts field by name,
+// breaking ties with depth,
+// then breaking ties with "name came from tag",
+// then breaking ties with FieldRoute sequence.
+type StructMapEntry_byName []StructMapEntry
+
+func (x StructMapEntry_byName) Len() int      { return len(x) }
+func (x StructMapEntry_byName) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
+func (x StructMapEntry_byName) Less(i, j int) bool {
+	if x[i].SerialName != x[j].SerialName {
+		return x[i].SerialName < x[j].SerialName
+	}
+	if len(x[i].ReflectRoute) != len(x[j].ReflectRoute) {
+		return len(x[i].ReflectRoute) < len(x[j].ReflectRoute)
+	}
+	if x[i].tagged != x[j].tagged {
+		return x[i].tagged
+	}
+	return StructMapEntry_byFieldRoute(x).Less(i, j)
+}
+
+// StructMapEntry_byFieldRoute sorts field by FieldRoute sequence
+// (e.g., roughly source declaration order within each type).
+type StructMapEntry_byFieldRoute []StructMapEntry
+
+func (x StructMapEntry_byFieldRoute) Len() int      { return len(x) }
+func (x StructMapEntry_byFieldRoute) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
+func (x StructMapEntry_byFieldRoute) Less(i, j int) bool {
+	for k, xik := range x[i].ReflectRoute {
+		if k >= len(x[j].ReflectRoute) {
+			return false
+		}
+		if xik != x[j].ReflectRoute[k] {
+			return xik < x[j].ReflectRoute[k]
+		}
+	}
+	return len(x[i].ReflectRoute) < len(x[j].ReflectRoute)
 }
 
 // tagOptions is the string following a comma in a struct field's

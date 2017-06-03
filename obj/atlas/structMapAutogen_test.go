@@ -56,5 +56,37 @@ func TestStructMapAutogen(t *testing.T) {
 				So(entry.StructMap.Fields[1].OmitEmpty, ShouldEqual, false)
 			})
 		})
+
+		type DD struct {
+			A   AA `                      refmt:"ooh"`
+			BB  `       json:"bb"         refmt:"bb"`
+			Non string `json:"-"          refmt:"-"`
+			Om  string `json:",omitempty" refmt:",omitempty"`
+		}
+		// Interesting things to note:
+		// - tagging an embedded field undoes the usual behavior of inlining it.
+		Convey("for a type which is tagged and has some embedded structs", func() {
+			Convey("sanity check: stdlib json sees this how we expect", func() {
+				msg, err := json.Marshal(DD{AA{"a", BB{"z"}}, BB{"z2"}, "", ""})
+				So(err, ShouldBeNil)
+				So(string(msg), ShouldResemble, `{"A":{"X":"a","Y":{"Z":"z"}},"bb":{"Z":"z2"}}`)
+			})
+			Convey("autogen works", func() {
+				entry := AutogenerateStructMapEntry(reflect.TypeOf(DD{}))
+				So(len(entry.StructMap.Fields), ShouldEqual, 3)
+				So(entry.StructMap.Fields[0].SerialName, ShouldEqual, "ooh")
+				So(entry.StructMap.Fields[0].ReflectRoute, ShouldResemble, ReflectRoute{0})
+				So(entry.StructMap.Fields[0].Type, ShouldEqual, reflect.TypeOf(AA{}))
+				So(entry.StructMap.Fields[0].OmitEmpty, ShouldEqual, false)
+				So(entry.StructMap.Fields[1].SerialName, ShouldEqual, "bb")
+				So(entry.StructMap.Fields[1].ReflectRoute, ShouldResemble, ReflectRoute{1})
+				So(entry.StructMap.Fields[1].Type, ShouldEqual, reflect.TypeOf(BB{}))
+				So(entry.StructMap.Fields[1].OmitEmpty, ShouldEqual, false)
+				So(entry.StructMap.Fields[2].SerialName, ShouldEqual, "Om")
+				So(entry.StructMap.Fields[2].ReflectRoute, ShouldResemble, ReflectRoute{3})
+				So(entry.StructMap.Fields[2].Type, ShouldEqual, reflect.TypeOf(""))
+				So(entry.StructMap.Fields[2].OmitEmpty, ShouldEqual, true)
+			})
+		})
 	})
 }
