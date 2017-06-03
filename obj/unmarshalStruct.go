@@ -43,11 +43,16 @@ func (mach *unmarshalMachineStructAtlas) Step(driver *UnmarshalDriver, slab *unm
 	}
 
 	if mach.value {
-		child_rv := mach.cfg.Fields[mach.index].ReflectRoute.TraverseToValue(mach.rv)
-		child_rt := child_rv.Type()
+		fieldEntry := mach.cfg.Fields[mach.index]
+		child_rv := fieldEntry.ReflectRoute.TraverseToValue(mach.rv)
 		mach.index++
 		mach.value = false
-		return false, driver.Recurse(tok, child_rv, child_rt, slab.requisitionMachine(child_rt))
+		return false, driver.Recurse(
+			tok,
+			child_rv,
+			fieldEntry.Type,
+			slab.requisitionMachine(fieldEntry.Type),
+		)
 	}
 	tok.Type = TString
 	tok.Str = mach.cfg.Fields[mach.index].SerialName

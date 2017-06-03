@@ -39,25 +39,26 @@ func (x *BuilderStructMap) Complete() *AtlasEntry {
 */
 func (x *BuilderStructMap) AddField(fieldName string, mapping StructMapEntry) *BuilderStructMap {
 	fieldNameSplit := strings.Split(fieldName, ".")
-	rr, err := fieldNameToReflectRoute(x.entry.Type, fieldNameSplit)
+	rr, rt, err := fieldNameToReflectRoute(x.entry.Type, fieldNameSplit)
 	if err != nil {
 		panic(err) // REVIEW: now that we have the builder obj, we could just curry these into it until 'Complete' is called (or, thus, 'MustComplete'!).
 	}
 	mapping.ReflectRoute = rr
+	mapping.Type = rt
 	x.entry.StructMap.Fields = append(x.entry.StructMap.Fields, mapping)
 	return x
 }
 
-func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr ReflectRoute, err error) {
+func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr ReflectRoute, _ reflect.Type, _ error) {
 	for _, fn := range fieldNameSplit {
 		rf, ok := rt.FieldByName(fn)
 		if !ok {
-			return nil, ErrStructureMismatch{rt.Name(), "does not have field named " + fn}
+			return nil, nil, ErrStructureMismatch{rt.Name(), "does not have field named " + fn}
 		}
 		rr = append(rr, rf.Index...)
 		rt = rf.Type
 	}
-	return rr, nil
+	return rr, rt, nil
 }
 
 /*

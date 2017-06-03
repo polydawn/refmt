@@ -14,10 +14,10 @@ type StructMapEntry struct {
 	// lookup during unmarshal.  Required.
 	SerialName string
 
-	// *One* of the following:
-
 	ReflectRoute ReflectRoute // reflection generates these.
-	// Theoretical feature.  Support dropped for the moment.
+	Type         reflect.Type
+
+	// Theoretical feature which would be alternative to ReflectRoute.  Support dropped for the moment.
 	//addrFunc     func(interface{}) interface{} // custom user function.
 
 	// If true, marshalling will skip this field if its the zero value.
