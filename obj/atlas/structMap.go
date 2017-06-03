@@ -15,7 +15,8 @@ type StructMapEntry struct {
 	SerialName string
 
 	ReflectRoute ReflectRoute // reflection generates these.
-	Type         reflect.Type
+	Type         reflect.Type // type to expect on the far side of the ReflectRoute.
+	tagged       bool         // used during autogen.
 
 	// Theoretical feature which would be alternative to ReflectRoute.  Support dropped for the moment.
 	//addrFunc     func(interface{}) interface{} // custom user function.
