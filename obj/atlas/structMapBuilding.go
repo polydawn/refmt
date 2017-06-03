@@ -69,6 +69,7 @@ func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr Refle
 	though if doing so be mindful not to map the same fields twice.
 */
 func (x *BuilderStructMap) Autogenerate() *BuilderStructMap {
-	// TODO
+	autoEntry := AutogenerateStructMapEntry(x.entry.Type)
+	x.entry.StructMap.Fields = append(x.entry.StructMap.Fields, autoEntry.StructMap.Fields...)
 	return x
 }
