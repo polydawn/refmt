@@ -150,7 +150,7 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 	case reflect.Map:
 		return &row.marshalMachineMapWildcard
 	case reflect.Struct:
-		panic("todo")
+		panic("todo") // this is where we auto-detect, if you've enabled that; otherwise, raise error for missing configuration / unexpected type.
 	case reflect.Interface:
 		return &row.marshalMachineWildcard
 	case reflect.Func:

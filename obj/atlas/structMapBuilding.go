@@ -59,3 +59,15 @@ func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr Refle
 	}
 	return rr, nil
 }
+
+/*
+	Automatically generate mappings by looking at the struct type info,
+	taking any hints from tags, and appending that to the builder.
+
+	You may use autogeneration in concert with manually adding field mappings,
+	though if doing so be mindful not to map the same fields twice.
+*/
+func (x *BuilderStructMap) Autogenerate() *BuilderStructMap {
+	// TODO
+	return x
+}
