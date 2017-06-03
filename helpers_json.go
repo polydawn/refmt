@@ -45,7 +45,7 @@ func JsonEncode(v interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func JsonEncodeAtlased(v interface{}, atl atlas.Atlas) ([]byte, error) {
+func JsonEncodeAtlased(atl atlas.Atlas, v interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 	if err := NewAtlasedJsonEncoder(&buf, atl).Marshal(v); err != nil {
 		return nil, err

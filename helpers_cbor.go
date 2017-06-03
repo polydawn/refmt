@@ -45,7 +45,7 @@ func CborEncode(v interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func CborEncodeAtlased(v interface{}, atl atlas.Atlas) ([]byte, error) {
+func CborEncodeAtlased(atl atlas.Atlas, v interface{}) ([]byte, error) {
 	var buf bytes.Buffer
 	if err := NewAtlasedCborEncoder(&buf, atl).Marshal(v); err != nil {
 		return nil, err
