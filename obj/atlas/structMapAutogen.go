@@ -97,7 +97,6 @@ func exploreFields(rt reflect.Type, tagName string) []StructMapEntry {
 				nextCount[ft]++
 				if nextCount[ft] == 1 {
 					next = append(next, StructMapEntry{
-						SerialName:   name, // TODO default to downcaseing
 						ReflectRoute: route,
 						Type:         ft,
 					})
