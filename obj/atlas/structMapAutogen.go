@@ -75,10 +75,10 @@ func exploreFields(rt reflect.Type, tagName string) []StructMapEntry {
 				if name != "" || !sf.Anonymous || ft.Kind() != reflect.Struct {
 					tagged := name != ""
 					if name == "" {
-						name = sf.Name
+						name = downcaseFirstLetter(sf.Name)
 					}
 					fields = append(fields, StructMapEntry{
-						SerialName:   name, // TODO default to downcaseing
+						SerialName:   name,
 						ReflectRoute: route,
 						Type:         ft,
 						tagged:       tagged,
@@ -140,6 +140,21 @@ func exploreFields(rt reflect.Type, tagName string) []StructMapEntry {
 	sort.Sort(StructMapEntry_byFieldRoute(fields))
 
 	return fields
+}
+
+// If the first character of the string is uppercase, return a string
+// where it is switched to lowercase.
+// We use this to make go field names look more like what everyone else
+// in the universe expects their json to look like by default: snakeCase.
+func downcaseFirstLetter(s string) string {
+	if s == "" {
+		return ""
+	}
+	r := rune(s[0]) // if multibyte chars: you're left alone.
+	if !unicode.IsUpper(r) {
+		return s
+	}
+	return string(unicode.ToLower(r)) + s[1:]
 }
 
 // dominantField looks through the fields, all of which are known to
