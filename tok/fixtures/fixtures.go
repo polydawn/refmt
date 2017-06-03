@@ -164,9 +164,10 @@ var Sequences = []Sequence{
 	// JSON can't generally distinguish much of anything from anything, and is
 	// subject to disasterous issues around floating point precision.
 	//
-	// Commented out because they're functionally useless -- packages define their own vagueries:
+	// Commented out because they're functionally useless -- packages define their own vagueries.
+	// Except some which are used in the objmapping fixtures.
 	//	{"integer zero", []Token{{Type: TInt, Int: 0}}},
-	//	{"integer one", []Token{{Type: TInt, Int: 1}}},
+	{"integer one", []Token{{Type: TInt, Int: 1}}},
 	//	{"integer neg one", []Token{{Type: TInt, Int: -1}}},
 
 	// Byte strings.
