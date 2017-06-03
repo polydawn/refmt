@@ -52,6 +52,10 @@ type tObjK2 struct {
 	K2 int
 }
 
+type tDefStr string
+type tDefInt int
+type tDefBytes []byte
+
 var objFixtures = []struct {
 	title string
 
@@ -460,6 +464,87 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return tObjStr{"value"} }},
 			// There are no tests here for "into interface{}" because by definition
 			//  those situations wouldn't provide type info that would trigger these paths.
+		},
+	},
+	{title: "typedef strings",
+		sequence: fixtures.SequenceMap["flat string"],
+		// no atlas necessary: the default behavior for a kind, even if typedef'd,
+		//  is to simply to the natural thing for that kind.
+		marshalResults: []marshalResults{
+			{title: "from tDefStr literal",
+				valueFn: func() interface{} { str := tDefStr("value"); return str }},
+			{title: "from *tDefStr",
+				valueFn: func() interface{} { str := tDefStr("value"); return &str }},
+			{title: "from tDefStr in iface slot",
+				valueFn: func() interface{} { var iface interface{}; iface = tDefStr("value"); return iface }},
+			{title: "from tDefStr in *iface slot",
+				valueFn: func() interface{} { var iface interface{}; iface = tDefStr("value"); return &iface }},
+			{title: "from *tDefStr in iface slot",
+				valueFn: func() interface{} { str := tDefStr("value"); var iface interface{}; iface = &str; return iface }},
+			{title: "from *tDefStr in *iface slot",
+				valueFn: func() interface{} { str := tDefStr("value"); var iface interface{}; iface = &str; return &iface }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into tDefStr",
+				slotFn:    func() interface{} { var str tDefStr; return str },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(tDefStr(""))}},
+			{title: "into *tDefStr",
+				slotFn:  func() interface{} { var str tDefStr; return &str },
+				valueFn: func() interface{} { str := tDefStr("value"); return str }},
+		},
+	},
+	{title: "typedef ints",
+		sequence: fixtures.SequenceMap["integer one"],
+		// no atlas necessary: the default behavior for a kind, even if typedef'd,
+		//  is to simply to the natural thing for that kind.
+		marshalResults: []marshalResults{
+			{title: "from tDefInt literal",
+				valueFn: func() interface{} { v := tDefInt(1); return v }},
+			{title: "from *tDefInt",
+				valueFn: func() interface{} { v := tDefInt(1); return &v }},
+			{title: "from tDefInt in iface slot",
+				valueFn: func() interface{} { var iface interface{}; iface = tDefInt(1); return iface }},
+			{title: "from tDefInt in *iface slot",
+				valueFn: func() interface{} { var iface interface{}; iface = tDefInt(1); return &iface }},
+			{title: "from *tDefInt in iface slot",
+				valueFn: func() interface{} { v := tDefInt(1); var iface interface{}; iface = &v; return iface }},
+			{title: "from *tDefInt in *iface slot",
+				valueFn: func() interface{} { v := tDefInt(1); var iface interface{}; iface = &v; return &iface }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into tDefInt",
+				slotFn:    func() interface{} { var v tDefInt; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(tDefInt(0))}},
+			{title: "into *tDefInt",
+				slotFn:  func() interface{} { var v tDefInt; return &v },
+				valueFn: func() interface{} { v := tDefInt(1); return v }},
+		},
+	},
+	{title: "typedef bytes",
+		sequence: fixtures.SequenceMap["short byte array"],
+		// no atlas necessary: the default behavior for a kind, even if typedef'd,
+		//  is to simply to the natural thing for that kind.
+		marshalResults: []marshalResults{
+			{title: "from tDefBytes literal",
+				valueFn: func() interface{} { v := tDefBytes(`value`); return v }},
+			{title: "from *tDefBytes",
+				valueFn: func() interface{} { v := tDefBytes(`value`); return &v }},
+			{title: "from tDefBytes in iface slot",
+				valueFn: func() interface{} { var iface interface{}; iface = tDefBytes(`value`); return iface }},
+			{title: "from tDefBytes in *iface slot",
+				valueFn: func() interface{} { var iface interface{}; iface = tDefBytes(`value`); return &iface }},
+			{title: "from *tDefBytes in iface slot",
+				valueFn: func() interface{} { v := tDefBytes(`value`); var iface interface{}; iface = &v; return iface }},
+			{title: "from *tDefBytes in *iface slot",
+				valueFn: func() interface{} { v := tDefBytes(`value`); var iface interface{}; iface = &v; return &iface }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into tDefBytes",
+				slotFn:    func() interface{} { var v tDefBytes; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(tDefBytes{})}},
+			{title: "into *tDefBytes",
+				slotFn:  func() interface{} { var v tDefBytes; return &v },
+				valueFn: func() interface{} { v := tDefBytes(`value`); return v }},
 		},
 	},
 }

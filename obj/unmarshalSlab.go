@@ -110,40 +110,19 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 
 	// If no specific behavior found, use default behavior based on kind.
 	switch rt.Kind() {
-	case reflect.Bool:
-		panic("todo")
-	case reflect.String:
-		panic("todo")
-	case reflect.Int:
-		panic("todo")
-	case reflect.Int8:
-		panic("todo")
-	case reflect.Int16:
-		panic("todo")
-	case reflect.Int32:
-		panic("todo")
-	case reflect.Int64:
-		panic("todo")
-	case reflect.Uint:
-		panic("todo")
-	case reflect.Uint8:
-		panic("todo")
-	case reflect.Uint16:
-		panic("todo")
-	case reflect.Uint32:
-		panic("todo")
-	case reflect.Uint64:
-		panic("todo")
-	case reflect.Uintptr:
-		panic("todo")
-	case reflect.Float32:
-		panic("todo")
-	case reflect.Float64:
-		panic("todo")
+
+	case reflect.Bool,
+		reflect.String,
+		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr,
+		reflect.Float32, reflect.Float64:
+		row.unmarshalMachinePrimitive.kind = rt.Kind()
+		return &row.unmarshalMachinePrimitive
 	case reflect.Slice:
 		// un-typedef'd byte slices were handled already, but a typedef'd one still gets gets treated like a special kind:
 		if rt.Elem().Kind() == reflect.Uint8 {
-			panic("todo")
+			row.unmarshalMachinePrimitive.kind = rt.Kind()
+			return &row.unmarshalMachinePrimitive
 		}
 		return &row.unmarshalMachineSliceWildcard
 	case reflect.Array:
