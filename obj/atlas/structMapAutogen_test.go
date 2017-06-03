@@ -1,6 +1,7 @@
 package atlas
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -18,17 +19,18 @@ func TestStructMapAutogen(t *testing.T) {
 			Y BB
 		}
 		Convey("for a type which references other types, but is flat", func() {
-			entry := AutogenerateStructMapEntry(reflect.TypeOf(AA{}))
-
-			So(len(entry.StructMap.Fields), ShouldEqual, 2)
-			So(entry.StructMap.Fields[0].SerialName, ShouldEqual, "X")
-			So(entry.StructMap.Fields[0].ReflectRoute, ShouldResemble, ReflectRoute{0})
-			So(entry.StructMap.Fields[0].Type, ShouldEqual, reflect.TypeOf(""))
-			So(entry.StructMap.Fields[0].OmitEmpty, ShouldEqual, false)
-			So(entry.StructMap.Fields[1].SerialName, ShouldEqual, "Y")
-			So(entry.StructMap.Fields[1].ReflectRoute, ShouldResemble, ReflectRoute{1})
-			So(entry.StructMap.Fields[1].Type, ShouldEqual, reflect.TypeOf(BB{}))
-			So(entry.StructMap.Fields[1].OmitEmpty, ShouldEqual, false)
+			Convey("autogen works", func() {
+				entry := AutogenerateStructMapEntry(reflect.TypeOf(AA{}))
+				So(len(entry.StructMap.Fields), ShouldEqual, 2)
+				So(entry.StructMap.Fields[0].SerialName, ShouldEqual, "X")
+				So(entry.StructMap.Fields[0].ReflectRoute, ShouldResemble, ReflectRoute{0})
+				So(entry.StructMap.Fields[0].Type, ShouldEqual, reflect.TypeOf(""))
+				So(entry.StructMap.Fields[0].OmitEmpty, ShouldEqual, false)
+				So(entry.StructMap.Fields[1].SerialName, ShouldEqual, "Y")
+				So(entry.StructMap.Fields[1].ReflectRoute, ShouldResemble, ReflectRoute{1})
+				So(entry.StructMap.Fields[1].Type, ShouldEqual, reflect.TypeOf(BB{}))
+				So(entry.StructMap.Fields[1].OmitEmpty, ShouldEqual, false)
+			})
 		})
 
 		type CC struct {
@@ -36,17 +38,23 @@ func TestStructMapAutogen(t *testing.T) {
 			BB
 		}
 		Convey("for a type which has some embedded structs", func() {
-			entry := AutogenerateStructMapEntry(reflect.TypeOf(CC{}))
-
-			So(len(entry.StructMap.Fields), ShouldEqual, 2)
-			So(entry.StructMap.Fields[0].SerialName, ShouldEqual, "A")
-			So(entry.StructMap.Fields[0].ReflectRoute, ShouldResemble, ReflectRoute{0})
-			So(entry.StructMap.Fields[0].Type, ShouldEqual, reflect.TypeOf(AA{}))
-			So(entry.StructMap.Fields[0].OmitEmpty, ShouldEqual, false)
-			So(entry.StructMap.Fields[1].SerialName, ShouldEqual, "Z") // dives straight through embed!
-			So(entry.StructMap.Fields[1].ReflectRoute, ShouldResemble, ReflectRoute{1, 0})
-			So(entry.StructMap.Fields[1].Type, ShouldEqual, reflect.TypeOf(""))
-			So(entry.StructMap.Fields[1].OmitEmpty, ShouldEqual, false)
+			Convey("sanity check: stdlib json sees this how we expect", func() {
+				msg, err := json.Marshal(CC{AA{"a", BB{"z"}}, BB{"z2"}})
+				So(err, ShouldBeNil)
+				So(string(msg), ShouldResemble, `{"A":{"X":"a","Y":{"Z":"z"}},"Z":"z2"}`)
+			})
+			Convey("autogen works", func() {
+				entry := AutogenerateStructMapEntry(reflect.TypeOf(CC{}))
+				So(len(entry.StructMap.Fields), ShouldEqual, 2)
+				So(entry.StructMap.Fields[0].SerialName, ShouldEqual, "A")
+				So(entry.StructMap.Fields[0].ReflectRoute, ShouldResemble, ReflectRoute{0})
+				So(entry.StructMap.Fields[0].Type, ShouldEqual, reflect.TypeOf(AA{}))
+				So(entry.StructMap.Fields[0].OmitEmpty, ShouldEqual, false)
+				So(entry.StructMap.Fields[1].SerialName, ShouldEqual, "Z") // dives straight through embed!
+				So(entry.StructMap.Fields[1].ReflectRoute, ShouldResemble, ReflectRoute{1, 0})
+				So(entry.StructMap.Fields[1].Type, ShouldEqual, reflect.TypeOf(""))
+				So(entry.StructMap.Fields[1].OmitEmpty, ShouldEqual, false)
+			})
 		})
 	})
 }
