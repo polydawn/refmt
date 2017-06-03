@@ -39,23 +39,37 @@ func (x *BuilderStructMap) Complete() *AtlasEntry {
 */
 func (x *BuilderStructMap) AddField(fieldName string, mapping StructMapEntry) *BuilderStructMap {
 	fieldNameSplit := strings.Split(fieldName, ".")
-	rr, err := fieldNameToReflectRoute(x.entry.Type, fieldNameSplit)
+	rr, rt, err := fieldNameToReflectRoute(x.entry.Type, fieldNameSplit)
 	if err != nil {
 		panic(err) // REVIEW: now that we have the builder obj, we could just curry these into it until 'Complete' is called (or, thus, 'MustComplete'!).
 	}
 	mapping.ReflectRoute = rr
+	mapping.Type = rt
 	x.entry.StructMap.Fields = append(x.entry.StructMap.Fields, mapping)
 	return x
 }
 
-func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr ReflectRoute, err error) {
+func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr ReflectRoute, _ reflect.Type, _ error) {
 	for _, fn := range fieldNameSplit {
 		rf, ok := rt.FieldByName(fn)
 		if !ok {
-			return nil, ErrStructureMismatch{rt.Name(), "does not have field named " + fn}
+			return nil, nil, ErrStructureMismatch{rt.Name(), "does not have field named " + fn}
 		}
 		rr = append(rr, rf.Index...)
 		rt = rf.Type
 	}
-	return rr, nil
+	return rr, rt, nil
+}
+
+/*
+	Automatically generate mappings by looking at the struct type info,
+	taking any hints from tags, and appending that to the builder.
+
+	You may use autogeneration in concert with manually adding field mappings,
+	though if doing so be mindful not to map the same fields twice.
+*/
+func (x *BuilderStructMap) Autogenerate() *BuilderStructMap {
+	autoEntry := AutogenerateStructMapEntry(x.entry.Type)
+	x.entry.StructMap.Fields = append(x.entry.StructMap.Fields, autoEntry.StructMap.Fields...)
+	return x
 }
