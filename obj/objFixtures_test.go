@@ -663,6 +663,22 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { m := map[string]string(nil); return &m }},
 			{title: "from *map[str]str (nil ptr)",
 				valueFn: func() interface{} { var mp *map[string]string; return mp }},
+			//{title: "from int array", // Not Possible!  Compiler says: "cannot convert nil to type [0]int"
+			//	valueFn: func() interface{} { return [0]int(nil) }},
+			{title: "from int slice",
+				valueFn: func() interface{} { return []int(nil) }},
+			//{title: "from iface array", // Not Possible!  Compiler says: "cannot convert nil to type [0]interface {}"
+			//	valueFn: func() interface{} { return [0]interface{}(nil) }},
+			{title: "from iface slice",
+				valueFn: func() interface{} { return []interface{}(nil) }},
+			{title: "from *int array",
+				valueFn: func() interface{} { var v *[0]int; return v }},
+			{title: "from *int slice",
+				valueFn: func() interface{} { var v *[]int; return v }},
+			{title: "from *iface array",
+				valueFn: func() interface{} { var v *[0]interface{}; return v }},
+			{title: "from *iface slice",
+				valueFn: func() interface{} { var v *[]interface{}; return v }},
 		},
 	},
 }
