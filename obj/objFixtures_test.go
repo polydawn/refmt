@@ -687,6 +687,17 @@ var objFixtures = []struct {
 			{title: "from *tObjStr",
 				valueFn: func() interface{} { var v *tObjStr; return v }},
 		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into string",
+				slotFn:    func() interface{} { var str string; return str },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf("")}},
+			{title: "into *string",
+				slotFn:    func() interface{} { var str string; return &str },
+				expectErr: ErrUnmarshalIncongruent{Token{Type: TNull}, reflect.ValueOf("")}},
+			{title: "into **string",
+				slotFn:  func() interface{} { var strp *string; return &strp },
+				valueFn: func() interface{} { return (*string)(nil) }},
+		},
 	},
 }
 
