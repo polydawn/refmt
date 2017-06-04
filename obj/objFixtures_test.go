@@ -597,6 +597,23 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return []int(nil) }},
 		},
 	},
+	{title: "null",
+		sequence: fixtures.SequenceMap["null"],
+		marshalResults: []marshalResults{
+			{title: "from *string",
+				valueFn: func() interface{} { var strp *string; return strp }},
+			{title: "from *string in iface slot",
+				valueFn: func() interface{} { var strp *string; var iface interface{}; iface = strp; return iface }},
+			{title: "from *string in *iface slot",
+				valueFn: func() interface{} { var strp *string; var iface interface{}; iface = strp; return &iface }},
+			{title: "from **string",
+				valueFn: func() interface{} { var strp *string; return &strp }},
+			{title: "from **string in iface slot",
+				valueFn: func() interface{} { var strp *string; var iface interface{}; iface = &strp; return iface }},
+			{title: "from **string in *iface slot",
+				valueFn: func() interface{} { var strp *string; var iface interface{}; iface = &strp; return &iface }},
+		},
+	},
 }
 
 func TestMarshaller(t *testing.T) {
