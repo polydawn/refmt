@@ -56,6 +56,10 @@ type tDefStr string
 type tDefInt int
 type tDefBytes []byte
 
+type tObjStrp struct {
+	X *string
+}
+
 var objFixtures = []struct {
 	title string
 
@@ -697,6 +701,28 @@ var objFixtures = []struct {
 			{title: "into **string",
 				slotFn:  func() interface{} { var strp *string; return &strp },
 				valueFn: func() interface{} { return (*string)(nil) }},
+		},
+	},
+	{title: "nulls in map values and struct fields",
+		sequence: fixtures.SequenceMap["null in map"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStrp{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from tObjStrp",
+				valueFn: func() interface{} { return tObjStrp{} }},
+			{title: "from *tObjStrp",
+				valueFn: func() interface{} { return &tObjStrp{} }},
+			{title: "from map[str]iface",
+				valueFn: func() interface{} { return map[string]interface{}{"k": nil} }},
+			{title: "from map[str]*str",
+				valueFn: func() interface{} { return map[string]*string{"k": nil} }},
+			{title: "from map[str]map[str]str",
+				valueFn: func() interface{} { return map[string]map[string]string{"k": nil} }},
+			{title: "from map[str]*map[str]str",
+				valueFn: func() interface{} { return map[string]*map[string]string{"k": nil} }},
 		},
 	},
 }
