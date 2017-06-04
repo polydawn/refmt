@@ -642,6 +642,11 @@ var objFixtures = []struct {
 	},
 	{title: "null",
 		sequence: fixtures.SequenceMap["null"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "key"}).
+				Complete(),
+		),
 		marshalResults: []marshalResults{
 			{title: "from *string",
 				valueFn: func() interface{} { var strp *string; return strp }},
@@ -679,6 +684,8 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { var v *[0]interface{}; return v }},
 			{title: "from *iface slice",
 				valueFn: func() interface{} { var v *[]interface{}; return v }},
+			{title: "from *tObjStr",
+				valueFn: func() interface{} { var v *tObjStr; return v }},
 		},
 	},
 }
