@@ -80,7 +80,7 @@ func exploreFields(rt reflect.Type, tagName string) []StructMapEntry {
 					fields = append(fields, StructMapEntry{
 						SerialName:   name,
 						ReflectRoute: route,
-						Type:         ft,
+						Type:         sf.Type,
 						tagged:       tagged,
 						OmitEmpty:    opts.Contains("omitempty"),
 					})

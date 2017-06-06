@@ -88,5 +88,30 @@ func TestStructMapAutogen(t *testing.T) {
 				So(entry.StructMap.Fields[2].OmitEmpty, ShouldEqual, true)
 			})
 		})
+
+		type EE struct {
+			A **AA
+			*BB
+		}
+		Convey("for a type which contains some pointer fields", func() {
+			Convey("sanity check: stdlib json sees this how we expect", func() {
+				aap := &AA{"a", BB{"z"}}
+				msg, err := json.Marshal(EE{&aap, &BB{"z2"}})
+				So(err, ShouldBeNil)
+				So(string(msg), ShouldResemble, `{"A":{"X":"a","Y":{"Z":"z"}},"Z":"z2"}`)
+			})
+			Convey("autogen works", func() {
+				entry := AutogenerateStructMapEntry(reflect.TypeOf(EE{}))
+				So(len(entry.StructMap.Fields), ShouldEqual, 2)
+				So(entry.StructMap.Fields[0].SerialName, ShouldEqual, "a")
+				So(entry.StructMap.Fields[0].ReflectRoute, ShouldResemble, ReflectRoute{0})
+				So(entry.StructMap.Fields[0].Type, ShouldEqual, reflect.PtrTo(reflect.TypeOf(&AA{})))
+				So(entry.StructMap.Fields[0].OmitEmpty, ShouldEqual, false)
+				So(entry.StructMap.Fields[1].SerialName, ShouldEqual, "z") // dives straight through embed!
+				So(entry.StructMap.Fields[1].ReflectRoute, ShouldResemble, ReflectRoute{1, 0})
+				So(entry.StructMap.Fields[1].Type, ShouldEqual, reflect.TypeOf(""))
+				So(entry.StructMap.Fields[1].OmitEmpty, ShouldEqual, false)
+			})
+		})
 	})
 }
