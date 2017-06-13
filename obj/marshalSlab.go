@@ -30,6 +30,11 @@ type marshalSlabRow struct {
 	errThunkMarshalMachine
 }
 
+// A thunk value that can be used to trigger `isNil` paths.
+// (Substituting an 'invalid' kind reflect.Value with this is an easy way
+// to emit a null without needing any additional special cases or error handling.)
+var nil_rv reflect.Value = reflect.Zero(reflect.PtrTo(reflect.TypeOf(0)))
+
 /*
 	Return a reference to a machine from the slab.
 	*You must release() when done.*

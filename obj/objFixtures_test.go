@@ -662,8 +662,12 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { var strp *string; return &strp }},
 			{title: "from **string in iface slot",
 				valueFn: func() interface{} { var strp *string; var iface interface{}; iface = &strp; return iface }},
-			{title: "from **string in *iface slot",
-				valueFn: func() interface{} { var strp *string; var iface interface{}; iface = &strp; return &iface }},
+			{title: "from nil return",
+				valueFn: func() interface{} { return nil }}, // this is the illusive "invalid" kind!  even `reflect.ValueOf(nil).Type()` will panic!
+			{title: "from nil in iface slot",
+				valueFn: func() interface{} { var iface interface{}; iface = nil; return iface }}, // same as previous test row.
+			{title: "from nil in *iface slot",
+				valueFn: func() interface{} { var iface interface{}; iface = nil; return &iface }},
 			{title: "from map[str]iface",
 				valueFn: func() interface{} { return map[string]interface{}(nil) }},
 			{title: "from map[str]str",
