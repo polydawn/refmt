@@ -60,6 +60,14 @@ type tObjStrp struct {
 	X *string
 }
 
+type tObjMap struct {
+	X map[string]interface{}
+}
+
+type tObjPtrObjMap struct {
+	P *tObjMap
+}
+
 var objFixtures = []struct {
 	title string
 
@@ -729,6 +737,9 @@ var objFixtures = []struct {
 			atlas.BuildEntry(tObjStrp{}).StructMap().
 				AddField("X", atlas.StructMapEntry{SerialName: "k"}).
 				Complete(),
+			atlas.BuildEntry(tObjMap{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
 		),
 		marshalResults: []marshalResults{
 			{title: "from tObjStrp",
@@ -743,6 +754,31 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return map[string]map[string]string{"k": nil} }},
 			{title: "from map[str]*map[str]str",
 				valueFn: func() interface{} { return map[string]*map[string]string{"k": nil} }},
+			{title: "from tObjMap",
+				valueFn: func() interface{} { return tObjMap{} }},
+		},
+	},
+	{title: "nulls in deeper structs",
+		sequence: fixtures.SequenceMap["null in map"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjPtrObjMap{}).StructMap().
+				AddField("P", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
+			atlas.BuildEntry(tObjMap{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from tObjPtrObjMap",
+				valueFn: func() interface{} { return tObjPtrObjMap{} }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "to tObjPtrObjMap",
+				slotFn:    func() interface{} { return tObjPtrObjMap{} },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(tObjPtrObjMap{})}},
+			{title: "to *tObjPtrObjMap",
+				slotFn:  func() interface{} { return &tObjPtrObjMap{} },
+				valueFn: func() interface{} { return tObjPtrObjMap{} }},
 		},
 	},
 }
