@@ -158,6 +158,31 @@ var Sequences = []Sequence{
 		},
 	},
 
+	// Empty and null and null-at-depth.
+	{"empty",
+		[]Token{},
+	},
+	{"null",
+		[]Token{
+			{Type: TNull},
+		},
+	},
+	{"null in array",
+		[]Token{
+			{Type: TArrOpen, Length: 1},
+			{Type: TNull},
+			{Type: TArrClose},
+		},
+	},
+	{"null in map",
+		[]Token{
+			{Type: TMapOpen, Length: 1},
+			TokStr("k"),
+			{Type: TNull},
+			{Type: TMapClose},
+		},
+	},
+
 	// Numbers.
 	// Warning: surprisingly contentious topic.
 	// CBOR can't distinguish between positive numbers and unsigned;

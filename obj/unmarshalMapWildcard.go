@@ -35,6 +35,9 @@ func (mach *unmarshalMachineMapStringWildcard) step_Initial(_ *UnmarshalDriver, 
 	// If it's a special state, start an object.
 	//  (Or, blow up if its a special state that's silly).
 	switch tok.Type {
+	case TNull:
+		mach.target_rv.Set(reflect.Zero(mach.target_rv.Type()))
+		return true, nil
 	case TMapOpen:
 		// Great.  Consumed.
 		mach.step = mach.step_AcceptKey

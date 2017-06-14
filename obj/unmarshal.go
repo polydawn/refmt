@@ -32,7 +32,7 @@ func (d *UnmarshalDriver) Bind(v interface{}) error {
 	d.stack = d.stack[0:0]
 	d.unmarshalSlab.rows = d.unmarshalSlab.rows[0:0]
 	rv := reflect.ValueOf(v)
-	if !(rv.Kind() == reflect.Ptr || rv.Kind() == reflect.Map) || rv.IsNil() {
+	if rv.Kind() != reflect.Ptr || rv.IsNil() {
 		err := ErrInvalidUnmarshalTarget{reflect.TypeOf(v)}
 		d.step = &errThunkUnmarshalMachine{err}
 		return err

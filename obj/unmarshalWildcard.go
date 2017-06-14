@@ -9,12 +9,14 @@ import (
 
 type unmarshalMachineWildcard struct {
 	target_rv reflect.Value
+	target_rt reflect.Type
 	delegate  UnmarshalMachine // actual machine, once we've demuxed with the first token.
 	holder_rv reflect.Value    // if set, handle to slot where slice is stored; content must be placed into target at end.
 }
 
-func (mach *unmarshalMachineWildcard) Reset(_ *unmarshalSlab, rv reflect.Value, _ reflect.Type) error {
+func (mach *unmarshalMachineWildcard) Reset(_ *unmarshalSlab, rv reflect.Value, rt reflect.Type) error {
 	mach.target_rv = rv
+	mach.target_rt = rt
 	mach.delegate = nil
 	mach.holder_rv = reflect.Value{}
 	return nil
@@ -74,7 +76,7 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, slab *
 		return true, fmt.Errorf("unexpected arrClose; expected start of value")
 
 	case TNull:
-		mach.target_rv.Set(reflect.ValueOf(nil))
+		mach.target_rv.Set(reflect.Zero(mach.target_rt))
 		return true, nil
 
 	default:

@@ -28,13 +28,17 @@ func NewMarshaler(atl atlas.Atlas) *MarshalDriver {
 	return d
 }
 
-func (d *MarshalDriver) Bind(v interface{}) {
+func (d *MarshalDriver) Bind(v interface{}) error {
 	d.stack = d.stack[0:0]
 	d.marshalSlab.rows = d.marshalSlab.rows[0:0]
 	rv := reflect.ValueOf(v)
+	if !rv.IsValid() {
+		// if given an untyped nil, swap in a less spikey nil thunk instead.
+		rv = nil_rv
+	}
 	rt := rv.Type()
 	d.step = d.marshalSlab.requisitionMachine(rt)
-	d.step.Reset(&d.marshalSlab, rv, rt)
+	return d.step.Reset(&d.marshalSlab, rv, rt)
 }
 
 type MarshalDriver struct {
