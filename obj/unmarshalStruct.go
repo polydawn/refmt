@@ -11,54 +11,88 @@ import (
 type unmarshalMachineStructAtlas struct {
 	cfg *atlas.StructMap // set on initialization
 
-	rv    reflect.Value
-	index int  // Progress marker
-	value bool // Progress marker
+	rv         reflect.Value
+	expectLen  int                  // Length header from mapOpen token.  If it was set, we validate it.
+	index      int                  // Progress marker: our distance into the stream of pairs.
+	value      bool                 // Progress marker: whether the next token is a value.
+	fieldEntry atlas.StructMapEntry // Which field we expect next: set when consuming a key.
 }
 
 func (mach *unmarshalMachineStructAtlas) Reset(_ *unmarshalSlab, rv reflect.Value, _ reflect.Type) error {
 	mach.rv = rv
+	// not necessary to reset expectLen because MapOpen tokens also consistently use the -1 convention.
 	mach.index = -1
 	mach.value = false
 	return nil
 }
 
 func (mach *unmarshalMachineStructAtlas) Step(driver *UnmarshalDriver, slab *unmarshalSlab, tok *Token) (done bool, err error) {
-	//fmt.Printf("--step on %#v: i=%d/%d v=%v\n", mach.rv, mach.index, len(mach.cfg.Fields), mach.value)
-	nEntries := len(mach.cfg.Fields)
+	// Starter state.
 	if mach.index < 0 {
-		tok.Type = TMapOpen
-		tok.Length = nEntries
-		mach.index++
-		return false, nil
-	}
-	if mach.index == nEntries {
-		tok.Type = TMapClose
-		mach.index++
-		slab.release()
-		return true, nil
-	}
-	if mach.index > nEntries {
-		return true, fmt.Errorf("invalid state: entire struct (%d fields) already consumed", nEntries)
+		switch tok.Type {
+		case TMapOpen:
+			// Great.  Consumed.
+			mach.expectLen = tok.Length
+			mach.index++
+			return false, nil
+		case TMapClose:
+			return true, ErrUnexpectedTokenType{tok.Type, "expected start of map"}
+		case TArrOpen:
+			return true, ErrUnexpectedTokenType{tok.Type, "expected start of map"}
+		case TArrClose:
+			return true, ErrUnexpectedTokenType{tok.Type, "expected start of map"}
+		case TNull:
+			mach.rv.Set(reflect.Zero(mach.rv.Type()))
+			return true, nil
+		default:
+			return true, ErrUnexpectedTokenType{tok.Type, "expected start of map"}
+		}
 	}
 
+	// Accept value:
 	if mach.value {
-		fieldEntry := mach.cfg.Fields[mach.index]
-		child_rv := fieldEntry.ReflectRoute.TraverseToValue(mach.rv)
+		child_rv := mach.fieldEntry.ReflectRoute.TraverseToValue(mach.rv)
 		mach.index++
 		mach.value = false
 		return false, driver.Recurse(
 			tok,
 			child_rv,
-			fieldEntry.Type,
-			slab.requisitionMachine(fieldEntry.Type),
+			mach.fieldEntry.Type,
+			slab.requisitionMachine(mach.fieldEntry.Type),
 		)
 	}
-	tok.Type = TString
-	tok.Str = mach.cfg.Fields[mach.index].SerialName
-	mach.value = true
+
+	// Accept key or end:
 	if mach.index > 0 {
 		slab.release()
+	}
+	switch tok.Type {
+	case TMapClose:
+		// If we got length header, validate that; error if mismatch.
+		if mach.expectLen >= 0 {
+			if mach.expectLen != mach.index {
+				return true, fmt.Errorf("malformed map token stream: declared length %d, actually got %d entries", mach.expectLen, mach.index)
+			}
+		}
+
+		// Future: this would be a reasonable place to check that all required fields have been filled in, if we add such a feature.
+
+		return true, nil
+	case TString:
+		for n := 0; n < len(mach.cfg.Fields); n++ {
+			fieldEntry := mach.cfg.Fields[n]
+			if fieldEntry.SerialName != tok.Str {
+				continue
+			}
+			mach.fieldEntry = fieldEntry
+			mach.value = true
+			break
+		}
+		if mach.value == false {
+			// TODO error key matches no fields
+		}
+	default:
+		return true, ErrUnexpectedTokenType{tok.Type, "expected map key"}
 	}
 	return false, nil
 }
