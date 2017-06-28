@@ -34,3 +34,12 @@ type ErrUnmarshalIncongruent struct {
 func (e ErrUnmarshalIncongruent) Error() string {
 	return fmt.Sprintf("cannot assign %s to %s field", e.Token, e.Value.Kind())
 }
+
+type ErrUnexpectedTokenType struct {
+	Got      TokenType // Token in the stream that triggered the error.
+	Expected string    // Freeform string describing valid token types.  Often a summary like "array close or start of value", or "map close or key".
+}
+
+func (e ErrUnexpectedTokenType) Error() string {
+	return fmt.Sprintf("unexpected %s token; expected %s", e.Got, e.Expected)
+}
