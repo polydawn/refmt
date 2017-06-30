@@ -45,6 +45,9 @@ func (mach *unmarshalMachineSliceWildcard) step_Initial(_ *UnmarshalDriver, slab
 		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
 	case TArrClose:
 		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
+	case TNull:
+		mach.target_rv.Set(reflect.Zero(mach.target_rv.Type()))
+		return true, nil
 	default:
 		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
 	}
