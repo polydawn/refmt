@@ -790,6 +790,11 @@ var objFixtures = []struct {
 			{title: "into *[]int",
 				slotFn:  func() interface{} { var v []int; return &v },
 				valueFn: func() interface{} { return []int(nil) }},
+			{title: "into *tObjStr",
+				slotFn: func() interface{} { var v tObjStr; return &v },
+				// no, the answer is *not* a nil a la `{ var v *tObjStr; return v }` -- because the way unmarshalling uses the first pointer, it can't really set it to nil.
+				// stdlib json behavior is the same for the same reasons: https://play.golang.org/p/kd8iqNPdlM
+				valueFn: func() interface{} { return tObjStr{""} }},
 		},
 	},
 	{title: "nulls in map values and struct fields",
