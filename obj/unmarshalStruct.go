@@ -89,7 +89,9 @@ func (mach *unmarshalMachineStructAtlas) Step(driver *UnmarshalDriver, slab *unm
 			break
 		}
 		if mach.value == false {
-			// TODO error key matches no fields
+			// FUTURE: it should be configurable per atlas.StructMap whether this is considered an error or to be tolerated.
+			// Currently we're being extremely strict about it, which is a divergence from the stdlib json behavior.
+			return true, ErrNoSuchField{tok.Str}
 		}
 	default:
 		return true, ErrMalformedTokenStream{tok.Type, "expected map key"}

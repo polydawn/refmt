@@ -47,3 +47,13 @@ type ErrMalformedTokenStream struct {
 func (e ErrMalformedTokenStream) Error() string {
 	return fmt.Sprintf("malformed stream: invalid appearance of %s token; expected %s", e.Got, e.Expected)
 }
+
+// ErrNoSuchField is the error returned when unmarshalling into a struct and
+// the token stream for the map contains a key which is not defined for the struct.
+type ErrNoSuchField struct {
+	Name string // Field name from the token.
+}
+
+func (e ErrNoSuchField) Error() string {
+	return fmt.Sprintf("unmarshal error: no such field named %s", e.Name)
+}

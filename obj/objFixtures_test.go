@@ -297,6 +297,20 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return tObjStr2{"value", "v2"} }},
 		},
 	},
+	{title: "object with two string fields, with atlas entry, unmarshalling rejects when fields mismatch",
+		sequence: fixtures.SequenceMap["duo row map"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr2{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "key"}).
+				AddField("Y", atlas.StructMapEntry{SerialName: "mismatch"}). // we alter this to not line up with the token stream
+				Complete(),
+		),
+		unmarshalResults: []unmarshalResults{
+			{title: "into *tObjStr2",
+				slotFn:    func() interface{} { return &tObjStr2{} },
+				expectErr: ErrNoSuchField{"k2"}},
+		},
+	},
 	{title: "empty primitive arrays",
 		sequence: fixtures.SequenceMap["empty array"],
 		marshalResults: []marshalResults{
