@@ -8,28 +8,44 @@ import (
 )
 
 type ptrDerefDelegateUnmarshalMachine struct {
-	UnmarshalMachine
-	peelCount int
+	UnmarshalMachine     // a delegate machine, already set for us by the slab
+	peelCount        int // how deep the pointers go, already discoverd by the slab
 
-	isNil bool
+	ptr_rv    reflect.Value // the top ptr, which we will use if setting to nil, or if we have to recursively make ptrs for `**X` types.
+	firstStep bool
 }
 
-func (mach *ptrDerefDelegateUnmarshalMachine) Reset(slab *unmarshalSlab, rv reflect.Value, rt reflect.Type) error {
-	mach.isNil = false
-	for i := 0; i < mach.peelCount; i++ {
-		if rv.IsNil() {
-			mach.isNil = true
-			return nil
-		}
-		rv = rv.Elem()
-	}
-	return mach.UnmarshalMachine.Reset(slab, rv, rv.Type()) // REVIEW: we could have cached the peeled rt at mach conf time; worth it?
+func (mach *ptrDerefDelegateUnmarshalMachine) Reset(slab *unmarshalSlab, rv reflect.Value, _ reflect.Type) error {
+	mach.ptr_rv = rv
+	mach.firstStep = true
+	// we defer reseting the delegate machine until later, in case we get a nil, which can save a lot of time.
+	return nil
 }
 func (mach *ptrDerefDelegateUnmarshalMachine) Step(driver *UnmarshalDriver, slab *unmarshalSlab, tok *Token) (done bool, err error) {
-	if mach.isNil {
-		tok.Type = TNull
+	// If nil: easy road.  Nil the ptr.
+	if tok.Type == TNull {
+		mach.ptr_rv.Set(reflect.Zero(mach.ptr_rv.Type()))
 		return true, nil
 	}
+	// If real value: on the first step we have to do initializations.
+	if mach.firstStep {
+		mach.firstStep = false
+		// Walk the pointers: if some already exist, we accept them unmodified;
+		//  if any are nil, make a new one, and recursively.
+		rv := mach.ptr_rv
+		for i := 0; i < mach.peelCount; i++ {
+			if rv.IsNil() {
+				rv.Set(reflect.New(rv.Type().Elem()))
+				rv = rv.Elem()
+			} else {
+				rv = rv.Elem()
+			}
+		}
+		if err := mach.UnmarshalMachine.Reset(slab, rv, rv.Type()); err != nil {
+			return true, err
+		}
+	}
+	// The remainder of the time: it's just delegation.
 	return mach.UnmarshalMachine.Step(driver, slab, tok)
 }
 

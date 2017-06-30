@@ -37,6 +37,7 @@ func (d *UnmarshalDriver) Bind(v interface{}) error {
 		d.step = &errThunkUnmarshalMachine{err}
 		return err
 	}
+	rv = rv.Elem() // Let's just always be addressible, shall we?
 	rt := rv.Type()
 	d.step = d.unmarshalSlab.requisitionMachine(rt)
 	return d.step.Reset(&d.unmarshalSlab, rv, rt)

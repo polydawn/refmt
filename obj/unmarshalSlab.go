@@ -67,7 +67,6 @@ func (slab *unmarshalSlab) requisitionMachine(rt reflect.Type) UnmarshalMachine 
 	}
 	row.ptrDerefDelegateUnmarshalMachine.UnmarshalMachine = mach
 	row.ptrDerefDelegateUnmarshalMachine.peelCount = peelCount
-	row.ptrDerefDelegateUnmarshalMachine.isNil = false
 	return &row.ptrDerefDelegateUnmarshalMachine
 }
 
