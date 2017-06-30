@@ -15,12 +15,12 @@ type ErrInvalidUnmarshalTarget struct {
 
 func (e ErrInvalidUnmarshalTarget) Error() string {
 	if e.Type == nil {
-		return "invalid unmarshal target (nil)"
+		return "unmarshal error: invalid target (nil)"
 	}
 	if e.Type.Kind() != reflect.Ptr {
-		return "invalid unmarshal target (non-pointer " + e.Type.String() + ")"
+		return "unmarshal error: invalid target (non-pointer " + e.Type.String() + ")"
 	}
-	return "invalid unmarshal target: (nil " + e.Type.String() + ")"
+	return "unmarshal error: invalid target (nil " + e.Type.String() + ")"
 }
 
 // ErrUnmarshalTypeCantFit is the error returned when unmarshalling cannot
