@@ -50,3 +50,8 @@ ls -lah "$profPath"/*.allocfreetrace
 ## - accept two lines -- this is the proximate cause, call and source file.
 ## - you can probably discard the rest
 ##
+
+##
+## ALTERNATIVELY to all of this:
+##  just try '-gcflags -m' for things.  Result is much shorter, much faster, much more to the point.
+##
