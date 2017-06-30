@@ -51,7 +51,7 @@ func (mach *unmarshalMachinePrimitive) Step(_ *UnmarshalDriver, _ *unmarshalSlab
 			mach.rv.SetBool(tok.Bool)
 			return true, nil
 		default:
-			return true, ErrUnmarshalIncongruent{*tok, mach.rv}
+			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv}
 		}
 	case reflect.String:
 		switch tok.Type {
@@ -59,7 +59,7 @@ func (mach *unmarshalMachinePrimitive) Step(_ *UnmarshalDriver, _ *unmarshalSlab
 			mach.rv.SetString(tok.Str)
 			return true, nil
 		default:
-			return true, ErrUnmarshalIncongruent{*tok, mach.rv}
+			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv}
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		switch tok.Type {
@@ -70,7 +70,7 @@ func (mach *unmarshalMachinePrimitive) Step(_ *UnmarshalDriver, _ *unmarshalSlab
 			mach.rv.SetInt(int64(tok.Uint)) // todo: overflow check
 			return true, nil
 		default:
-			return true, ErrUnmarshalIncongruent{*tok, mach.rv}
+			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv}
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
 		switch tok.Type {
@@ -79,12 +79,12 @@ func (mach *unmarshalMachinePrimitive) Step(_ *UnmarshalDriver, _ *unmarshalSlab
 				mach.rv.SetUint(uint64(tok.Int))
 				return true, nil
 			}
-			return true, ErrUnmarshalIncongruent{*tok, mach.rv}
+			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv}
 		case TUint:
 			mach.rv.SetUint(tok.Uint)
 			return true, nil
 		default:
-			return true, ErrUnmarshalIncongruent{*tok, mach.rv}
+			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv}
 		}
 	case reflect.Float32, reflect.Float64:
 		switch tok.Type {
@@ -98,7 +98,7 @@ func (mach *unmarshalMachinePrimitive) Step(_ *UnmarshalDriver, _ *unmarshalSlab
 			mach.rv.SetFloat(float64(tok.Uint))
 			return true, nil
 		default:
-			return true, ErrUnmarshalIncongruent{*tok, mach.rv}
+			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv}
 		}
 	case reflect.Slice: // implicitly bytes; no other slices are "primitve"
 		switch tok.Type {
@@ -106,7 +106,7 @@ func (mach *unmarshalMachinePrimitive) Step(_ *UnmarshalDriver, _ *unmarshalSlab
 			mach.rv.SetBytes(tok.Bytes)
 			return true, nil
 		default:
-			return true, ErrUnmarshalIncongruent{*tok, mach.rv}
+			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv}
 		}
 	case reflect.Interface:
 		switch tok.Type {

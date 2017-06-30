@@ -23,27 +23,27 @@ func (e ErrInvalidUnmarshalTarget) Error() string {
 	return "invalid unmarshal target: (nil " + e.Type.String() + ")"
 }
 
-// ErrUnmarshalIncongruent is the error returned when unmarshalling cannot
+// ErrUnmarshalTypeCantFit is the error returned when unmarshalling cannot
 // coerce the tokens in the stream into the kind of variables the unmarshal is targetting,
 // for example if a map open token comes when an int is expected,
 // or an int token comes when a string is expected.
-type ErrUnmarshalIncongruent struct {
+type ErrUnmarshalTypeCantFit struct {
 	Token Token
 	Value reflect.Value
 }
 
-func (e ErrUnmarshalIncongruent) Error() string {
-	return fmt.Sprintf("cannot assign %s to %s field", e.Token, e.Value.Kind())
+func (e ErrUnmarshalTypeCantFit) Error() string {
+	return fmt.Sprintf("unmarshal error: cannot assign %s to %s field", e.Token, e.Value.Kind())
 }
 
-// ErrUnexpectedTokenType is the error returned when unmarshalling recieves a
+// ErrMalformedTokenStream is the error returned when unmarshalling recieves a
 // completely invalid transition, such as when a map value is expected, but the
 // map suddenly closes, or an array close is recieved with no matching array open.
-type ErrUnexpectedTokenType struct {
+type ErrMalformedTokenStream struct {
 	Got      TokenType // Token in the stream that triggered the error.
 	Expected string    // Freeform string describing valid token types.  Often a summary like "array close or start of value", or "map close or key".
 }
 
-func (e ErrUnexpectedTokenType) Error() string {
-	return fmt.Sprintf("unexpected %s token; expected %s", e.Got, e.Expected)
+func (e ErrMalformedTokenStream) Error() string {
+	return fmt.Sprintf("malformed stream: invalid appearance of %s token; expected %s", e.Got, e.Expected)
 }
