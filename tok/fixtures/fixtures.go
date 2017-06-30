@@ -50,6 +50,17 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"duo row map alt2",
+		// same as previous, but map entries in a different order -- useful to test that unmarshaller can accept that (or, reject non-canonical orders!)
+		[]Token{
+			{Type: TMapOpen, Length: 2},
+			TokStr("k2"),
+			TokStr("v2"),
+			TokStr("key"),
+			TokStr("value"),
+			{Type: TMapClose},
+		},
+	},
 
 	// Arrays.
 	{"empty array",

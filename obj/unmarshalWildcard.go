@@ -1,7 +1,6 @@
 package obj
 
 import (
-	"fmt"
 	"reflect"
 
 	. "github.com/polydawn/refmt/tok"
@@ -70,10 +69,10 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *UnmarshalDriver, slab *
 		return mach.delegate.Step(driver, slab, tok)
 
 	case TMapClose:
-		return true, fmt.Errorf("unexpected mapClose; expected start of value")
+		return true, ErrMalformedTokenStream{tok.Type, "expected start of value"}
 
 	case TArrClose:
-		return true, fmt.Errorf("unexpected arrClose; expected start of value")
+		return true, ErrMalformedTokenStream{tok.Type, "expected start of value"}
 
 	case TNull:
 		mach.target_rv.Set(reflect.Zero(mach.target_rt))

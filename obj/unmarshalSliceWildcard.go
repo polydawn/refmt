@@ -1,7 +1,6 @@
 package obj
 
 import (
-	"fmt"
 	"reflect"
 
 	. "github.com/polydawn/refmt/tok"
@@ -33,7 +32,7 @@ func (mach *unmarshalMachineSliceWildcard) step_Initial(_ *UnmarshalDriver, slab
 	//  (Or, blow up if its a special state that's silly).
 	switch tok.Type {
 	case TMapOpen:
-		return true, fmt.Errorf("unexpected mapOpen; expected start of array")
+		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
 	case TArrOpen:
 		// Great.  Consumed.
 		mach.step = mach.step_AcceptValue
@@ -43,11 +42,14 @@ func (mach *unmarshalMachineSliceWildcard) step_Initial(_ *UnmarshalDriver, slab
 		}
 		return false, nil
 	case TMapClose:
-		return true, fmt.Errorf("unexpected mapClose; expected start of array")
+		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
 	case TArrClose:
-		return true, fmt.Errorf("unexpected arrClose; expected start of array")
+		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
+	case TNull:
+		mach.target_rv.Set(reflect.Zero(mach.target_rv.Type()))
+		return true, nil
 	default:
-		return true, fmt.Errorf("unexpected token %s; expected start of array", tok)
+		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
 	}
 }
 
@@ -58,7 +60,7 @@ func (mach *unmarshalMachineSliceWildcard) step_AcceptValue(driver *UnmarshalDri
 	switch tok.Type {
 	case TMapClose:
 		// no special checks for ends of wildcard slice; no such thing as incomplete.
-		return false, fmt.Errorf("unexpected mapClose; expected array value or end of array")
+		return true, ErrMalformedTokenStream{tok.Type, "expected start of value or end of array"}
 	case TArrClose:
 		// Finishing step: push our current slice ref all the way to original target.
 		// REVIEW does this even require an action anymore? // *(mach.target) = mach.slice

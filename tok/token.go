@@ -37,6 +37,34 @@ const (
 	TFloat64 TokenType = 'f'
 )
 
+func (tt TokenType) String() string {
+	switch tt {
+	case TMapOpen:
+		return "map open"
+	case TMapClose:
+		return "map close"
+	case TArrOpen:
+		return "array open"
+	case TArrClose:
+		return "array close"
+	case TNull:
+		return "null"
+	case TString:
+		return "string"
+	case TBytes:
+		return "bytes"
+	case TBool:
+		return "bool"
+	case TInt:
+		return "int"
+	case TUint:
+		return "uint"
+	case TFloat64:
+		return "float"
+	}
+	return "invalid"
+}
+
 func (tt TokenType) IsValid() bool {
 	switch tt {
 	case TString, TBytes, TBool, TInt, TUint, TFloat64, TNull:
