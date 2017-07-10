@@ -1,0 +1,14 @@
+language: go
+
+go:
+  - 1.8
+
+# I know I like my dependencies specified by custom meta tags in HTML!
+# Oh wait, no. No I don't.
+install: true
+
+script:
+  - ./goad
+
+notifications:
+  email: false
