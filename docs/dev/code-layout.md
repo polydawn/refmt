@@ -22,22 +22,22 @@ User-facing
   ```
   refmt.NewJsonEncoder(stdout).Marshal(123)
   ```
-  - Creates a `Marshaler` as the `TokenSource` for walking the object (`123`).
-  - Creates a `JsonSerializer` as the `TokenSink` outputting to `stdout`.
-  - Both are placed into a `TokenPump`, which powers the rest of the transaction.
-  - The `Marshaler` sees the type of object it was given and immediately delegates to a `MarshalMachineLiteral`.
-  - The `MarshalMachineLiteral` steps once, yields a token (it's an `int`), and reports done.  There are no other stacked machines, so the `Marshaler` overall reports done.
-  - The `JsonSerializer`, invoked and given a token by the `TokenPump`, writes the number to `stdout`.  The `JsonSerializer` knows that it just wrote a literal type, and since it's not deep in an object tree that's the end of a json entity, so it reports done.
-  - The `TokenPump` sees both sides finished in unison, and returns done, with no error!
+  - Creates an `obj.Marshaler` as the `refmt.TokenSource` for walking the object (`123`).
+  - Creates a `json.Marshaller` as the `refmt.TokenSink` outputting to `stdout`.
+  - Both are placed into a `refmt.TokenPump`, which powers the rest of the transaction.
+  - The `obj.Marshaler` sees the type of object it was given and immediately delegates to an `obj.marshalMachineLiteral`.
+  - The `obj.marshalMachineLiteral` steps once, yields a token (it's going to be `TokenType` of `TInt`), and reports done.  There are no other stacked machines, so the `obj.Marshaler` overall reports done.
+  - The `json.Encoder` is invoked and given a token by the `refmt.TokenPump`, and writes the number to `stdout`.  The `json.Encoder` knows that it just wrote a literal type, and since it's not deep in an object tree that's the end of a json entity, so it reports done.
+  - The `refmt.TokenPump` sees both sides finished in unison, and returns done, with no error!
 
 -----------------------
 Token stream interfaces
 -----------------------
 
-Xlate handles every translation by converting things into a token stream,
+Refmt handles every translation by converting things into a token stream,
 then processing the token stream into the desired result format.
 
-`TokenSource` and `TokenSink` describe how to produce and process token streams, respectively.
+`refmt.TokenSource` and `refmt.TokenSink` describe how to produce and process token streams, respectively.
 Listing their implementations effectively lists every format that refmt can convert to and from.
 
 `Token`s the interal lingua franca of refmt.
@@ -45,7 +45,7 @@ A handful of special tokens signal the beginning and ending of maps and arrays.
 All other values are their own tokens -- we simply use the address of the real data
 (only primitives, of course; it's a stream, not a tree, after all).
 Using the address of the real data avoids unnecessary memcopy operations, and
-makes serialization a choice rather than a requirement.
+makes encoding to bytes a choice rather than a requirement.
 
 - **TokenSource** *interface*
 
@@ -56,9 +56,9 @@ makes serialization a choice rather than a requirement.
   Errors or end-of-stream are indicated by the return codes.
 
   - *Implementations*:
-    - **JsonDeserializer** -- constructed with an `io.Reader`, from which (hopefully-)json-formatted bytes will be consumed and converted into tokens.
-    - **CborDeserializer** -- constructed with an `io.Reader`, from which (hopefully-)cbor-formatted bytes will be consumed and converted into tokens.
-    - **Marshaler** -- constructed with a reference to any object, which will be visited and all fields emitted one by one as tokens.
+    - **json.Decoder** -- constructed with an `io.Reader`, from which (hopefully-)json-formatted bytes will be consumed and converted into tokens.
+    - **cbor.Decoder** -- constructed with an `io.Reader`, from which (hopefully-)cbor-formatted bytes will be consumed and converted into tokens.
+    - **obj.Marshaler** -- constructed with a reference to any object, which will be visited and all fields emitted one by one as tokens.
 
 - **TokenSink** *interface*
 
@@ -68,9 +68,9 @@ makes serialization a choice rather than a requirement.
   (whatever that may be, whether a serial byte stream or a complex in-memory layout).
   Errors and expected end-of-stream are indicated by the return codes.
 
-    - **JsonSerializer** -- constructed with an `io.Writer`, to which json-formatted bytes are flushed as each token is received.
-    - **CborSerializer** -- constructed with an `io.Writer`, to which cbor-formatted bytes are flushed as each token is received.
-    - **Unmarshaler** -- constructed with a reference to any object (or empty `interface{}`), which will be populated based on tokens received.
+    - **json.Encoder** -- constructed with an `io.Writer`, to which json-formatted bytes are flushed as each token is received.
+    - **cbor.Decoder** -- constructed with an `io.Writer`, to which cbor-formatted bytes are flushed as each token is received.
+    - **obj.Unmarshaler** -- constructed with a reference to any object (or empty `interface{}`), which will be populated based on tokens received.
 
 - **TokenPump** *struct*
 
@@ -81,27 +81,22 @@ makes serialization a choice rather than a requirement.
     - an error if the sink expects to be done while the source is continuing;
     - or a done bool with nil error, if both the source and sink become done during the same step.
 
----------------------------
-Object/Token morphism tools
----------------------------
+--------------------------
+Object traversal internals
+--------------------------
 
-These interfaces compose to make `TokenSource`s and `TokenSink`s that operate on in-memory data,
-working smoothly with the golang type system.
+Object traversal is complex and requires its own substantial amount of machinery.
 
-Users will rarely interact with any of these directly.
+Users do not interact with any of these directly.
 
-- **Marshaler** *struct*
+- **obj.Marshaler** *struct*
 
   Top-level control for a system that walks in-memory structures and emits tokens
   describing the object it's observing.
 
-  Both decoding (deserializing binary formats)
-  and marshalling (visiting an in-memory structure and preparing it for serialization)
-  are token sources.
+  View this like a program stack; `obj.MarshalMachine`s are the functions in the stack.
 
-  View this like a program stack; `MarshalMachine`s are the functions in the stack.
-
-- **MarshalMachine** *interface*
+- **obj.MarshalMachine** *interface*
 
   A single state machine that emits tokens implements this.
   This interface makes the individual machines composable to `Marshaler`.
@@ -120,24 +115,20 @@ Users will rarely interact with any of these directly.
   line (or one instruction) at a time.
 
   - *Implementations:*
-    - **MarshalMachineWildcard** -- turns any `interface{}` into tokens (works by looking up a more specific encode machine, then yielding to it).
-    - **MarshalMachineMapWildcard** -- turns a `map[K]V` into tokens (works for any type, using reflection).
-    - **MarshalMachineMapStringWildcard** -- turns a `map[string]interface{}` into tokens (faster than the reflection used in the wildcard system).
-    - **MarshalMachineLiteral** -- turns primitives like `int` and `string` into tokens (hardly even a DFA; only ever takes one step).
-    - **MarshalMachineStructAtlas** -- uses an `Atlas` to visit and emit tokens covering an arbitrary struct type.
-    - **PolymorphicUnionMarshalMachine** -- uses a `PolymorphAtlas` to look at an arbitrary value, emit a single-entry map, and trigger a more specific encode machine (the single key is presumably consumed by a `PolymorphicUnionMarshalMachine` and used look up the matching decoder machine).
-    - **PolymorphicEnvelopMarshalMachine** -- like `PolymorphicUnionMarshalMachine`, but emits tokens for a map styled like `{kind:typeAbc, msg:{...}}`.
+    - **marshalMachineWildcard** -- turns any `interface{}` into tokens (works by looking up a more specific encode machine, then yielding to it).
+    - **marshalMachineMapWildcard** -- turns a `map[K]V` into tokens (works for any type, using reflection).
+    - **marshalMachineMapStringWildcard** -- turns a `map[string]interface{}` into tokens (faster than the reflection used in the wildcard system).
+    - **marshalMachineLiteral** -- turns primitives like `int` and `string` into tokens (hardly even a DFA; only ever takes one step).
+    - **marshalMachineStructAtlas** -- uses an `Atlas` to visit and emit tokens covering an arbitrary struct type.
+    - **marshalMachinePolymorphicUnion** -- uses a `PolymorphAtlas` to look at an arbitrary value, emit a single-entry map, and trigger a more specific encode machine (the single key is presumably consumed by a `marshalMachinePolymorphicUnion` and used look up the matching decoder machine).
+    - **marshalMachinePolymorphicEnvelope** -- like `marshalMachinePolymorphicUnion`, but emits tokens for a map styled like `{kind:typeAbc, msg:{...}}`.
 
-- **Unmarshaler** *struct*
+- **obj.Unmarshaler** *struct*
 
   Top-level control for a system that walks in-memory structures and consumes tokens,
-  populating the in-memory fields.  The inverse of `Marshaler`.
+  populating the in-memory fields.  The inverse of `obj.Marshaler`.
 
-  Both encoding (serializing data into a binary format)
-  and unmarshalling (visiting an in-memory structure and populating its fields)
-  are token sinks.
-
-  View this like a program stack; `UnmarshalMachine`s are the functions in the stack.
+  View this like a program stack; `obj.UnmarshalMachine`s are the functions in the stack.
 
 - **UnmarshalMachine** *interface*
 
@@ -148,10 +139,10 @@ Users will rarely interact with any of these directly.
   sinks and sources follow the same model (e.g. these are DFAs, etc).
 
   - *Implementations:*
-    - **UnmarshalMachineWildcard** -- populates an `interface{}` (usually with `map[string]interface{}` or `[]interface{}`, for lack of more specific type info).
-    - **UnmarshalMachineMapWildcard** -- populates a `map[interface{}]interface{}`.
-    - **UnmarshalMachineMapStringWildcard** -- populates a `map[string]interface{}` (this will yield errors if non-string types are found as map keys).
-    - **UnmarshalMachineLiteral** -- populates `string`, `int`, etc.
-    - **UnmarshalMachineStructAtlas** -- uses an `Atlas` to visit fields (presumably all in one structure, but the sky's the limit really since `Atlas` can suggest arbitrary memory locations).
-    - **PolymorphicUnionUnmarshalMachine** -- expects to consume a single-entry map, and will attempt to shell out to a more specific decoder machine based on the key string.
-    - **PolymorphicEnvelopUnmarshalMachine** -- like `PolymorphicUnionUnmarshalMachine`, but expects to consume two entries: the value of one will be used as a type hint, and the other as the content to send to the specific decoder machine (note this may be significantly less efficient to decode, since contrasted with the union machine, it may require buffering if the type hint entry doesn't come first).
+    - **unmarshalMachineWildcard** -- populates an `interface{}` (usually with `map[string]interface{}` or `[]interface{}`, for lack of more specific type info).
+    - **unmarshalMachineMapWildcard** -- populates a `map[interface{}]interface{}`.
+    - **unmarshalMachineMapStringWildcard** -- populates a `map[string]interface{}` (this will yield errors if non-string types are found as map keys).
+    - **unmarshalMachineLiteral** -- populates `string`, `int`, etc.
+    - **unmarshalMachineStructAtlas** -- uses an `Atlas` to visit fields (presumably all in one structure, but the sky's the limit really since `Atlas` can suggest arbitrary memory locations).
+    - **unmarshalMachinePolymorphicUnion** -- expects to consume a single-entry map, and will attempt to shell out to a more specific decoder machine based on the key string.
+    - **unmarshalMachinePolymorphicEnvelope** -- like `unmarshalMachinePolymorphicUnion`, but expects to consume two entries: the value of one will be used as a type hint, and the other as the content to send to the specific decoder machine (note this may be significantly less efficient to decode, since contrasted with the union machine, it may require buffering if the type hint entry doesn't come first).
