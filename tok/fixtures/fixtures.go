@@ -1,3 +1,8 @@
+/*
+	Token stream test fixtures.
+	This is a public package because it is used by tests in the `json`, `cbor`, and `obj` packages.
+	It should not be seen in the imports outside of testing.
+*/
 package fixtures
 
 import (
