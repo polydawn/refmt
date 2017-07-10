@@ -26,7 +26,7 @@ func (mach *unmarshalMachineStructAtlas) Reset(_ *unmarshalSlab, rv reflect.Valu
 	return nil
 }
 
-func (mach *unmarshalMachineStructAtlas) Step(driver *UnmarshalDriver, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineStructAtlas) Step(driver *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	// Starter state.
 	if mach.index < 0 {
 		switch tok.Type {

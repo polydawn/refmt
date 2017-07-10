@@ -162,6 +162,6 @@ type errThunkUnmarshalMachine struct {
 func (m *errThunkUnmarshalMachine) Reset(_ *unmarshalSlab, _ reflect.Value, _ reflect.Type) error {
 	return m.err
 }
-func (m *errThunkUnmarshalMachine) Step(d *UnmarshalDriver, s *unmarshalSlab, tok *Token) (done bool, err error) {
+func (m *errThunkUnmarshalMachine) Step(d *Unmarshaler, s *unmarshalSlab, tok *Token) (done bool, err error) {
 	return true, m.err
 }

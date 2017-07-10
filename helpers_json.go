@@ -26,7 +26,7 @@ func NewAtlasedJsonEncoder(wr io.Writer, atl atlas.Atlas) *JsonEncoder {
 }
 
 type JsonEncoder struct {
-	marshaller *obj.MarshalDriver
+	marshaller *obj.Marshaler
 	encoder    *json.Encoder
 	pump       TokenPump
 }

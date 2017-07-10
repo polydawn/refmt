@@ -26,7 +26,7 @@ func NewAtlasedCborEncoder(wr io.Writer, atl atlas.Atlas) *CborEncoder {
 }
 
 type CborEncoder struct {
-	marshaller *obj.MarshalDriver
+	marshaller *obj.Marshaler
 	encoder    *cbor.Encoder
 	pump       TokenPump
 }

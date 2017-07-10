@@ -21,7 +21,7 @@ func (mach *ptrDerefDelegateUnmarshalMachine) Reset(slab *unmarshalSlab, rv refl
 	// we defer reseting the delegate machine until later, in case we get a nil, which can save a lot of time.
 	return nil
 }
-func (mach *ptrDerefDelegateUnmarshalMachine) Step(driver *UnmarshalDriver, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *ptrDerefDelegateUnmarshalMachine) Step(driver *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	// If nil: easy road.  Nil the ptr.
 	if tok.Type == TNull {
 		mach.ptr_rv.Set(reflect.Zero(mach.ptr_rv.Type()))
@@ -59,7 +59,7 @@ func (mach *unmarshalMachinePrimitive) Reset(_ *unmarshalSlab, rv reflect.Value,
 	mach.rv = rv
 	return nil
 }
-func (mach *unmarshalMachinePrimitive) Step(_ *UnmarshalDriver, _ *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachinePrimitive) Step(_ *Unmarshaler, _ *unmarshalSlab, tok *Token) (done bool, err error) {
 	switch mach.kind {
 	case reflect.Bool:
 		switch tok.Type {

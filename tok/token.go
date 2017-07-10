@@ -1,3 +1,8 @@
+/*
+	Package containing Token struct and TokenType info.
+	Tokens are the lingua-franca used between all the refmt packages.
+	Users typically do not refer to these types.
+*/
 package tok
 
 import (
