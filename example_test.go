@@ -3,6 +3,7 @@ package refmt_test
 import (
 	"bytes"
 	"fmt"
+	"strings"
 
 	"github.com/polydawn/refmt"
 	"github.com/polydawn/refmt/obj/atlas"
@@ -59,5 +60,45 @@ func ExampleJsonEncodeAtlasCustom() {
 
 	// Output:
 	// {"overrideName":"a"}
+	// <nil>
+}
+
+func ExampleJsonEncodeAtlas() {
+	type MyType struct {
+		X string
+		Y string
+		Z string
+	}
+
+	MyType_AtlasEntry := atlas.BuildEntry(MyType{}).
+		Transform().
+		TransformMarshal(atlas.MakeMarshalTransformFunc(
+			func(x MyType) (string, error) {
+				return string(x.X) + ":" + string(x.Y) + ":" + string(x.Z), nil
+			})).
+		TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+			func(x string) (MyType, error) {
+				ss := strings.Split(x, ":")
+				if len(ss) != 3 {
+					return MyType{}, fmt.Errorf("parsing MyType: string must have 3 parts, separated by colon")
+				}
+				return MyType{ss[0], ss[1], ss[2]}, nil
+			})).
+		Complete()
+
+	atl := atlas.MustBuild(
+		MyType_AtlasEntry,
+		// this is a vararg... stack more entries here!
+	)
+
+	var buf bytes.Buffer
+	encoder := refmt.NewAtlasedJsonEncoder(&buf, atl)
+
+	err := encoder.Marshal(MyType{"serializes", "as", "string!"})
+	fmt.Println(buf.String())
+	fmt.Printf("%v\n", err)
+
+	// Output:
+	// "serializes:as:string!"
 	// <nil>
 }
