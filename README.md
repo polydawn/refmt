@@ -1,7 +1,6 @@
-refmt
+refmt [![GoDoc](https://godoc.org/github.com/polydawn/refmt?status.svg)](https://godoc.org/github.com/polydawn/refmt) [![Build status](https://img.shields.io/travis/polydawn/refmt/master.svg?style=flat-square)](https://travis-ci.org/polydawn/refmt)
 =====
 
-[![GoDoc](https://godoc.org/github.com/polydawn/refmt?status.svg)](https://godoc.org/github.com/polydawn/refmt)
 
 `refmt` is a serialization and object-mapping library.
 
