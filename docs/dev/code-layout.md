@@ -22,11 +22,11 @@ User-facing
   ```
   refmt.NewJsonEncoder(stdout).Marshal(123)
   ```
-  - Creates a `MarshalDriver` as the `TokenSource` for walking the object (`123`).
+  - Creates a `Marshaler` as the `TokenSource` for walking the object (`123`).
   - Creates a `JsonSerializer` as the `TokenSink` outputting to `stdout`.
   - Both are placed into a `TokenPump`, which powers the rest of the transaction.
-  - The `MarshalDriver` sees the type of object it was given and immediately delegates to a `MarshalMachineLiteral`.
-  - The `MarshalMachineLiteral` steps once, yields a token (it's an `int`), and reports done.  There are no other stacked machines, so the `MarshalDriver` overall reports done.
+  - The `Marshaler` sees the type of object it was given and immediately delegates to a `MarshalMachineLiteral`.
+  - The `MarshalMachineLiteral` steps once, yields a token (it's an `int`), and reports done.  There are no other stacked machines, so the `Marshaler` overall reports done.
   - The `JsonSerializer`, invoked and given a token by the `TokenPump`, writes the number to `stdout`.  The `JsonSerializer` knows that it just wrote a literal type, and since it's not deep in an object tree that's the end of a json entity, so it reports done.
   - The `TokenPump` sees both sides finished in unison, and returns done, with no error!
 
@@ -58,7 +58,7 @@ makes serialization a choice rather than a requirement.
   - *Implementations*:
     - **JsonDeserializer** -- constructed with an `io.Reader`, from which (hopefully-)json-formatted bytes will be consumed and converted into tokens.
     - **CborDeserializer** -- constructed with an `io.Reader`, from which (hopefully-)cbor-formatted bytes will be consumed and converted into tokens.
-    - **MarshalDriver** -- constructed with a reference to any object, which will be visited and all fields emitted one by one as tokens.
+    - **Marshaler** -- constructed with a reference to any object, which will be visited and all fields emitted one by one as tokens.
 
 - **TokenSink** *interface*
 
@@ -70,7 +70,7 @@ makes serialization a choice rather than a requirement.
 
     - **JsonSerializer** -- constructed with an `io.Writer`, to which json-formatted bytes are flushed as each token is received.
     - **CborSerializer** -- constructed with an `io.Writer`, to which cbor-formatted bytes are flushed as each token is received.
-    - **UnmarshalDriver** -- constructed with a reference to any object (or empty `interface{}`), which will be populated based on tokens received.
+    - **Unmarshaler** -- constructed with a reference to any object (or empty `interface{}`), which will be populated based on tokens received.
 
 - **TokenPump** *struct*
 
@@ -90,7 +90,7 @@ working smoothly with the golang type system.
 
 Users will rarely interact with any of these directly.
 
-- **MarshalDriver** *struct*
+- **Marshaler** *struct*
 
   Top-level control for a system that walks in-memory structures and emits tokens
   describing the object it's observing.
@@ -104,10 +104,10 @@ Users will rarely interact with any of these directly.
 - **MarshalMachine** *interface*
 
   A single state machine that emits tokens implements this.
-  This interface makes the individual machines composable to `MarshalDriver`.
+  This interface makes the individual machines composable to `Marshaler`.
 
   In automata theory, `MarshalMachine` is generally a DFA FSM -- that is,
-  it can operate with a finite amount of memory -- and we use the `MarshalDriver`
+  it can operate with a finite amount of memory -- and we use the `Marshaler`
   to gather together `MarshalMachine`s into stacks, thus giving us a
   *pushdown automata*, which has sufficient power to handle recursive structure.
 
@@ -115,7 +115,7 @@ Users will rarely interact with any of these directly.
   can operate without allocating memory on the heap.  This confers a large
   bonus to overall performance.
 
-  If a `MarshalDriver` is like a stack, and the `MarshalMachine` like a function,
+  If a `Marshaler` is like a stack, and the `MarshalMachine` like a function,
   then each time you call the `MarshalMachine` is like stepping through a function one
   line (or one instruction) at a time.
 
@@ -128,10 +128,10 @@ Users will rarely interact with any of these directly.
     - **PolymorphicUnionMarshalMachine** -- uses a `PolymorphAtlas` to look at an arbitrary value, emit a single-entry map, and trigger a more specific encode machine (the single key is presumably consumed by a `PolymorphicUnionMarshalMachine` and used look up the matching decoder machine).
     - **PolymorphicEnvelopMarshalMachine** -- like `PolymorphicUnionMarshalMachine`, but emits tokens for a map styled like `{kind:typeAbc, msg:{...}}`.
 
-- **UnmarshalDriver** *struct*
+- **Unmarshaler** *struct*
 
   Top-level control for a system that walks in-memory structures and consumes tokens,
-  populating the in-memory fields.  The inverse of `MarshalDriver`.
+  populating the in-memory fields.  The inverse of `Marshaler`.
 
   Both encoding (serializing data into a binary format)
   and unmarshalling (visiting an in-memory structure and populating its fields)
@@ -142,7 +142,7 @@ Users will rarely interact with any of these directly.
 - **UnmarshalMachine** *interface*
 
   A single state machines that consumes tokens implements this.
-  This interface makes the individual machines composable to `UnmarshalDriver`.
+  This interface makes the individual machines composable to `Unmarshaler`.
 
   See the documentation of `MarshalMachine` for more information;
   sinks and sources follow the same model (e.g. these are DFAs, etc).

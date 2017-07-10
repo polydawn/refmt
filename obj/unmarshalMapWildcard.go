@@ -27,11 +27,11 @@ func (mach *unmarshalMachineMapStringWildcard) Reset(slab *unmarshalSlab, rv ref
 	return nil
 }
 
-func (mach *unmarshalMachineMapStringWildcard) Step(driver *UnmarshalDriver, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineMapStringWildcard) Step(driver *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	return mach.step(driver, slab, tok)
 }
 
-func (mach *unmarshalMachineMapStringWildcard) step_Initial(_ *UnmarshalDriver, _ *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineMapStringWildcard) step_Initial(_ *Unmarshaler, _ *unmarshalSlab, tok *Token) (done bool, err error) {
 	// If it's a special state, start an object.
 	//  (Or, blow up if its a special state that's silly).
 	switch tok.Type {
@@ -57,7 +57,7 @@ func (mach *unmarshalMachineMapStringWildcard) step_Initial(_ *UnmarshalDriver, 
 	}
 }
 
-func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *UnmarshalDriver, _ *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *Unmarshaler, _ *unmarshalSlab, tok *Token) (done bool, err error) {
 	// First, save any refs from the last value.
 	//  (This is fiddly: the delay comes mostly from the handling of slices, which may end up re-allocating
 	//   themselves during their decoding.)
@@ -97,7 +97,7 @@ func (mach *unmarshalMachineMapStringWildcard) mustAcceptKey(key_rv reflect.Valu
 	return nil
 }
 
-func (mach *unmarshalMachineMapStringWildcard) step_AcceptValue(driver *UnmarshalDriver, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineMapStringWildcard) step_AcceptValue(driver *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	mach.step = mach.step_AcceptKey
 	return false, driver.Recurse(
 		tok,

@@ -7,7 +7,7 @@ import (
 	. "github.com/polydawn/refmt/tok"
 )
 
-// ErrInvalidUnmarshalTarget describes an invalid argument passed to UnmarshalDriver.Bind.
+// ErrInvalidUnmarshalTarget describes an invalid argument passed to Unmarshaler.Bind.
 // (Unmarshalling must target a non-nil pointer so that it can address the value.)
 type ErrInvalidUnmarshalTarget struct {
 	Type reflect.Type

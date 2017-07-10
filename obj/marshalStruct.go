@@ -23,7 +23,7 @@ func (mach *marshalMachineStructAtlas) Reset(_ *marshalSlab, rv reflect.Value, _
 	return nil
 }
 
-func (mach *marshalMachineStructAtlas) Step(driver *MarshalDriver, slab *marshalSlab, tok *Token) (done bool, err error) {
+func (mach *marshalMachineStructAtlas) Step(driver *Marshaler, slab *marshalSlab, tok *Token) (done bool, err error) {
 	//fmt.Printf("--step on %#v: i=%d/%d v=%v\n", mach.rv, mach.index, len(mach.cfg.Fields), mach.value)
 	nEntries := len(mach.cfg.Fields)
 	if mach.index < 0 {

@@ -13,7 +13,7 @@ type marshalMachineSliceWildcard struct {
 	marshalMachineArrayWildcard
 }
 
-func (mach *marshalMachineSliceWildcard) Step(driver *MarshalDriver, slab *marshalSlab, tok *Token) (done bool, err error) {
+func (mach *marshalMachineSliceWildcard) Step(driver *Marshaler, slab *marshalSlab, tok *Token) (done bool, err error) {
 	if mach.index < 0 {
 		if mach.target_rv.IsNil() {
 			tok.Type = TNull
@@ -40,7 +40,7 @@ func (mach *marshalMachineArrayWildcard) Reset(slab *marshalSlab, rv reflect.Val
 	return nil
 }
 
-func (mach *marshalMachineArrayWildcard) Step(driver *MarshalDriver, slab *marshalSlab, tok *Token) (done bool, err error) {
+func (mach *marshalMachineArrayWildcard) Step(driver *Marshaler, slab *marshalSlab, tok *Token) (done bool, err error) {
 	if mach.index < 0 {
 		tok.Type = TArrOpen
 		tok.Length = mach.target_rv.Len()
