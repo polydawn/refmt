@@ -7,8 +7,8 @@ Package layout
 - `refmt` -- main package.  All major interface types and helpful factory methods.
   - `json` -- `json.Serializer` and `json.Deserializer`
   - `cbor` -- `cbor.Serializer` and `cbor.Deserializer`
-  - `obj` -- `obj.Marshaller` and `obj.Unmarshaller`
-    - `atlas` -- types for describing how to `obj.*Marshaller`s should visit complex types.
+  - `obj` -- `obj.Marshaler` and `obj.Unmarshaler`
+    - `atlas` -- types for describing how to `obj.*Marshaler`s should visit complex types.
   - `tok` -- token handling utils.  Many exported values, for use in sibling packages, but not often seen by users.
 
 (Experienced go developers will probably already have noticed that putting core interfaces and factory methods in the same package is usually going to run aground on the no-cyclic-imports rule.
@@ -23,7 +23,7 @@ User-facing
   refmt.NewJsonEncoder(stdout).Marshal(123)
   ```
   - Creates an `obj.Marshaler` as the `refmt.TokenSource` for walking the object (`123`).
-  - Creates a `json.Marshaller` as the `refmt.TokenSink` outputting to `stdout`.
+  - Creates a `json.Marshaler` as the `refmt.TokenSink` outputting to `stdout`.
   - Both are placed into a `refmt.TokenPump`, which powers the rest of the transaction.
   - The `obj.Marshaler` sees the type of object it was given and immediately delegates to an `obj.marshalMachineLiteral`.
   - The `obj.marshalMachineLiteral` steps once, yields a token (it's going to be `TokenType` of `TInt`), and reports done.  There are no other stacked machines, so the `obj.Marshaler` overall reports done.

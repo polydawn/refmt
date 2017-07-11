@@ -22,19 +22,19 @@ and `refmt/json` and `refmt/cbor` as ways to exchange tokens with serialized for
 
 All of these formats can mix-n-match freely, because they communicate values as the standard token stream. Voilà:
 
-- pair `obj.Marshaller` with `json.Encoder` to get a json serializer.
-- pair `cbor.Decoder` with `obj.Unmarshaller` to get a cbor deserializer.
+- pair `obj.Marshaler` with `json.Encoder` to get a json serializer.
+- pair `cbor.Decoder` with `obj.Unmarshaler` to get a cbor deserializer.
 - pair `cbor.Decoder` with `json.Encoder` to get a cbor->json streaming transcoder!
-- pair `obj.Marshaller` with `obj.Unmarshaller` to get a deep-copy system!  (Try it with two different types: marshalling a struct and unmarshalling into a freeform map!)
+- pair `obj.Marshaler` with `obj.Unmarshaler` to get a deep-copy system!  (Try it with two different types: marshaling a struct and unmarshaling into a freeform map!)
 
 Along the way, we've added a powerful system for defining **how** exactly the `refmt/obj` tools should treat your structures:
 the Atlas system (defined in the `refmt/obj/atlas` package).
 Atlases can be used to customize how struct fields are handled, how map keys are sorted, and even
 define conversions between completely different *kinds* of objects: serialize arrays as strings, or turn stringy enums into bitfields, no problem.
-By default, `refmt` will generate atlases automatically for your structs and types, just like the standard library json marshallers do;
+By default, `refmt` will generate atlases automatically for your structs and types, just like the standard library json marshalers do;
 if you want more control, atlases give you the power.
 
-An Atlas can be given to each `obj.Marshaller` and `obj.Unmarshaller` when it is constructed.
+An Atlas can be given to each `obj.Marshaler` and `obj.Unmarshaler` when it is constructed.
 This allows great variation in how you wish to handle types -- more than one mapping can be defined for the same concrete type!
 (This is a killer feature if you need to support multiple versions of an API, for example:
 you can define 'v1' and 'v2' types, each with their own structs to unmarshal user requests into;
@@ -46,9 +46,9 @@ Atlases attach to the type they concern.
 This means you can use atlases to define custom serialization even for types in packages you can't modify!
 Atlases also behave better in complex situations: for example,
 if you have a `TypeFoo` struct and you wish to serialize it as a string,
-*you don't have to write a custom marshaller for every type that **contains** a `TypeFoo` field*.
+*you don't have to write a custom marshaler for every type that **contains** a `TypeFoo` field*.
 Leaking details of custom serialization into the types that contain the interesting objects is
-a common pitfall when getting into advanced usage of other marshalling libraries; `refmt` has no such issue.
+a common pitfall when getting into advanced usage of other marshaling libraries; `refmt` has no such issue.
 
 ## tl;dr:
 

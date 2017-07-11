@@ -70,7 +70,7 @@ func (d *MarshalDriver) Step(tok *Token) (bool, error) {
 }
 
 /*
-	Starts the process of recursing marshalling over `target` value.
+	Starts the process of recursing marshaling over `target` value.
 
 	Caller provides the machine to use (this is an optimization for maps and slices,
 	which already know the machine and keep reusing it for all their entries).

@@ -77,7 +77,7 @@ func (d *Unmarshaler) Step(tok *Token) (bool, error) {
 }
 
 /*
-	Starts the process of recursing unmarshalling over value `rv`.
+	Starts the process of recursing unmarshaling over value `rv`.
 
 	Caller provides the machine to use (this is an optimization for maps and slices,
 	which already know the machine and keep reusing it for all their entries).

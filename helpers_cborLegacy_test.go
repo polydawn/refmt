@@ -17,24 +17,24 @@ func NewCborLegacyEncoder(wr io.Writer) *CborLegacyEncoder {
 
 func NewAtlasedCborLegacyEncoder(wr io.Writer, suite *objLegacy.Suite) *CborLegacyEncoder {
 	enc := &CborLegacyEncoder{
-		marshaller: objLegacy.NewMarshaler(suite),
+		marshaler: objLegacy.NewMarshaler(suite),
 		encoder:    cbor.NewEncoder(wr),
 	}
 	enc.pump = TokenPump{
-		enc.marshaller,
+		enc.marshaler,
 		enc.encoder,
 	}
 	return enc
 }
 
 type CborLegacyEncoder struct {
-	marshaller *objLegacy.MarshalDriver
+	marshaler *objLegacy.MarshalDriver
 	encoder    *cbor.Encoder
 	pump       TokenPump
 }
 
 func (d *CborLegacyEncoder) Marshal(v interface{}) error {
-	d.marshaller.Bind(v)
+	d.marshaler.Bind(v)
 	d.encoder.Reset()
 	return d.pump.Run()
 }
