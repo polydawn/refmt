@@ -28,6 +28,11 @@ var jsonFixtures = []struct {
 		`  "" `,
 		situationDecoding,
 	},
+	{"",
+		fixtures.SequenceMap["flat string"],
+		`"value"`,
+		situationEncoding | situationDecoding,
+	},
 
 	// Maps
 	{"",
