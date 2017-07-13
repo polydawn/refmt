@@ -15,24 +15,24 @@ func NewCborEncoder(wr io.Writer) *CborEncoder {
 
 func NewAtlasedCborEncoder(wr io.Writer, atl atlas.Atlas) *CborEncoder {
 	enc := &CborEncoder{
-		marshaller: obj.NewMarshaler(atl),
+		marshaler: obj.NewMarshaler(atl),
 		encoder:    cbor.NewEncoder(wr),
 	}
 	enc.pump = TokenPump{
-		enc.marshaller,
+		enc.marshaler,
 		enc.encoder,
 	}
 	return enc
 }
 
 type CborEncoder struct {
-	marshaller *obj.Marshaler
+	marshaler *obj.Marshaler
 	encoder    *cbor.Encoder
 	pump       TokenPump
 }
 
 func (d *CborEncoder) Marshal(v interface{}) error {
-	d.marshaller.Bind(v)
+	d.marshaler.Bind(v)
 	d.encoder.Reset()
 	return d.pump.Run()
 }

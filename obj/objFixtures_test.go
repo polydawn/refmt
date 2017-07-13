@@ -16,7 +16,7 @@ var skipMe = fmt.Errorf("skipme")
 
 type marshalResults struct {
 	title string
-	// Yields a value to hand to the marshaller.
+	// Yields a value to hand to the marshaler.
 	// A func returning a wildcard is used rather than just an `interface{}`, because `&target` conveys very different type information.
 	valueFn func() interface{}
 
@@ -25,7 +25,7 @@ type marshalResults struct {
 }
 type unmarshalResults struct {
 	title string
-	// Yields the handle we should give to the unmarshaller to fill.
+	// Yields the handle we should give to the unmarshaler to fill.
 	// Like `valueFn`, the indirection here is to help
 	slotFn func() interface{}
 
@@ -77,7 +77,7 @@ var objFixtures = []struct {
 	// The suite of mappings to use.
 	atlas atlas.Atlas
 
-	// The results to expect from various marshalling starting points.
+	// The results to expect from various marshaling starting points.
 	// This is a slice because we occasionally have several different kinds of objects
 	// which we expect will converge on the same token fixture given the same atlas.
 	marshalResults []marshalResults
@@ -282,7 +282,7 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return tObjStr2{"value", "v2"} }},
 		},
 	},
-	{title: "object with two string fields, with atlas entry, unmarshalling accepts alt2 serial ordering",
+	{title: "object with two string fields, with atlas entry, unmarshaling accepts alt2 serial ordering",
 		sequence: fixtures.SequenceMap["duo row map alt2"],
 		atlas: atlas.MustBuild(
 			atlas.BuildEntry(tObjStr2{}).StructMap().
@@ -305,7 +305,7 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return tObjStr2{"value", "v2"} }},
 		},
 	},
-	{title: "object with two string fields, with atlas entry, unmarshalling rejects when fields mismatch",
+	{title: "object with two string fields, with atlas entry, unmarshaling rejects when fields mismatch",
 		sequence: fixtures.SequenceMap["duo row map"],
 		atlas: atlas.MustBuild(
 			atlas.BuildEntry(tObjStr2{}).StructMap().
@@ -800,7 +800,7 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return []int(nil) }},
 			{title: "into *tObjStr",
 				slotFn: func() interface{} { var v tObjStr; return &v },
-				// no, the answer is *not* a nil a la `{ var v *tObjStr; return v }` -- because the way unmarshalling uses the first pointer, it can't really set it to nil.
+				// no, the answer is *not* a nil a la `{ var v *tObjStr; return v }` -- because the way unmarshaling uses the first pointer, it can't really set it to nil.
 				// stdlib json behavior is the same for the same reasons: https://play.golang.org/p/kd8iqNPdlM
 				valueFn: func() interface{} { return tObjStr{""} }},
 		},
@@ -860,7 +860,7 @@ var objFixtures = []struct {
 	},
 }
 
-func TestMarshaller(t *testing.T) {
+func TestMarshaler(t *testing.T) {
 	// Package all the values from one step into a struct, just so that
 	// we can assert on them all at once and make one green checkmark render per step.
 	// Stringify the token first so extraneous fields in the union are hidden.
@@ -869,7 +869,7 @@ func TestMarshaller(t *testing.T) {
 		err error
 	}
 
-	Convey("Marshaller suite:", t, func() {
+	Convey("Marshaler suite:", t, func() {
 		for _, tr := range objFixtures {
 			Convey(fmt.Sprintf("%q fixture sequence:", tr.title), func() {
 				for _, trr := range tr.marshalResults {
@@ -881,16 +881,16 @@ func TestMarshaller(t *testing.T) {
 					value := trr.valueFn()
 					valueKind := reflect.ValueOf(value).Kind()
 					maybe(fmt.Sprintf("working %s (%s|%T):", trr.title, valueKind, value), func() {
-						// Set up marshaller.
-						marshaller := NewMarshaler(tr.atlas)
-						marshaller.Bind(value)
+						// Set up marshaler.
+						marshaler := NewMarshaler(tr.atlas)
+						marshaler.Bind(value)
 
 						Convey("Steps...", func() {
-							// Run steps until the marshaller says done or error.
+							// Run steps until the marshaler says done or error.
 							// For each step, assert the token matches fixtures;
 							// when error and expected one, skip token check on that step
 							// and finalize with the assertion.
-							// If marshaller doesn't stop when we expected it to based
+							// If marshaler doesn't stop when we expected it to based
 							// on fixture length, let it keep running three more steps
 							// so we get that much more debug info.
 							var done bool
@@ -898,7 +898,7 @@ func TestMarshaller(t *testing.T) {
 							var tok Token
 							expectSteps := len(tr.sequence.Tokens) - 1
 							for nStep := 0; nStep < expectSteps+3; nStep++ {
-								done, err = marshaller.Step(&tok)
+								done, err = marshaler.Step(&tok)
 								if err != nil && trr.expectErr != nil {
 									Convey("Result (error expected)", func() {
 										So(err.Error(), ShouldResemble, trr.expectErr.Error())
@@ -933,7 +933,7 @@ func TestMarshaller(t *testing.T) {
 	})
 }
 
-func TestUnmarshaller(t *testing.T) {
+func TestUnmarshaler(t *testing.T) {
 	// Package all the values from one step into a struct, just so that
 	// we can assert on them all at once and make one green checkmark render per step.
 	// Stringify the token first so extraneous fields in the union are hidden.
@@ -943,7 +943,7 @@ func TestUnmarshaller(t *testing.T) {
 		done bool
 	}
 
-	Convey("Unmarshaller suite:", t, func() {
+	Convey("Unmarshaler suite:", t, func() {
 		for _, tr := range objFixtures {
 			Convey(fmt.Sprintf("%q fixture sequence:", tr.title), func() {
 				for _, trr := range tr.unmarshalResults {
@@ -956,9 +956,9 @@ func TestUnmarshaller(t *testing.T) {
 					slotKind := reflect.ValueOf(slot).Kind()
 					maybe(fmt.Sprintf("targetting %s (%s|%T):", trr.title, slotKind, slot), func() {
 
-						// Set up unmarshaller.
-						unmarshaller := NewUnmarshaler(tr.atlas)
-						err := unmarshaller.Bind(slot)
+						// Set up unmarshaler.
+						unmarshaler := NewUnmarshaler(tr.atlas)
+						err := unmarshaler.Bind(slot)
 						if err != nil && trr.expectErr != nil {
 							Convey("Result (error expected)", func() {
 								So(err.Error(), ShouldResemble, trr.expectErr.Error())
@@ -968,13 +968,13 @@ func TestUnmarshaller(t *testing.T) {
 
 						Convey("Steps...", func() {
 							// Run steps.
-							// This is less complicated than the marshaller test
+							// This is less complicated than the marshaler test
 							// because we know exactly when we'll run out of them.
 							var done bool
 							var err error
 							expectSteps := len(tr.sequence.Tokens) - 1
 							for nStep, tok := range tr.sequence.Tokens {
-								done, err = unmarshaller.Step(&tok)
+								done, err = unmarshaler.Step(&tok)
 								if err != nil && trr.expectErr != nil {
 									Convey("Result (error expected)", func() {
 										So(err.Error(), ShouldResemble, trr.expectErr.Error())

@@ -24,7 +24,7 @@ func (s *slotForIface) Slot() interface{}              { return &s.slot }
 func (s *slotForSliceOfIface) Slot() interface{}       { return &s.slot }
 func (s *slotForMapOfStringToIface) Slot() interface{} { return &s.slot }
 
-func TestUnmarshaller(t *testing.T) {
+func TestUnmarshaler(t *testing.T) {
 	tt := []struct {
 		title    string
 		slotter  slotter

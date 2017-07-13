@@ -56,7 +56,7 @@ var Sequences = []Sequence{
 		},
 	},
 	{"duo row map alt2",
-		// same as previous, but map entries in a different order -- useful to test that unmarshaller can accept that (or, reject non-canonical orders!)
+		// same as previous, but map entries in a different order -- useful to test that unmarshaler can accept that (or, reject non-canonical orders!)
 		[]Token{
 			{Type: TMapOpen, Length: 2},
 			TokStr("k2"),
