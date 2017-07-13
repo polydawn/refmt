@@ -94,6 +94,7 @@ func (d *Decoder) step_acceptArrValueOrBreak(tokenSlot *Token) (done bool, err e
 		return true, nil
 	default:
 		_, err := d.stepHelper_acceptValue(majorByte, tokenSlot)
+		d.some = true
 		return false, err
 	}
 }
