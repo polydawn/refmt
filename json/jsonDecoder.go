@@ -42,19 +42,22 @@ func (d *Decoder) Step(tokenSlot *Token) (done bool, err error) {
 	if !done {
 		return false, nil
 	}
-	// If it WAS done, pop next, or if stack empty, we're entirely done.
+	// If it WAS done, and stack empty, we're entirely done.
 	nSteps := len(d.stack) - 1
 	if nSteps <= 0 {
 		return true, nil // that's all folks
 	}
+	// Pop the stack.  Reset "some" to true.
 	d.step = d.stack[nSteps]
 	d.stack = d.stack[0:nSteps]
+	d.some = true
 	return false, nil
 }
 
 func (d *Decoder) pushPhase(newPhase decoderStep) {
 	d.stack = append(d.stack, d.step)
 	d.step = newPhase
+	d.some = false
 }
 
 func readn1skippingWhitespace(r quickReader) (majorByte byte) {
@@ -134,8 +137,8 @@ func (d *Decoder) step_acceptMapKeyOrBreak(tokenSlot *Token) (done bool, err err
 // Step in midst of decoding a map, value expected up next.
 func (d *Decoder) step_acceptMapValue(tokenSlot *Token) (done bool, err error) {
 	majorByte := readn1skippingWhitespace(d.r)
-	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
 	d.step = d.step_acceptMapKeyOrBreak
+	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
 	return false, err
 }
 

@@ -112,4 +112,11 @@ var jsonFixtures = []struct {
 		`["value",  "v2"]`,
 		situationDecoding,
 	},
+
+	// Complex / mixed / nested.
+	{"",
+		fixtures.SequenceMap["array nested in map as non-first and final entry"].SansLengthInfo(),
+		`{"k1":"v1","ke":["oh","whee","wow"]}`,
+		situationEncoding | situationDecoding,
+	},
 }
