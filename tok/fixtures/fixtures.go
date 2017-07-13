@@ -19,6 +19,11 @@ type Sequence struct {
 // An array of well-formed token sequences.
 var Sequences = []Sequence{
 	// Strings.
+	{"empty string",
+		[]Token{
+			TokStr(""),
+		},
+	},
 	{"flat string",
 		[]Token{
 			TokStr("value"),
