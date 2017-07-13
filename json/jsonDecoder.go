@@ -116,13 +116,16 @@ func (d *Decoder) step_acceptMapKeyOrBreak(tokenSlot *Token) (done bool, err err
 		tokenSlot.Type = TMapClose
 		return true, nil
 	default:
-		d.step = d.step_acceptMapValue
+		// Consume a string for key.
 		_, err := d.stepHelper_acceptValue(majorByte, tokenSlot) // FIXME surely not *any* value?  not composites, at least?
-		// now scan up to consume the colon as well, which is required next.
+		// Now scan up to consume the colon as well, which is required next.
 		majorByte = readn1skippingWhitespace(d.r)
 		if majorByte != ':' {
 			return true, fmt.Errorf("expected colon after map key; got 0x%x", majorByte)
 		}
+		// Next up: expect a value.
+		d.step = d.step_acceptMapValue
+		d.some = true
 		return false, err
 	}
 }
