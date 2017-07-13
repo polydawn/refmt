@@ -33,6 +33,11 @@ var jsonFixtures = []struct {
 		`"value"`,
 		situationEncoding | situationDecoding,
 	},
+	{"",
+		fixtures.SequenceMap["strings needing escape"],
+		`"str\nbroken\ttabbed"`,
+		situationEncoding | situationDecoding,
+	},
 
 	// Maps
 	{"",
