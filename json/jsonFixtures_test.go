@@ -23,6 +23,11 @@ var jsonFixtures = []struct {
 		`""`,
 		situationEncoding | situationDecoding,
 	},
+	{"decoding with extra whitespace",
+		fixtures.SequenceMap["empty string"].SansLengthInfo(),
+		`  "" `,
+		situationDecoding,
+	},
 
 	// Maps
 	{"",
@@ -30,11 +35,21 @@ var jsonFixtures = []struct {
 		`{}`,
 		situationEncoding | situationDecoding,
 	},
+	{"decoding with extra whitespace",
+		fixtures.SequenceMap["empty map"].SansLengthInfo(),
+		`{  }`,
+		situationDecoding,
+	},
 
 	// Arrays
 	{"",
 		fixtures.SequenceMap["empty array"].SansLengthInfo(),
 		`[]`,
 		situationEncoding | situationDecoding,
+	},
+	{"decoding with extra whitespace",
+		fixtures.SequenceMap["empty array"].SansLengthInfo(),
+		`  [ ] `,
+		situationDecoding,
 	},
 }
