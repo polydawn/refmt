@@ -160,19 +160,6 @@ func (d *Encoder) popPhase() (bool, error) {
 	return false, nil
 }
 
-// The most heavily used words, cached as byte slices.
-var (
-	wordTrue     = []byte("true")
-	wordFalse    = []byte("false")
-	wordNull     = []byte("null")
-	wordArrOpen  = []byte("[")
-	wordArrClose = []byte("]")
-	wordMapOpen  = []byte("{")
-	wordMapClose = []byte("}")
-	wordColon    = []byte(":")
-	wordComma    = []byte(",")
-)
-
 // Emit an entry separater (comma), unless we're at the start of an object.
 // Mark that we *do* have some content, regardless, so next time will need a sep.
 func (d *Encoder) entrySep() {
