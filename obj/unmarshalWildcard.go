@@ -69,10 +69,10 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaller, slab *unm
 		return mach.delegate.Step(driver, slab, tok)
 
 	case TMapClose:
-		return true, ErrMalformedTokenStream{tok.Type, "expected start of value"}
+		return true, ErrMalformedTokenStream{tok.Type, "start of value"}
 
 	case TArrClose:
-		return true, ErrMalformedTokenStream{tok.Type, "expected start of value"}
+		return true, ErrMalformedTokenStream{tok.Type, "start of value"}
 
 	case TNull:
 		mach.target_rv.Set(reflect.Zero(mach.target_rt))

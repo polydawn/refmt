@@ -36,16 +36,16 @@ func (mach *unmarshalMachineStructAtlas) Step(driver *Unmarshaller, slab *unmars
 			mach.index++
 			return false, nil
 		case TMapClose:
-			return true, ErrMalformedTokenStream{tok.Type, "expected start of map"}
+			return true, ErrMalformedTokenStream{tok.Type, "start of map"}
 		case TArrOpen:
-			return true, ErrMalformedTokenStream{tok.Type, "expected start of map"}
+			return true, ErrMalformedTokenStream{tok.Type, "start of map"}
 		case TArrClose:
-			return true, ErrMalformedTokenStream{tok.Type, "expected start of map"}
+			return true, ErrMalformedTokenStream{tok.Type, "start of map"}
 		case TNull:
 			mach.rv.Set(reflect.Zero(mach.rv.Type()))
 			return true, nil
 		default:
-			return true, ErrMalformedTokenStream{tok.Type, "expected start of map"}
+			return true, ErrMalformedTokenStream{tok.Type, "start of map"}
 		}
 	}
 
@@ -94,7 +94,7 @@ func (mach *unmarshalMachineStructAtlas) Step(driver *Unmarshaller, slab *unmars
 			return true, ErrNoSuchField{tok.Str}
 		}
 	default:
-		return true, ErrMalformedTokenStream{tok.Type, "expected map key"}
+		return true, ErrMalformedTokenStream{tok.Type, "map key"}
 	}
 	return false, nil
 }

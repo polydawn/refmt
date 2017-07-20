@@ -32,7 +32,7 @@ func (mach *unmarshalMachineSliceWildcard) step_Initial(_ *Unmarshaller, slab *u
 	//  (Or, blow up if its a special state that's silly).
 	switch tok.Type {
 	case TMapOpen:
-		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
+		return true, ErrMalformedTokenStream{tok.Type, "start of array"}
 	case TArrOpen:
 		// Great.  Consumed.
 		mach.step = mach.step_AcceptValue
@@ -42,14 +42,14 @@ func (mach *unmarshalMachineSliceWildcard) step_Initial(_ *Unmarshaller, slab *u
 		}
 		return false, nil
 	case TMapClose:
-		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
+		return true, ErrMalformedTokenStream{tok.Type, "start of array"}
 	case TArrClose:
-		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
+		return true, ErrMalformedTokenStream{tok.Type, "start of array"}
 	case TNull:
 		mach.target_rv.Set(reflect.Zero(mach.target_rv.Type()))
 		return true, nil
 	default:
-		return true, ErrMalformedTokenStream{tok.Type, "expected start of array"}
+		return true, ErrMalformedTokenStream{tok.Type, "start of array"}
 	}
 }
 
@@ -60,7 +60,7 @@ func (mach *unmarshalMachineSliceWildcard) step_AcceptValue(driver *Unmarshaller
 	switch tok.Type {
 	case TMapClose:
 		// no special checks for ends of wildcard slice; no such thing as incomplete.
-		return true, ErrMalformedTokenStream{tok.Type, "expected start of value or end of array"}
+		return true, ErrMalformedTokenStream{tok.Type, "start of value or end of array"}
 	case TArrClose:
 		// Finishing step: push our current slice ref all the way to original target.
 		// REVIEW does this even require an action anymore? // *(mach.target) = mach.slice
