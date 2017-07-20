@@ -9,7 +9,10 @@ refmt [![GoDoc](https://godoc.org/github.com/polydawn/refmt?status.svg)](https:/
 Why?
 ----
 
-Mostly because I have some types which I need to encode in two different ways, and that needs to not suck, and that totally sucks with most serialization libraries I've used.
+Mostly because I have some types which I need to encode in two different ways, and that needs to not suck,
+and that totally sucks with most serialization libraries I've used.
+Also, I need to serialize things in different formats, e.g. sometimes JSON and other times CBOR,
+and that needs to work without me wrestling two different object-serial libraries and configs.
 
 More broadly, I want a single library that can handle my serialization -- with the possibility of different setups on the same types -- and if it can do general object traversals, e.g. a deepcopy, that also seems like... just something that should be natural.
 
