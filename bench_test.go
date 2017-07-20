@@ -2,10 +2,12 @@ package refmt
 
 import (
 	"bytes"
-	"encoding/json"
+	stdjson "encoding/json"
 	"fmt"
 	"testing"
 
+	"github.com/polydawn/refmt/cbor"
+	"github.com/polydawn/refmt/json"
 	"github.com/polydawn/refmt/obj/atlas"
 )
 
@@ -30,7 +32,7 @@ var fixture_arrayFlatInt_cbor = []byte{0x80 + 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
 func Benchmark_ArrayFlatIntToJson_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewJsonEncoder(&buf)
+	enc := NewMarshaller(json.EncodeOptions{}, &buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatInt)
@@ -40,7 +42,7 @@ func Benchmark_ArrayFlatIntToJson_Refmt(b *testing.B) {
 func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := json.NewEncoder(&buf)
+	enc := stdjson.NewEncoder(&buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Encode(&fixture_arrayFlatInt)
@@ -51,7 +53,7 @@ func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 func Benchmark_ArrayFlatIntToCbor_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewCborEncoder(&buf)
+	enc := NewMarshaller(cbor.EncodeOptions{}, &buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatInt)
@@ -70,7 +72,7 @@ var fixture_arrayFlatStr_cbor = []byte{0x80 + 10, 0x60 + 1, 0x30 + 1, 0x60 + 1, 
 func Benchmark_ArrayFlatStrToJson_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewJsonEncoder(&buf)
+	enc := NewMarshaller(json.EncodeOptions{}, &buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatStr)
@@ -80,7 +82,7 @@ func Benchmark_ArrayFlatStrToJson_Refmt(b *testing.B) {
 func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := json.NewEncoder(&buf)
+	enc := stdjson.NewEncoder(&buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Encode(&fixture_arrayFlatStr)
@@ -91,7 +93,7 @@ func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 func Benchmark_ArrayFlatStrToCbor_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewCborEncoder(&buf)
+	enc := NewMarshaller(cbor.EncodeOptions{}, &buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatStr)
@@ -168,7 +170,7 @@ var fixture_struct_atlas = atlas.MustBuild(
 func Benchmark_StructToJson_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewAtlasedJsonEncoder(&buf, fixture_struct_atlas)
+	enc := NewMarshallerAtlased(json.EncodeOptions{}, &buf, fixture_struct_atlas)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_struct)
@@ -178,7 +180,7 @@ func Benchmark_StructToJson_Refmt(b *testing.B) {
 func Benchmark_StructToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := json.NewEncoder(&buf)
+	enc := stdjson.NewEncoder(&buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Encode(&fixture_struct)
@@ -189,7 +191,7 @@ func Benchmark_StructToJson_Stdlib(b *testing.B) {
 func Benchmark_StructToCbor_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewAtlasedCborEncoder(&buf, fixture_struct_atlas)
+	enc := NewMarshallerAtlased(cbor.EncodeOptions{}, &buf, fixture_struct_atlas)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_struct)

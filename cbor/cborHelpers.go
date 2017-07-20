@@ -34,6 +34,14 @@ func Marshal(v interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
+func MarshalAtlased(v interface{}, atl atlas.Atlas) ([]byte, error) {
+	var buf bytes.Buffer
+	if err := NewMarshallerAtlased(&buf, atl).Marshal(v); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
 type Marshaller struct {
 	marshaller *obj.Marshaller
 	encoder    *Encoder
@@ -64,6 +72,10 @@ func NewMarshallerAtlased(wr io.Writer, atl atlas.Atlas) *Marshaller {
 
 func Unmarshal(data []byte, v interface{}) error {
 	return NewUnmarshaller(bytes.NewBuffer(data)).Unmarshal(v)
+}
+
+func UnmarshalAtlased(data []byte, v interface{}, atl atlas.Atlas) error {
+	return NewUnmarshallerAtlased(bytes.NewBuffer(data), atl).Unmarshal(v)
 }
 
 type Unmarshaller struct {
