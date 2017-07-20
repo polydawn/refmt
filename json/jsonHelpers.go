@@ -99,8 +99,8 @@ func NewUnmarshallerAtlased(r io.Reader, atl atlas.Atlas) *Unmarshaller {
 		decoder:      NewDecoder(r),
 	}
 	x.pump = shared.TokenPump{
-		x.unmarshaller,
 		x.decoder,
+		x.unmarshaller,
 	}
 	return x
 }
