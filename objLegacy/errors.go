@@ -11,7 +11,7 @@ var (
 )
 
 /*
-	Error raised as a panic when marshaling or unmarshaling an object, and
+	Error raised as a panic when marshalling or unmarshalling an object, and
 	no handler can be found for a referenced type.
 */
 type ErrNoHandler struct {

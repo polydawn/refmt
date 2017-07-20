@@ -23,11 +23,11 @@ func (mach *unmarshalMachineSliceWildcard) Reset(slab *unmarshalSlab, rv reflect
 	return nil
 }
 
-func (mach *unmarshalMachineSliceWildcard) Step(driver *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineSliceWildcard) Step(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	return mach.step(driver, slab, tok)
 }
 
-func (mach *unmarshalMachineSliceWildcard) step_Initial(_ *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineSliceWildcard) step_Initial(_ *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	// If it's a special state, start an object.
 	//  (Or, blow up if its a special state that's silly).
 	switch tok.Type {
@@ -53,7 +53,7 @@ func (mach *unmarshalMachineSliceWildcard) step_Initial(_ *Unmarshaler, slab *un
 	}
 }
 
-func (mach *unmarshalMachineSliceWildcard) step_AcceptValue(driver *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineSliceWildcard) step_AcceptValue(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	// Either form of open token are valid, but
 	// - an arrClose is ours
 	// - and a mapClose is clearly invalid.

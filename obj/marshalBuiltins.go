@@ -24,7 +24,7 @@ func (mach *ptrDerefDelegateMarshalMachine) Reset(slab *marshalSlab, rv reflect.
 	}
 	return mach.MarshalMachine.Reset(slab, rv, rv.Type()) // REVIEW: we could have cached the peeled rt at mach conf time; worth it?
 }
-func (mach *ptrDerefDelegateMarshalMachine) Step(driver *Marshaler, slab *marshalSlab, tok *Token) (done bool, err error) {
+func (mach *ptrDerefDelegateMarshalMachine) Step(driver *Marshaller, slab *marshalSlab, tok *Token) (done bool, err error) {
 	if mach.isNil {
 		tok.Type = TNull
 		return true, nil
@@ -42,7 +42,7 @@ func (mach *marshalMachinePrimitive) Reset(_ *marshalSlab, rv reflect.Value, _ r
 	mach.rv = rv
 	return nil
 }
-func (mach *marshalMachinePrimitive) Step(_ *Marshaler, _ *marshalSlab, tok *Token) (done bool, err error) {
+func (mach *marshalMachinePrimitive) Step(_ *Marshaller, _ *marshalSlab, tok *Token) (done bool, err error) {
 	switch mach.kind {
 	case reflect.Bool:
 		tok.Type = TBool

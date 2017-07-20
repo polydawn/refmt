@@ -21,7 +21,7 @@ type StructMapEntry struct {
 	// Theoretical feature which would be alternative to ReflectRoute.  Support dropped for the moment.
 	//addrFunc     func(interface{}) interface{} // custom user function.
 
-	// If true, marshaling will skip this field if its the zero value.
+	// If true, marshalling will skip this field if its the zero value.
 	OmitEmpty bool
 }
 

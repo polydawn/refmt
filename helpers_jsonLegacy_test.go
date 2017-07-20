@@ -17,24 +17,24 @@ func NewJsonLegacyEncoder(wr io.Writer) *JsonLegacyEncoder {
 
 func NewAtlasedJsonLegacyEncoder(wr io.Writer, suite *objLegacy.Suite) *JsonLegacyEncoder {
 	enc := &JsonLegacyEncoder{
-		marshaler: objLegacy.NewMarshaler(suite),
+		marshaller: objLegacy.NewMarshaller(suite),
 		encoder:    json.NewEncoder(wr),
 	}
 	enc.pump = TokenPump{
-		enc.marshaler,
+		enc.marshaller,
 		enc.encoder,
 	}
 	return enc
 }
 
 type JsonLegacyEncoder struct {
-	marshaler *objLegacy.MarshalDriver
+	marshaller *objLegacy.MarshalDriver
 	encoder    *json.Encoder
 	pump       TokenPump
 }
 
 func (d *JsonLegacyEncoder) Marshal(v interface{}) error {
-	d.marshaler.Bind(v)
+	d.marshaller.Bind(v)
 	d.encoder.Reset()
 	return d.pump.Run()
 }
@@ -58,6 +58,6 @@ type JsonLegacyDecoder struct {
 func (d *JsonLegacyDecoder) Unmarshal(v interface{}) {
 	TokenPump{
 		nil, // todo get the whole json package in place
-		objLegacy.NewUnmarshaler(v),
+		objLegacy.NewUnmarshaller(v),
 	}.Run()
 }

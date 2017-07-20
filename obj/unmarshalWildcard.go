@@ -21,7 +21,7 @@ func (mach *unmarshalMachineWildcard) Reset(_ *unmarshalSlab, rv reflect.Value, 
 	return nil
 }
 
-func (mach *unmarshalMachineWildcard) Step(driver *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineWildcard) Step(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	if mach.delegate == nil {
 		return mach.step_demux(driver, slab, tok)
 	}
@@ -35,7 +35,7 @@ func (mach *unmarshalMachineWildcard) Step(driver *Unmarshaler, slab *unmarshalS
 	return
 }
 
-func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	// Switch on token type: we may be able to delegate to a primitive machine,
 	//  but we may also need to initialize a container type and then hand off.
 	switch tok.Type {

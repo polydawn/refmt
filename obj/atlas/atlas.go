@@ -110,10 +110,10 @@ type AtlasEntry struct {
 	// --------------------------------------------------------
 
 	// A validation function which will be called for the whole value
-	// after unmarshaling reached the end of the object.
+	// after unmarshalling reached the end of the object.
 	// If it returns an error, the entire unmarshal will error.
 	//
-	// Not used in marshaling.
+	// Not used in marshalling.
 	// Not reachable if an UnmarshalTransform is set.
 	ValidateFn func(v interface{}) error
 }

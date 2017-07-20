@@ -93,15 +93,15 @@ func TestMarshalMachineStructAtlas(t *testing.T) {
 		suite.Add(tgt, Morphism{Atlas: tr.atlas})
 
 		err := CapturePanics(func() {
-			marshaler := NewMarshaler(suite)
-			marshaler.Bind(tgt)
+			marshaller := NewMarshaller(suite)
+			marshaller.Bind(tgt)
 
 			// Run steps.
 			var done bool
 			var err error
 			var tok Token
 			for n, expectTok := range tr.expectSeq {
-				done, err = marshaler.Step(&tok)
+				done, err = marshaller.Step(&tok)
 				if !IsTokenEqual(expectTok, tok) {
 					t.Errorf("test %q failed: step %d yielded wrong token: expected %s, got %s",
 						tr.title, n, expectTok, tok)

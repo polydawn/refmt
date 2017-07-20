@@ -50,7 +50,7 @@ func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value
 	return nil
 }
 
-func (mach *marshalMachineMapWildcard) Step(driver *Marshaler, slab *marshalSlab, tok *Token) (done bool, err error) {
+func (mach *marshalMachineMapWildcard) Step(driver *Marshaller, slab *marshalSlab, tok *Token) (done bool, err error) {
 	if mach.index < 0 {
 		if mach.target_rv.IsNil() {
 			tok.Type = TNull
