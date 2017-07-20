@@ -59,3 +59,17 @@ a common pitfall when getting into advanced usage of other marshalling libraries
 - and the mapper part *doesn't care* -- no complex interactions between the layers.
 
 Come to `refmt`.  It's nicer here.
+
+
+Where do I start?
+-----------------
+
+**If you're already using `json.Marshal`:** switch to `json.Marshal` (yes, I'm not kidding; just switch your imports!).
+
+**If you're already using `json.NewEncoder().Encode()`:** switch to `json.NewMarshaller().Marshal()`.
+
+**If you want to get more serial-flexible:** try using `refmt.Marshal(json.EncodeOptions{}, obj)`... then switch to `cbor.EncodeOptions{}` and see what happens!
+
+**If you want to use Atlas to get fancy:** go take a peek at the `example*.go` files in this repo! :)
+
+Happy hacking!
