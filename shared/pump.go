@@ -1,4 +1,8 @@
-package refmt
+/*
+	The `shared` package defines helper types and functions used
+	internally by all the other refmt packages; it is not user-facing.
+*/
+package shared
 
 import (
 	"fmt"

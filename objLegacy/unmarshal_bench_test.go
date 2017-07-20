@@ -21,7 +21,7 @@ func Benchmark_UnmarshalTinyMap(b *testing.B) {
 		{Type: TString, Str: "k1"},
 	}
 	for i := 0; i < b.N; i++ {
-		sink := NewUnmarshaler(&v)
+		sink := NewUnmarshaller(&v)
 		sink.Step(&Token{Type: TMapOpen})
 		sink.Step(&x[0])
 		sink.Step(&x[0])
@@ -50,7 +50,7 @@ func Benchmark_UnmarshalLongArray(b *testing.B) {
 		{Type: TArrClose},
 	}
 	for i := 0; i < b.N; i++ {
-		sink := NewUnmarshaler(&v)
+		sink := NewUnmarshaller(&v)
 		for j := 0; j < len(x); j++ {
 			sink.Step(&x[j])
 		}

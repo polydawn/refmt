@@ -17,8 +17,8 @@ import (
 	Subsequent calls to `Bind` do a full reset, leaving `Step` ready to call
 	again and making all of the machinery reusable without re-allocating.
 */
-func NewUnmarshaler(atl atlas.Atlas) *Unmarshaler {
-	d := &Unmarshaler{
+func NewUnmarshaller(atl atlas.Atlas) *Unmarshaller {
+	d := &Unmarshaller{
 		unmarshalSlab: unmarshalSlab{
 			atlas: atl,
 			rows:  make([]unmarshalSlabRow, 0, 10),
@@ -28,7 +28,7 @@ func NewUnmarshaler(atl atlas.Atlas) *Unmarshaler {
 	return d
 }
 
-func (d *Unmarshaler) Bind(v interface{}) error {
+func (d *Unmarshaller) Bind(v interface{}) error {
 	d.stack = d.stack[0:0]
 	d.unmarshalSlab.rows = d.unmarshalSlab.rows[0:0]
 	rv := reflect.ValueOf(v)
@@ -43,7 +43,7 @@ func (d *Unmarshaler) Bind(v interface{}) error {
 	return d.step.Reset(&d.unmarshalSlab, rv, rt)
 }
 
-type Unmarshaler struct {
+type Unmarshaller struct {
 	unmarshalSlab unmarshalSlab
 	stack         []UnmarshalMachine
 	step          UnmarshalMachine
@@ -51,12 +51,12 @@ type Unmarshaler struct {
 
 type UnmarshalMachine interface {
 	Reset(*unmarshalSlab, reflect.Value, reflect.Type) error
-	Step(*Unmarshaler, *unmarshalSlab, *Token) (done bool, err error)
+	Step(*Unmarshaller, *unmarshalSlab, *Token) (done bool, err error)
 }
 
-type unmarshalMachineStep func(*Unmarshaler, *unmarshalSlab, *Token) (done bool, err error)
+type unmarshalMachineStep func(*Unmarshaller, *unmarshalSlab, *Token) (done bool, err error)
 
-func (d *Unmarshaler) Step(tok *Token) (bool, error) {
+func (d *Unmarshaller) Step(tok *Token) (bool, error) {
 	done, err := d.step.Step(d, &d.unmarshalSlab, tok)
 	// If the step errored: out, entirely.
 	if err != nil {
@@ -77,7 +77,7 @@ func (d *Unmarshaler) Step(tok *Token) (bool, error) {
 }
 
 /*
-	Starts the process of recursing unmarshaling over value `rv`.
+	Starts the process of recursing unmarshalling over value `rv`.
 
 	Caller provides the machine to use (this is an optimization for maps and slices,
 	which already know the machine and keep reusing it for all their entries).
@@ -92,7 +92,7 @@ func (d *Unmarshaler) Step(tok *Token) (bool, error) {
 	with an object, and by the time we call back to your machine again,
 	that object will be traversed and the stream ready for you to continue.
 */
-func (d *Unmarshaler) Recurse(tok *Token, rv reflect.Value, rt reflect.Type, nextMach UnmarshalMachine) (err error) {
+func (d *Unmarshaller) Recurse(tok *Token, rv reflect.Value, rt reflect.Type, nextMach UnmarshalMachine) (err error) {
 	//	fmt.Printf(">>> pushing into recursion with %#v\n", nextMach)
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	d.stack = append(d.stack, d.step)

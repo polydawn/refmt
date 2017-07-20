@@ -24,7 +24,7 @@ func (s *slotForIface) Slot() interface{}              { return &s.slot }
 func (s *slotForSliceOfIface) Slot() interface{}       { return &s.slot }
 func (s *slotForMapOfStringToIface) Slot() interface{} { return &s.slot }
 
-func TestUnmarshaler(t *testing.T) {
+func TestUnmarshaller(t *testing.T) {
 	tt := []struct {
 		title    string
 		slotter  slotter
@@ -174,7 +174,7 @@ func TestUnmarshaler(t *testing.T) {
 	}
 	for _, tr := range tt {
 		// Create var receiver, aimed at the slotter.
-		sink := NewUnmarshaler(tr.slotter.Slot())
+		sink := NewUnmarshaller(tr.slotter.Slot())
 
 		// Run steps.
 		var done bool

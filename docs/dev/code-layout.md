@@ -7,8 +7,8 @@ Package layout
 - `refmt` -- main package.  All major interface types and helpful factory methods.
   - `json` -- `json.Serializer` and `json.Deserializer`
   - `cbor` -- `cbor.Serializer` and `cbor.Deserializer`
-  - `obj` -- `obj.Marshaler` and `obj.Unmarshaler`
-    - `atlas` -- types for describing how to `obj.*Marshaler`s should visit complex types.
+  - `obj` -- `obj.Marshaller` and `obj.Unmarshaller`
+    - `atlas` -- types for describing how to `obj.*Marshaller`s should visit complex types.
   - `tok` -- token handling utils.  Many exported values, for use in sibling packages, but not often seen by users.
 
 (Experienced go developers will probably already have noticed that putting core interfaces and factory methods in the same package is usually going to run aground on the no-cyclic-imports rule.
@@ -22,11 +22,11 @@ User-facing
   ```
   refmt.NewJsonEncoder(stdout).Marshal(123)
   ```
-  - Creates an `obj.Marshaler` as the `refmt.TokenSource` for walking the object (`123`).
-  - Creates a `json.Marshaler` as the `refmt.TokenSink` outputting to `stdout`.
+  - Creates an `obj.Marshaller` as the `refmt.TokenSource` for walking the object (`123`).
+  - Creates a `json.Marshaller` as the `refmt.TokenSink` outputting to `stdout`.
   - Both are placed into a `refmt.TokenPump`, which powers the rest of the transaction.
-  - The `obj.Marshaler` sees the type of object it was given and immediately delegates to an `obj.marshalMachineLiteral`.
-  - The `obj.marshalMachineLiteral` steps once, yields a token (it's going to be `TokenType` of `TInt`), and reports done.  There are no other stacked machines, so the `obj.Marshaler` overall reports done.
+  - The `obj.Marshaller` sees the type of object it was given and immediately delegates to an `obj.marshalMachineLiteral`.
+  - The `obj.marshalMachineLiteral` steps once, yields a token (it's going to be `TokenType` of `TInt`), and reports done.  There are no other stacked machines, so the `obj.Marshaller` overall reports done.
   - The `json.Encoder` is invoked and given a token by the `refmt.TokenPump`, and writes the number to `stdout`.  The `json.Encoder` knows that it just wrote a literal type, and since it's not deep in an object tree that's the end of a json entity, so it reports done.
   - The `refmt.TokenPump` sees both sides finished in unison, and returns done, with no error!
 
@@ -58,7 +58,7 @@ makes encoding to bytes a choice rather than a requirement.
   - *Implementations*:
     - **json.Decoder** -- constructed with an `io.Reader`, from which (hopefully-)json-formatted bytes will be consumed and converted into tokens.
     - **cbor.Decoder** -- constructed with an `io.Reader`, from which (hopefully-)cbor-formatted bytes will be consumed and converted into tokens.
-    - **obj.Marshaler** -- constructed with a reference to any object, which will be visited and all fields emitted one by one as tokens.
+    - **obj.Marshaller** -- constructed with a reference to any object, which will be visited and all fields emitted one by one as tokens.
 
 - **TokenSink** *interface*
 
@@ -70,7 +70,7 @@ makes encoding to bytes a choice rather than a requirement.
 
     - **json.Encoder** -- constructed with an `io.Writer`, to which json-formatted bytes are flushed as each token is received.
     - **cbor.Decoder** -- constructed with an `io.Writer`, to which cbor-formatted bytes are flushed as each token is received.
-    - **obj.Unmarshaler** -- constructed with a reference to any object (or empty `interface{}`), which will be populated based on tokens received.
+    - **obj.Unmarshaller** -- constructed with a reference to any object (or empty `interface{}`), which will be populated based on tokens received.
 
 - **TokenPump** *struct*
 
@@ -89,7 +89,7 @@ Object traversal is complex and requires its own substantial amount of machinery
 
 Users do not interact with any of these directly.
 
-- **obj.Marshaler** *struct*
+- **obj.Marshaller** *struct*
 
   Top-level control for a system that walks in-memory structures and emits tokens
   describing the object it's observing.
@@ -99,10 +99,10 @@ Users do not interact with any of these directly.
 - **obj.MarshalMachine** *interface*
 
   A single state machine that emits tokens implements this.
-  This interface makes the individual machines composable to `Marshaler`.
+  This interface makes the individual machines composable to `Marshaller`.
 
   In automata theory, `MarshalMachine` is generally a DFA FSM -- that is,
-  it can operate with a finite amount of memory -- and we use the `Marshaler`
+  it can operate with a finite amount of memory -- and we use the `Marshaller`
   to gather together `MarshalMachine`s into stacks, thus giving us a
   *pushdown automata*, which has sufficient power to handle recursive structure.
 
@@ -110,7 +110,7 @@ Users do not interact with any of these directly.
   can operate without allocating memory on the heap.  This confers a large
   bonus to overall performance.
 
-  If a `Marshaler` is like a stack, and the `MarshalMachine` like a function,
+  If a `Marshaller` is like a stack, and the `MarshalMachine` like a function,
   then each time you call the `MarshalMachine` is like stepping through a function one
   line (or one instruction) at a time.
 
@@ -123,17 +123,17 @@ Users do not interact with any of these directly.
     - **marshalMachinePolymorphicUnion** -- uses a `PolymorphAtlas` to look at an arbitrary value, emit a single-entry map, and trigger a more specific encode machine (the single key is presumably consumed by a `marshalMachinePolymorphicUnion` and used look up the matching decoder machine).
     - **marshalMachinePolymorphicEnvelope** -- like `marshalMachinePolymorphicUnion`, but emits tokens for a map styled like `{kind:typeAbc, msg:{...}}`.
 
-- **obj.Unmarshaler** *struct*
+- **obj.Unmarshaller** *struct*
 
   Top-level control for a system that walks in-memory structures and consumes tokens,
-  populating the in-memory fields.  The inverse of `obj.Marshaler`.
+  populating the in-memory fields.  The inverse of `obj.Marshaller`.
 
   View this like a program stack; `obj.UnmarshalMachine`s are the functions in the stack.
 
 - **UnmarshalMachine** *interface*
 
   A single state machines that consumes tokens implements this.
-  This interface makes the individual machines composable to `Unmarshaler`.
+  This interface makes the individual machines composable to `Unmarshaller`.
 
   See the documentation of `MarshalMachine` for more information;
   sinks and sources follow the same model (e.g. these are DFAs, etc).

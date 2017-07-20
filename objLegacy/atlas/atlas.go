@@ -36,7 +36,7 @@ type Entry struct {
 	// TODO this is one of {Atlas, func()(Atlas), or TokenSourceMachine|TokenSinkMachine}
 	//  the latter is certainly the most correct, but also pretty wicked to export publicly
 
-	// If true, marshaling will skip this field if its the zero value.
+	// If true, marshalling will skip this field if its the zero value.
 	// (If you need more complex behavior -- for example, a definition of
 	// "empty" other than the type's zero value -- this is not for you.
 	// Try using an AtlasFactory to make a custom field list dynamically.)

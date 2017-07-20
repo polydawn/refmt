@@ -2,13 +2,13 @@ package refmt
 
 import (
 	"bytes"
-	"encoding/json"
+	stdjson "encoding/json"
 	"fmt"
 	"testing"
 
+	"github.com/polydawn/refmt/cbor"
+	"github.com/polydawn/refmt/json"
 	"github.com/polydawn/refmt/obj/atlas"
-	"github.com/polydawn/refmt/objLegacy"
-	atlasLegacy "github.com/polydawn/refmt/objLegacy/atlas"
 )
 
 func checkAftermath(err error, result []byte, expect []byte) {
@@ -32,17 +32,7 @@ var fixture_arrayFlatInt_cbor = []byte{0x80 + 10, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
 func Benchmark_ArrayFlatIntToJson_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewJsonEncoder(&buf)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_arrayFlatInt)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_json)
-}
-func Benchmark_ArrayFlatIntToJson_RefmtLegacy(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewJsonLegacyEncoder(&buf)
+	enc := NewMarshaller(json.EncodeOptions{}, &buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatInt)
@@ -52,7 +42,7 @@ func Benchmark_ArrayFlatIntToJson_RefmtLegacy(b *testing.B) {
 func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := json.NewEncoder(&buf)
+	enc := stdjson.NewEncoder(&buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Encode(&fixture_arrayFlatInt)
@@ -63,17 +53,7 @@ func Benchmark_ArrayFlatIntToJson_Stdlib(b *testing.B) {
 func Benchmark_ArrayFlatIntToCbor_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewCborEncoder(&buf)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_arrayFlatInt)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_arrayFlatInt_cbor)
-}
-func Benchmark_ArrayFlatIntToCbor_RefmtLegacy(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewCborLegacyEncoder(&buf)
+	enc := NewMarshaller(cbor.EncodeOptions{}, &buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatInt)
@@ -92,17 +72,7 @@ var fixture_arrayFlatStr_cbor = []byte{0x80 + 10, 0x60 + 1, 0x30 + 1, 0x60 + 1, 
 func Benchmark_ArrayFlatStrToJson_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewJsonEncoder(&buf)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_arrayFlatStr)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_json)
-}
-func Benchmark_ArrayFlatStrToJson_RefmtLegacy(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewJsonLegacyEncoder(&buf)
+	enc := NewMarshaller(json.EncodeOptions{}, &buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatStr)
@@ -112,7 +82,7 @@ func Benchmark_ArrayFlatStrToJson_RefmtLegacy(b *testing.B) {
 func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := json.NewEncoder(&buf)
+	enc := stdjson.NewEncoder(&buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Encode(&fixture_arrayFlatStr)
@@ -123,17 +93,7 @@ func Benchmark_ArrayFlatStrToJson_Stdlib(b *testing.B) {
 func Benchmark_ArrayFlatStrToCbor_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewCborEncoder(&buf)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_arrayFlatStr)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_arrayFlatStr_cbor)
-}
-func Benchmark_ArrayFlatStrToCbor_RefmtLegacy(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewCborLegacyEncoder(&buf)
+	enc := NewMarshaller(cbor.EncodeOptions{}, &buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_arrayFlatStr)
@@ -206,89 +166,11 @@ var fixture_struct_atlas = atlas.MustBuild(
 		AddField("M", atlas.StructMapEntry{SerialName: "M"}).
 		Complete(),
 )
-var fixture_suiteFieldRoute = (&objLegacy.Suite{}).
-	Add(structAlpha{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
-		Fields: []atlasLegacy.Entry{
-			{Name: "B", FieldRoute: atlasLegacy.FieldRoute{0}},
-			{Name: "C", FieldRoute: atlasLegacy.FieldRoute{1}},
-			{Name: "C2", FieldRoute: atlasLegacy.FieldRoute{2}},
-			{Name: "X", FieldRoute: atlasLegacy.FieldRoute{3}},
-			{Name: "Y", FieldRoute: atlasLegacy.FieldRoute{4}},
-			{Name: "Z", FieldRoute: atlasLegacy.FieldRoute{5}},
-			{Name: "W", FieldRoute: atlasLegacy.FieldRoute{6}},
-		},
-	}}).
-	Add(structBeta{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
-		Fields: []atlasLegacy.Entry{
-			{Name: "R", FieldRoute: atlasLegacy.FieldRoute{0}},
-		},
-	}}).
-	Add(structGamma{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
-		Fields: []atlasLegacy.Entry{
-			{Name: "N", FieldRoute: atlasLegacy.FieldRoute{0}},
-			{Name: "M", FieldRoute: atlasLegacy.FieldRoute{1}},
-		},
-	}}).
-	Add(structRecursive{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
-		Fields: []atlasLegacy.Entry{
-			{Name: "R", FieldRoute: atlasLegacy.FieldRoute{0}},
-			{Name: "M", FieldRoute: atlasLegacy.FieldRoute{1}},
-		},
-	}})
-var fixture_suiteAddrFunc = (&objLegacy.Suite{}).
-	Add(structAlpha{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
-		Fields: []atlasLegacy.Entry{
-			{Name: "B", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).B) }},
-			{Name: "C", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).C) }},
-			{Name: "C2", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).C2) }},
-			{Name: "X", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).X) }},
-			{Name: "Y", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).Y) }},
-			{Name: "Z", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).Z) }},
-			{Name: "W", AddrFunc: func(v interface{}) interface{} { return &(v.(*structAlpha).W) }},
-		},
-	}}).
-	Add(structBeta{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
-		Fields: []atlasLegacy.Entry{
-			{Name: "R", AddrFunc: func(v interface{}) interface{} { return &(v.(*structBeta).R) }},
-		},
-	}}).
-	Add(structGamma{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
-		Fields: []atlasLegacy.Entry{
-			{Name: "N", AddrFunc: func(v interface{}) interface{} { return &(v.(*structGamma).N) }},
-			{Name: "M", AddrFunc: func(v interface{}) interface{} { return &(v.(*structGamma).M) }},
-		},
-	}}).
-	Add(structRecursive{}, objLegacy.Morphism{Atlas: atlasLegacy.Atlas{
-		Fields: []atlasLegacy.Entry{
-			{Name: "R", AddrFunc: func(v interface{}) interface{} { return &(v.(*structRecursive).R) }},
-			{Name: "M", AddrFunc: func(v interface{}) interface{} { return &(v.(*structRecursive).M) }},
-		},
-	}})
 
 func Benchmark_StructToJson_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewAtlasedJsonEncoder(&buf, fixture_struct_atlas)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_struct)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_struct_json)
-}
-func Benchmark_StructToJson_RefmtLegacyFieldRoute(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewAtlasedJsonLegacyEncoder(&buf, fixture_suiteFieldRoute)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_struct)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_struct_json)
-}
-func Benchmark_StructToJson_RefmtLegacyAddrFunc(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewAtlasedJsonLegacyEncoder(&buf, fixture_suiteAddrFunc)
+	enc := NewMarshallerAtlased(json.EncodeOptions{}, &buf, fixture_struct_atlas)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_struct)
@@ -298,7 +180,7 @@ func Benchmark_StructToJson_RefmtLegacyAddrFunc(b *testing.B) {
 func Benchmark_StructToJson_Stdlib(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := json.NewEncoder(&buf)
+	enc := stdjson.NewEncoder(&buf)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Encode(&fixture_struct)
@@ -309,27 +191,7 @@ func Benchmark_StructToJson_Stdlib(b *testing.B) {
 func Benchmark_StructToCbor_Refmt(b *testing.B) {
 	var buf bytes.Buffer
 	var err error
-	enc := NewAtlasedCborEncoder(&buf, fixture_struct_atlas)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_struct)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_struct_cbor)
-}
-func Benchmark_StructToCbor_RefmtLegacyFieldRoute(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewAtlasedCborLegacyEncoder(&buf, fixture_suiteFieldRoute)
-	for i := 0; i < b.N; i++ {
-		buf.Reset()
-		err = enc.Marshal(&fixture_struct)
-	}
-	checkAftermath(err, buf.Bytes(), fixture_struct_cbor)
-}
-func Benchmark_StructToCbor_RefmtLegacyAddrFunc(b *testing.B) {
-	var buf bytes.Buffer
-	var err error
-	enc := NewAtlasedCborLegacyEncoder(&buf, fixture_suiteAddrFunc)
+	enc := NewMarshallerAtlased(cbor.EncodeOptions{}, &buf, fixture_struct_atlas)
 	for i := 0; i < b.N; i++ {
 		buf.Reset()
 		err = enc.Marshal(&fixture_struct)

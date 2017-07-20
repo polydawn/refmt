@@ -22,7 +22,7 @@ func (mach *unmarshalMachineTransform) Reset(slab *unmarshalSlab, rv reflect.Val
 	return mach.delegate.Reset(slab, mach.recv_rv, mach.recv_rt)
 }
 
-func (mach *unmarshalMachineTransform) Step(driver *Unmarshaler, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineTransform) Step(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	done, err = mach.delegate.Step(driver, slab, tok)
 	if !done {
 		return

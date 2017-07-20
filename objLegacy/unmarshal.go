@@ -7,7 +7,7 @@ import (
 /*
 	Returns a `TokenSink` that will unmarshal tokens into an in-memory value.
 */
-func NewUnmarshaler(v interface{} /* TODO visitmagicks */) *UnmarshalDriver {
+func NewUnmarshaller(v interface{} /* TODO visitmagicks */) *UnmarshalDriver {
 	d := &UnmarshalDriver{
 		step: pickUnmarshalMachine(v),
 	}

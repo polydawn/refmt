@@ -17,8 +17,8 @@ import (
 	Subsequent calls to `Bind` do a full reset, leaving `Step` ready to call
 	again and making all of the machinery reusable without re-allocating.
 */
-func NewMarshaler(atl atlas.Atlas) *Marshaler {
-	d := &Marshaler{
+func NewMarshaller(atl atlas.Atlas) *Marshaller {
+	d := &Marshaller{
 		marshalSlab: marshalSlab{
 			atlas: atl,
 			rows:  make([]marshalSlabRow, 0, 10),
@@ -28,7 +28,7 @@ func NewMarshaler(atl atlas.Atlas) *Marshaler {
 	return d
 }
 
-func (d *Marshaler) Bind(v interface{}) error {
+func (d *Marshaller) Bind(v interface{}) error {
 	d.stack = d.stack[0:0]
 	d.marshalSlab.rows = d.marshalSlab.rows[0:0]
 	rv := reflect.ValueOf(v)
@@ -41,7 +41,7 @@ func (d *Marshaler) Bind(v interface{}) error {
 	return d.step.Reset(&d.marshalSlab, rv, rt)
 }
 
-type Marshaler struct {
+type Marshaller struct {
 	marshalSlab marshalSlab
 	stack       []MarshalMachine
 	step        MarshalMachine
@@ -49,10 +49,10 @@ type Marshaler struct {
 
 type MarshalMachine interface {
 	Reset(*marshalSlab, reflect.Value, reflect.Type) error
-	Step(*Marshaler, *marshalSlab, *Token) (done bool, err error)
+	Step(*Marshaller, *marshalSlab, *Token) (done bool, err error)
 }
 
-func (d *Marshaler) Step(tok *Token) (bool, error) {
+func (d *Marshaller) Step(tok *Token) (bool, error) {
 	//	fmt.Printf("> next step is %#v\n", d.step)
 	done, err := d.step.Step(d, &d.marshalSlab, tok)
 	//	fmt.Printf(">> yield is %#v\n", TokenToString(*tok))
@@ -76,7 +76,7 @@ func (d *Marshaler) Step(tok *Token) (bool, error) {
 }
 
 /*
-	Starts the process of recursing marshaling over value `rv`.
+	Starts the process of recursing marshalling over value `rv`.
 
 	Caller provides the machine to use (this is an optimization for maps and slices,
 	which already know the machine and keep reusing it for all their entries).
@@ -91,7 +91,7 @@ func (d *Marshaler) Step(tok *Token) (bool, error) {
 	with an object, and by the time we call back to your machine again,
 	that object will be traversed and the stream ready for you to continue.
 */
-func (d *Marshaler) Recurse(tok *Token, rv reflect.Value, rt reflect.Type, nextMach MarshalMachine) (err error) {
+func (d *Marshaller) Recurse(tok *Token, rv reflect.Value, rt reflect.Type, nextMach MarshalMachine) (err error) {
 	//	fmt.Printf(">>> pushing into recursion with %#v\n", nextMach)
 	// Push the current machine onto the stack (we'll resume it when the new one is done),
 	d.stack = append(d.stack, d.step)

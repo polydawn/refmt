@@ -27,7 +27,7 @@ func (mach *marshalMachineWildcard) Reset(slab *marshalSlab, rv reflect.Value, r
 	return mach.delegate.Reset(slab, unwrap_rv, unwrap_rt)
 }
 
-func (mach marshalMachineWildcard) Step(driver *Marshaler, slab *marshalSlab, tok *Token) (done bool, err error) {
+func (mach marshalMachineWildcard) Step(driver *Marshaller, slab *marshalSlab, tok *Token) (done bool, err error) {
 	if mach.delegate == nil {
 		tok.Type = TNull
 		return true, nil

@@ -9,7 +9,7 @@ import (
 	. "github.com/polydawn/refmt/tok"
 )
 
-func TestMarshaler(t *testing.T) {
+func TestMarshaller(t *testing.T) {
 	type NN struct {
 		F int
 		X string
@@ -362,15 +362,15 @@ func TestMarshaler(t *testing.T) {
 			tr.suite = &Suite{}
 		}
 		err := CapturePanics(func() {
-			marshaler := NewMarshaler(tr.suite)
-			marshaler.Bind(tr.targetFn())
+			marshaller := NewMarshaller(tr.suite)
+			marshaller.Bind(tr.targetFn())
 
 			// Run steps.
 			var done bool
 			var err error
 			var tok Token
 			for n, expectTok := range tr.expectSeq {
-				done, err = marshaler.Step(&tok)
+				done, err = marshaller.Step(&tok)
 				if !IsTokenEqual(expectTok, tok) {
 					t.Errorf("test %q failed: step %d yielded wrong token: expected %s, got %s",
 						tr.title, n, expectTok, tok)

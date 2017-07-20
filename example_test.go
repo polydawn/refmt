@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/polydawn/refmt"
+	"github.com/polydawn/refmt/json"
 	"github.com/polydawn/refmt/obj/atlas"
 )
 
@@ -25,7 +26,7 @@ func ExampleJsonEncodeAtlasDefaults() {
 	)
 
 	var buf bytes.Buffer
-	encoder := refmt.NewAtlasedJsonEncoder(&buf, atl)
+	encoder := refmt.NewMarshallerAtlased(json.EncodeOptions{}, &buf, atl)
 	err := encoder.Marshal(MyType{"a", 1})
 	fmt.Println(buf.String())
 	fmt.Printf("%v\n", err)
@@ -53,7 +54,7 @@ func ExampleJsonEncodeAtlasCustom() {
 	)
 
 	var buf bytes.Buffer
-	encoder := refmt.NewAtlasedJsonEncoder(&buf, atl)
+	encoder := refmt.NewMarshallerAtlased(json.EncodeOptions{}, &buf, atl)
 	err := encoder.Marshal(MyType{"a", 1})
 	fmt.Println(buf.String())
 	fmt.Printf("%v\n", err)
@@ -92,7 +93,7 @@ func ExampleJsonEncodeAtlas() {
 	)
 
 	var buf bytes.Buffer
-	encoder := refmt.NewAtlasedJsonEncoder(&buf, atl)
+	encoder := refmt.NewMarshallerAtlased(json.EncodeOptions{}, &buf, atl)
 
 	err := encoder.Marshal(MyType{"serializes", "as", "string!"})
 	fmt.Println(buf.String())

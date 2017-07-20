@@ -20,6 +20,6 @@ func (mach *marshalMachineTransform) Reset(slab *marshalSlab, rv reflect.Value, 
 	return mach.delegate.Reset(slab, tr_rv, tr_rv.Type())
 }
 
-func (mach *marshalMachineTransform) Step(driver *Marshaler, slab *marshalSlab, tok *Token) (done bool, err error) {
+func (mach *marshalMachineTransform) Step(driver *Marshaller, slab *marshalSlab, tok *Token) (done bool, err error) {
 	return mach.delegate.Step(driver, slab, tok)
 }

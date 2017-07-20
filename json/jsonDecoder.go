@@ -175,8 +175,8 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 	case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 		// Some kind of numeric... but in json, we *can't tell* if it's float or int.
 		// JSON in general doesn't differentiate.  But we usually try to anyway.
-		// (If this results in us yielding an int, and an obj.Unmarshaler is filling a float,
-		// it's the Unmarshaler responsibility to decide to cast that.)
+		// (If this results in us yielding an int, and an obj.Unmarshaller is filling a float,
+		// it's the Unmarshaller responsibility to decide to cast that.)
 		tokenSlot.Type = TFloat64
 		tokenSlot.Float64, err = d.decodeFloat(majorByte)
 		return true, err
