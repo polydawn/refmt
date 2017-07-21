@@ -8,22 +8,23 @@ import (
 )
 
 type unmarshalMachineMapStringWildcard struct {
-	target_rv reflect.Value
-	value_rt  reflect.Type
-	valueMach UnmarshalMachine
+	target_rv reflect.Value    // Handle to the map.  Can set to zero, or set k=v pairs into, etc.
+	value_rt  reflect.Type     // Type info for map values (cached for convenience in recurse calls).
+	valueMach UnmarshalMachine // Machine for map values.
+	key_rv    reflect.Value    // Addressable handle to a slot for keys to unmarshal into.
+	tmp_rv    reflect.Value    // Addressable handle to a slot for values to unmarshal into.
 	step      unmarshalMachineStep
-	key_rv    reflect.Value // The key consumed by the prev `step_AcceptKey`.
-	tmp_rv    reflect.Value // Addressable handle to a slot for values to unmarshal into.
+	haveValue bool // Piece of attendant state to help know we've been through at least one k=v pair so we can post-v store it.
 }
 
 func (mach *unmarshalMachineMapStringWildcard) Reset(slab *unmarshalSlab, rv reflect.Value, rt reflect.Type) error {
 	mach.target_rv = rv
 	mach.value_rt = rt.Elem()
 	mach.valueMach = slab.requisitionMachine(mach.value_rt)
+	mach.key_rv = reflect.New(rt.Key()).Elem()
+	mach.tmp_rv = reflect.New(mach.value_rt).Elem()
 	mach.step = mach.step_Initial
-	mach.key_rv = reflect.Value{}
-	slot_rv := reflect.New(mach.value_rt)
-	mach.tmp_rv = slot_rv.Elem()
+	mach.haveValue = false
 	return nil
 }
 
@@ -61,7 +62,7 @@ func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *Unmarshaller, _
 	// First, save any refs from the last value.
 	//  (This is fiddly: the delay comes mostly from the handling of slices, which may end up re-allocating
 	//   themselves during their decoding.)
-	if mach.key_rv != (reflect.Value{}) {
+	if mach.haveValue {
 		mach.target_rv.SetMapIndex(mach.key_rv, mach.tmp_rv)
 	}
 	// Now switch on tokens.
@@ -76,12 +77,10 @@ func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *Unmarshaller, _
 	case TArrClose:
 		return true, fmt.Errorf("unexpected arrClose; expected map key")
 	case TString:
-		key_rv := reflect.New(mach.target_rv.Type().Key()).Elem()
-		key_rv.SetString(tok.Str)
-		if err = mach.mustAcceptKey(key_rv); err != nil {
+		mach.key_rv.SetString(tok.Str)
+		if err = mach.mustAcceptKey(mach.key_rv); err != nil {
 			return true, err
 		}
-		mach.key_rv = key_rv
 		mach.step = mach.step_AcceptValue
 		return false, nil
 	default:
@@ -98,6 +97,7 @@ func (mach *unmarshalMachineMapStringWildcard) mustAcceptKey(key_rv reflect.Valu
 
 func (mach *unmarshalMachineMapStringWildcard) step_AcceptValue(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	mach.step = mach.step_AcceptKey
+	mach.haveValue = true
 	return false, driver.Recurse(
 		tok,
 		mach.tmp_rv,
