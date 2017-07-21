@@ -75,10 +75,9 @@ func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *Unmarshaller, _
 		return true, nil
 	case TArrClose:
 		return true, fmt.Errorf("unexpected arrClose; expected map key")
-	}
-	switch tok.Type {
 	case TString:
-		key_rv := reflect.ValueOf(tok.Str)
+		key_rv := reflect.New(mach.target_rv.Type().Key()).Elem()
+		key_rv.SetString(tok.Str)
 		if err = mach.mustAcceptKey(key_rv); err != nil {
 			return true, err
 		}
