@@ -16,21 +16,21 @@ import (
 func (d *Decoder) decodeString() (string, error) {
 	// First quote has already been eaten.
 	// Start tracking the byte slice; real string starts here.
-	d.r.track()
+	d.r.Track()
 	// Scan until scanner tells us end of string.
 	var err error
-	for step := strscan_normal; step != nil && err == nil; step, err = step(d.r.readn1()) {
+	for step := strscan_normal; step != nil && err == nil; step, err = step(d.r.Readn1()) {
 	}
 	// Unread one.  The scan loop consumed the trailing quote already,
 	// which we don't want to pass onto the parser.
-	d.r.unreadn1()
+	d.r.Unreadn1()
 	// Parse!
-	s, ok := parseString(d.r.stopTrack())
+	s, ok := parseString(d.r.StopTrack())
 	if !ok {
 		//return string(s), fmt.Errorf("string parse misc fail")
 	}
 	// Swallow the trailing quote again.
-	d.r.readn1()
+	d.r.Readn1()
 	return string(s), nil
 }
 

@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/polydawn/refmt/shared"
 	. "github.com/polydawn/refmt/tok"
 )
 
 type Decoder struct {
-	r quickReader
+	r shared.SlickReader
 
 	stack []decoderStep // When empty, and step returns done, all done.
 	step  decoderStep   // Shortcut to end of stack.
@@ -17,7 +18,7 @@ type Decoder struct {
 
 func NewDecoder(r io.Reader) (d *Decoder) {
 	d = &Decoder{
-		r:     &quickReaderStream{br: &readerByteScanner{r: r}},
+		r:     shared.NewReader(r),
 		stack: make([]decoderStep, 0, 10),
 	}
 	d.step = d.step_acceptValue
@@ -60,9 +61,9 @@ func (d *Decoder) pushPhase(newPhase decoderStep) {
 	d.some = false
 }
 
-func readn1skippingWhitespace(r quickReader) (majorByte byte) {
+func readn1skippingWhitespace(r shared.SlickReader) (majorByte byte) {
 	for {
-		majorByte = r.readn1()
+		majorByte = r.Readn1()
 		switch majorByte {
 		case ' ', '\t', '\r', '\n': // continue
 		default:
@@ -155,7 +156,7 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 		d.pushPhase(d.step_acceptArrValueOrBreak)
 		return false, nil
 	case 'n':
-		d.r.readnzc(3) // FIXME must check these equal "ull"!
+		d.r.Readnzc(3) // FIXME must check these equal "ull"!
 		tokenSlot.Type = TNull
 		return true, nil
 	case '"':
@@ -163,12 +164,12 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 		tokenSlot.Str, err = d.decodeString()
 		return true, err
 	case 'f':
-		d.r.readnzc(4) // FIXME must check these equal "alse"!
+		d.r.Readnzc(4) // FIXME must check these equal "alse"!
 		tokenSlot.Type = TBool
 		tokenSlot.Bool = false
 		return true, nil
 	case 't':
-		d.r.readnzc(3) // FIXME must check these equal "rue"!
+		d.r.Readnzc(3) // FIXME must check these equal "rue"!
 		tokenSlot.Type = TBool
 		tokenSlot.Bool = true
 		return true, nil
