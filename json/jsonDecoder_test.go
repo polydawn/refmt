@@ -31,7 +31,14 @@ func TestJsonDecoder(t *testing.T) {
 		for n, expectTok := range tr.sequence.Tokens {
 			done, err = tokenSource.Step(&tok)
 			if err != nil {
-				t.Errorf("test %q step %d (inputting %s) errored: %s", title, n, expectTok, err)
+				if err == tr.decodeResult {
+					t.Logf("test %q --- errored as expected: with %q", title, tr.decodeResult)
+					if n != len(tr.sequence.Tokens)-1 {
+						t.Errorf("test %q errored too eary! on index=%d out of %d tokens", title, n, len(tr.sequence.Tokens))
+					}
+				} else {
+					t.Errorf("test %q step %d (inputting %s) errored: %s", title, n, expectTok, err)
+				}
 			}
 			if !IsTokenEqual(expectTok, tok) {
 				t.Errorf("test %q failed: step %d yielded wrong token: expected %s, got %s",
