@@ -6,8 +6,6 @@
 package fixtures
 
 import (
-	"errors"
-
 	. "github.com/polydawn/refmt/tok"
 )
 
@@ -251,22 +249,3 @@ func init() {
 		SequenceMap[v.Title] = v
 	}
 }
-
-// Labels for which way a token sequence fixture is malformed.
-type Malformed error
-
-var (
-	MalformedUnterminatedArray Malformed = errors.New("MalformedUnterminatedArray")
-	MalformedUnterminatedMap   Malformed = errors.New("MalformedUnterminatedMap")
-	MalformedNilMapKey         Malformed = errors.New("MalformedNilMapKey")
-	MalformedUnbalancedMap     Malformed = errors.New("MalformedUnbalancedMap")
-)
-
-// Any array of token sequences that are in some way malformed.
-// TokenSinks (i.e. encoders, serializes) should be able to halt and error reasonably on these.
-// It's less simple to get TokenSources to emit them, but for decoders comparable inputs should have their own test coverage.
-var MalformedSequences = []struct {
-	Title     string
-	Seq       []Token
-	Malformed Malformed
-}{}
