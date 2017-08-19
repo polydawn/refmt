@@ -11,8 +11,8 @@ import (
 func TestJsonDecoder(t *testing.T) {
 	tt := jsonFixtures
 	for _, tr := range tt {
-		// Skip if not tagged for decoding.
-		if tr.only&situationDecoding == 0 {
+		// Skip if fixture tagged as inapplicable to decoding.
+		if tr.decodeResult == inapplicable {
 			continue
 		}
 

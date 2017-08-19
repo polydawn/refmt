@@ -12,8 +12,8 @@ func TestJsonEncoder(t *testing.T) {
 	tt := jsonFixtures
 	// Loop over test table.
 	for _, tr := range tt {
-		// Skip if not tagged for encoding.
-		if tr.only&situationEncoding == 0 {
+		// Skip if fixture tagged as inapplicable to encoding.
+		if tr.encodeResult == inapplicable {
 			continue
 		}
 
