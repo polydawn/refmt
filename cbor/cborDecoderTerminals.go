@@ -9,11 +9,11 @@ import (
 func (d *Decoder) decodeFloat(majorByte byte) (f float64) {
 	switch majorByte {
 	case cborSigilFloat16:
-		f = float64(math.Float32frombits(halfFloatToFloatBits(binary.BigEndian.Uint16(d.r.readnzc(2)))))
+		f = float64(math.Float32frombits(halfFloatToFloatBits(binary.BigEndian.Uint16(d.r.Readnzc(2)))))
 	case cborSigilFloat32:
-		f = float64(math.Float32frombits(binary.BigEndian.Uint32(d.r.readnzc(4))))
+		f = float64(math.Float32frombits(binary.BigEndian.Uint32(d.r.Readnzc(4))))
 	case cborSigilFloat64:
-		f = math.Float64frombits(binary.BigEndian.Uint64(d.r.readnzc(8)))
+		f = math.Float64frombits(binary.BigEndian.Uint64(d.r.Readnzc(8)))
 	}
 	return
 }
@@ -27,13 +27,13 @@ func (d *Decoder) decodeUint(majorByte byte) (ui uint64, err error) {
 		ui = uint64(v)
 	} else {
 		if v == 0x18 {
-			ui = uint64(d.r.readn1())
+			ui = uint64(d.r.Readn1())
 		} else if v == 0x19 {
-			ui = uint64(binary.BigEndian.Uint16(d.r.readnzc(2)))
+			ui = uint64(binary.BigEndian.Uint16(d.r.Readnzc(2)))
 		} else if v == 0x1a {
-			ui = uint64(binary.BigEndian.Uint32(d.r.readnzc(4)))
+			ui = uint64(binary.BigEndian.Uint32(d.r.Readnzc(4)))
 		} else if v == 0x1b {
-			ui = uint64(binary.BigEndian.Uint64(d.r.readnzc(8)))
+			ui = uint64(binary.BigEndian.Uint64(d.r.Readnzc(8)))
 		} else {
 			err = fmt.Errorf("decodeUint: Invalid descriptor: %v", majorByte)
 			return
@@ -96,7 +96,7 @@ func (d *Decoder) decodeBytesOrStringIndefinite(bs []byte, majorWanted byte) (bs
 		// Read first byte; check for break, or hunk, or invalid.
 		// (It's not necessary to have the first majorByte as a param to this function, because
 		// indefinite length sequences have a separate sigil which doesn't pack any len info.)
-		majorByte := d.r.readn1()
+		majorByte := d.r.Readn1()
 		if majorByte == cborSigilBreak {
 			return bs, nil
 		} else if major := majorByte | 0x1f - 0x1f; major != majorWanted {
@@ -117,7 +117,7 @@ func (d *Decoder) decodeBytesOrStringIndefinite(bs []byte, majorWanted byte) (bs
 			bs = bs[:newLen]
 		}
 		// Read that hunk.
-		d.r.readb(bs[oldLen:newLen])
+		d.r.Readb(bs[oldLen:newLen])
 	}
 }
 
@@ -153,7 +153,7 @@ func (d *Decoder) decodeBytes(majorByte byte) (bs []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return d.r.readn(n), nil
+	return d.r.Readn(n), nil
 }
 
 // Decode a single length-prefixed string.
@@ -162,7 +162,7 @@ func (d *Decoder) decodeString(majorByte byte) (s string, err error) {
 	if err != nil {
 		return "", err
 	}
-	return string(d.r.readnzc(n)), nil
+	return string(d.r.Readnzc(n)), nil
 }
 
 // culled from OGRE (Object-Oriented Graphics Rendering Engine)

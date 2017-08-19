@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/polydawn/refmt/shared"
 	. "github.com/polydawn/refmt/tok"
 )
 
 type Decoder struct {
-	r quickReader
+	r shared.SlickReader
 
 	stack []decoderStep // When empty, and step returns done, all done.
 	step  decoderStep   // Shortcut to end of stack.
@@ -17,7 +18,7 @@ type Decoder struct {
 
 func NewDecoder(r io.Reader) (d *Decoder) {
 	d = &Decoder{
-		r:     &quickReaderStream{br: &readerByteScanner{r: r}},
+		r:     shared.NewReader(r),
 		stack: make([]decoderStep, 0, 10),
 		left:  make([]int, 0, 10),
 	}
@@ -61,13 +62,13 @@ func (d *Decoder) pushPhase(newPhase decoderStep) {
 // The original step, where any value is accepted, and no terminators for composites are valid.
 // ONLY used in the original step; all other steps handle leaf nodes internally.
 func (d *Decoder) step_acceptValue(tokenSlot *Token) (done bool, err error) {
-	majorByte := d.r.readn1()
+	majorByte := d.r.Readn1()
 	return d.stepHelper_acceptValue(majorByte, tokenSlot)
 }
 
 // Step in midst of decoding an indefinite-length array.
 func (d *Decoder) step_acceptArrValueOrBreak(tokenSlot *Token) (done bool, err error) {
-	majorByte := d.r.readn1()
+	majorByte := d.r.Readn1()
 	switch majorByte {
 	case cborSigilBreak:
 		tokenSlot.Type = TArrClose
@@ -80,7 +81,7 @@ func (d *Decoder) step_acceptArrValueOrBreak(tokenSlot *Token) (done bool, err e
 
 // Step in midst of decoding an indefinite-length map, key expected up next, or end.
 func (d *Decoder) step_acceptMapIndefKey(tokenSlot *Token) (done bool, err error) {
-	majorByte := d.r.readn1()
+	majorByte := d.r.Readn1()
 	switch majorByte {
 	case cborSigilBreak:
 		tokenSlot.Type = TMapClose
@@ -94,7 +95,7 @@ func (d *Decoder) step_acceptMapIndefKey(tokenSlot *Token) (done bool, err error
 
 // Step in midst of decoding an indefinite-length map, value expected up next.
 func (d *Decoder) step_acceptMapIndefValueOrBreak(tokenSlot *Token) (done bool, err error) {
-	majorByte := d.r.readn1()
+	majorByte := d.r.Readn1()
 	switch majorByte {
 	case cborSigilBreak:
 		return true, fmt.Errorf("unexpected break; expected value in indefinite-length map")
@@ -116,7 +117,7 @@ func (d *Decoder) step_acceptArrValue(tokenSlot *Token) (done bool, err error) {
 	}
 	d.left[ll]--
 	// Read next value.
-	majorByte := d.r.readn1()
+	majorByte := d.r.Readn1()
 	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
 	return false, err
 }
@@ -132,7 +133,7 @@ func (d *Decoder) step_acceptMapKey(tokenSlot *Token) (done bool, err error) {
 	}
 	d.left[ll]--
 	// Read next key.
-	majorByte := d.r.readn1()
+	majorByte := d.r.Readn1()
 	d.step = d.step_acceptMapValue
 	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot) // FIXME surely not *any* value?  not composites, at least?
 	return false, err
@@ -141,7 +142,7 @@ func (d *Decoder) step_acceptMapKey(tokenSlot *Token) (done bool, err error) {
 // Step in midst of decoding an definite-length map, value expected up next.
 func (d *Decoder) step_acceptMapValue(tokenSlot *Token) (done bool, err error) {
 	// Read next value.
-	majorByte := d.r.readn1()
+	majorByte := d.r.Readn1()
 	d.step = d.step_acceptMapKey
 	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
 	return false, err
