@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"bytes"
 	"errors"
 	"io"
 )
@@ -19,7 +20,11 @@ var (
 )
 
 func NewReader(r io.Reader) SlickReader {
-	return &SlickReaderStream{br: &readerByteScanner{r: r}}
+	return &SlickReaderStream{br: &readerToScanner{r: r}}
+}
+
+func NewBytesReader(buf *bytes.Buffer) SlickReader {
+	return &SlickReaderStream{br: buf}
 }
 
 func NewSliceReader(b []byte) SlickReader {
@@ -74,7 +79,7 @@ type SlickReader interface {
 // While this implementation does use some internal buffers, it's still advisable
 // to use a buffered reader to avoid small reads for any external IO like disk or network.
 type SlickReaderStream struct {
-	br         *readerByteScanner
+	br         readerScanner
 	scratch    [scratchByteArrayLen]byte // temp byte array re-used internally for efficiency during read.
 	n          int                       // num read
 	tracking   []byte                    // tracking bytes read
@@ -260,16 +265,22 @@ func (z *SlickReaderSlice) StopTrack() (bs []byte) {
 	return z.b[z.t:z.c]
 }
 
-// readerByteScanner decorates an `io.Reader` with all the methods to also
+// conjoin the io.Reader and io.ByteScanner interfaces.
+type readerScanner interface {
+	io.Reader
+	io.ByteScanner
+}
+
+// readerToScanner decorates an `io.Reader` with all the methods to also
 // fulfill the `io.ByteScanner` interface.
-type readerByteScanner struct {
+type readerToScanner struct {
 	r  io.Reader
 	l  byte    // last byte
 	ls byte    // last byte status. 0: init-canDoNothing, 1: canRead, 2: canUnread
 	b  [1]byte // tiny buffer for reading single bytes
 }
 
-func (z *readerByteScanner) Read(p []byte) (n int, err error) {
+func (z *readerToScanner) Read(p []byte) (n int, err error) {
 	var firstByte bool
 	if z.ls == 1 {
 		z.ls = 2
@@ -295,7 +306,7 @@ func (z *readerByteScanner) Read(p []byte) (n int, err error) {
 	return
 }
 
-func (z *readerByteScanner) ReadByte() (c byte, err error) {
+func (z *readerToScanner) ReadByte() (c byte, err error) {
 	n, err := z.Read(z.b[:])
 	if n == 1 {
 		c = z.b[0]
@@ -306,7 +317,7 @@ func (z *readerByteScanner) ReadByte() (c byte, err error) {
 	return
 }
 
-func (z *readerByteScanner) UnreadByte() (err error) {
+func (z *readerToScanner) UnreadByte() (err error) {
 	x := z.ls
 	if x == 0 {
 		err = errors.New("cannot unread - nothing has been read")
