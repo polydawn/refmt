@@ -61,9 +61,9 @@ func (d *Decoder) pushPhase(newPhase decoderStep) {
 	d.some = false
 }
 
-func readn1skippingWhitespace(r shared.SlickReader) (majorByte byte) {
+func readn1skippingWhitespace(r shared.SlickReader) (majorByte byte, err error) {
 	for {
-		majorByte = r.Readn1()
+		majorByte, err = r.Readn1()
 		switch majorByte {
 		case ' ', '\t', '\r', '\n': // continue
 		default:
@@ -75,20 +75,29 @@ func readn1skippingWhitespace(r shared.SlickReader) (majorByte byte) {
 // The original step, where any value is accepted, and no terminators for composites are valid.
 // ONLY used in the original step; all other steps handle leaf nodes internally.
 func (d *Decoder) step_acceptValue(tokenSlot *Token) (done bool, err error) {
-	majorByte := readn1skippingWhitespace(d.r)
+	majorByte, err := readn1skippingWhitespace(d.r)
+	if err != nil {
+		return true, err
+	}
 	return d.stepHelper_acceptValue(majorByte, tokenSlot)
 }
 
 // Step in midst of decoding an array.
 func (d *Decoder) step_acceptArrValueOrBreak(tokenSlot *Token) (done bool, err error) {
-	majorByte := readn1skippingWhitespace(d.r)
+	majorByte, err := readn1skippingWhitespace(d.r)
+	if err != nil {
+		return true, err
+	}
 	if d.some {
 		switch majorByte {
 		case ']':
 			tokenSlot.Type = TArrClose
 			return true, nil
 		case ',':
-			majorByte = readn1skippingWhitespace(d.r)
+			majorByte, err = readn1skippingWhitespace(d.r)
+			if err != nil {
+				return true, err
+			}
 			// and now fall through to the next switch
 		}
 	}
@@ -105,14 +114,20 @@ func (d *Decoder) step_acceptArrValueOrBreak(tokenSlot *Token) (done bool, err e
 
 // Step in midst of decoding a map, key expected up next, or end.
 func (d *Decoder) step_acceptMapKeyOrBreak(tokenSlot *Token) (done bool, err error) {
-	majorByte := readn1skippingWhitespace(d.r)
+	majorByte, err := readn1skippingWhitespace(d.r)
+	if err != nil {
+		return true, err
+	}
 	if d.some {
 		switch majorByte {
 		case '}':
 			tokenSlot.Type = TMapClose
 			return true, nil
 		case ',':
-			majorByte = readn1skippingWhitespace(d.r)
+			majorByte, err = readn1skippingWhitespace(d.r)
+			if err != nil {
+				return true, err
+			}
 			// and now fall through to the next switch
 		}
 	}
@@ -124,7 +139,10 @@ func (d *Decoder) step_acceptMapKeyOrBreak(tokenSlot *Token) (done bool, err err
 		// Consume a string for key.
 		_, err := d.stepHelper_acceptValue(majorByte, tokenSlot) // FIXME surely not *any* value?  not composites, at least?
 		// Now scan up to consume the colon as well, which is required next.
-		majorByte = readn1skippingWhitespace(d.r)
+		majorByte, err = readn1skippingWhitespace(d.r)
+		if err != nil {
+			return true, err
+		}
 		if majorByte != ':' {
 			return true, fmt.Errorf("expected colon after map key; got 0x%x", majorByte)
 		}
@@ -137,7 +155,10 @@ func (d *Decoder) step_acceptMapKeyOrBreak(tokenSlot *Token) (done bool, err err
 
 // Step in midst of decoding a map, value expected up next.
 func (d *Decoder) step_acceptMapValue(tokenSlot *Token) (done bool, err error) {
-	majorByte := readn1skippingWhitespace(d.r)
+	majorByte, err := readn1skippingWhitespace(d.r)
+	if err != nil {
+		return true, err
+	}
 	d.step = d.step_acceptMapKeyOrBreak
 	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
 	return false, err

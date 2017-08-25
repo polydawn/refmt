@@ -11,8 +11,8 @@ import (
 func TestCborDecoder(t *testing.T) {
 	tt := cborFixtures
 	for _, tr := range tt {
-		// Skip if not tagged for decoding.
-		if tr.only&situationDecoding == 0 {
+		// Skip if fixture tagged as inapplicable to decoding.
+		if tr.decodeResult == inapplicable {
 			continue
 		}
 

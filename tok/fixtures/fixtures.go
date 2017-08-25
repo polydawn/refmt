@@ -6,8 +6,6 @@
 package fixtures
 
 import (
-	"errors"
-
 	. "github.com/polydawn/refmt/tok"
 )
 
@@ -242,6 +240,15 @@ var Sequences = []Sequence{
 			{Type: TBytes, Bytes: make([]byte, 400)},
 		},
 	},
+
+	// Partial sequences!
+	// Decoders may emit these before hitting an error (like EOF, or invalid following serial token).
+	// Encoders may consume these, but ending after them would be an unexpected end of sequence error.
+	{"dangling arr open",
+		[]Token{
+			{Type: TArrOpen, Length: 1},
+		},
+	},
 }
 
 // Returns a copy of the sequence with all length info at the start of maps and arrays stripped.
@@ -255,6 +262,16 @@ func (s Sequence) SansLengthInfo() Sequence {
 	return v
 }
 
+// Returns a copy of the sequence with the given token appened.
+// This is mostly useful to test failure modes, like
+// appending an invalid token at the end so decoder lengths match up.
+func (s Sequence) Append(tok Token) Sequence {
+	v := Sequence{s.Title, make([]Token, len(s.Tokens)+1)}
+	copy(v.Tokens, s.Tokens)
+	v.Tokens[len(s.Tokens)] = tok
+	return v
+}
+
 // Sequences indexed by title.
 var SequenceMap map[string]Sequence
 
@@ -264,22 +281,3 @@ func init() {
 		SequenceMap[v.Title] = v
 	}
 }
-
-// Labels for which way a token sequence fixture is malformed.
-type Malformed error
-
-var (
-	MalformedUnterminatedArray Malformed = errors.New("MalformedUnterminatedArray")
-	MalformedUnterminatedMap   Malformed = errors.New("MalformedUnterminatedMap")
-	MalformedNilMapKey         Malformed = errors.New("MalformedNilMapKey")
-	MalformedUnbalancedMap     Malformed = errors.New("MalformedUnbalancedMap")
-)
-
-// Any array of token sequences that are in some way malformed.
-// TokenSinks (i.e. encoders, serializes) should be able to halt and error reasonably on these.
-// It's less simple to get TokenSources to emit them, but for decoders comparable inputs should have their own test coverage.
-var MalformedSequences = []struct {
-	Title     string
-	Seq       []Token
-	Malformed Malformed
-}{}
