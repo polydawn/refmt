@@ -60,6 +60,15 @@ type tObjStrp struct {
 	X *string
 }
 
+type tObjPtrObjStrp struct {
+	P *tObjStrp
+}
+
+type tObjPtrObjStrp2 struct {
+	P1 *tObjStrp
+	P2 *tObjStrp
+}
+
 type tObjMap struct {
 	X map[string]interface{}
 }
@@ -432,6 +441,99 @@ var objFixtures = []struct {
 			{title: "into *[]int",
 				slotFn:    func() interface{} { var v []int; return &v },
 				expectErr: ErrUnmarshalTypeCantFit{Token{Type: TString, Str: "value"}, reflect.ValueOf(0)}},
+		},
+	},
+	{title: "maps in maps",
+		sequence: fixtures.SequenceMap["maps nested in maps"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjPtrObjStrp{}).StructMap().
+				AddField("P", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
+			atlas.BuildEntry(tObjPtrObjStrp2{}).StructMap().
+				AddField("P1", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
+			atlas.BuildEntry(tObjStrp{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "k2"}).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from map[str]iface with map[str]str",
+				valueFn: func() interface{} {
+					return map[string]interface{}{"k": map[string]string{"k2": "v2"}}
+				}},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into string",
+				slotFn:    func() interface{} { var str string; return str },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf("")}},
+			{title: "into *map[str]map[str]str",
+				slotFn: func() interface{} { var m map[string]map[string]string; return &m },
+				valueFn: func() interface{} {
+					return map[string]map[string]string{"k": {"k2": "v2"}}
+				}},
+			{title: "into *tObjPtrObjStrp{}",
+				slotFn: func() interface{} { return &tObjPtrObjStrp{} },
+				valueFn: func() interface{} {
+					str := "v2"
+					return tObjPtrObjStrp{&tObjStrp{&str}}
+				}},
+			{title: "into *tObjPtrObjStrp2{}, using the first field",
+				slotFn: func() interface{} { return &tObjPtrObjStrp2{} },
+				valueFn: func() interface{} {
+					str := "v2"
+					return tObjPtrObjStrp2{P1: &tObjStrp{&str}}
+				}},
+		},
+	},
+	{title: "maps in maps, using an atlas hitting different field orders",
+		sequence: fixtures.SequenceMap["maps nested in maps"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjPtrObjStrp2{}).StructMap().
+				AddField("P2", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
+			atlas.BuildEntry(tObjStrp{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "k2"}).
+				Complete(),
+		),
+		unmarshalResults: []unmarshalResults{
+			{title: "into *tObjPtrObjStrp2{}, using the second field",
+				slotFn: func() interface{} { return &tObjPtrObjStrp2{} },
+				valueFn: func() interface{} {
+					str := "v2"
+					return tObjPtrObjStrp2{P2: &tObjStrp{&str}}
+				}},
+		},
+	},
+	{title: "maps in maps with mixed nulls",
+		sequence: fixtures.SequenceMap["maps nested in maps with mixed nulls"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjPtrObjStrp2{}).StructMap().
+				AddField("P1", atlas.StructMapEntry{SerialName: "k"}).
+				AddField("P2", atlas.StructMapEntry{SerialName: "k2"}).
+				Complete(),
+			atlas.BuildEntry(tObjStrp{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "k2"}).
+				Complete(),
+		),
+		unmarshalResults: []unmarshalResults{
+			{title: "into *tObjPtrObjStrp2{}, null going into the second field",
+				slotFn: func() interface{} { return &tObjPtrObjStrp2{} },
+				valueFn: func() interface{} {
+					str := "v2"
+					return tObjPtrObjStrp2{P1: &tObjStrp{&str}}
+				}},
+			{title: "into *tObjPtrObjStrp2{}, null going into the second field and overwriting an earlier value there",
+				slotFn: func() interface{} { return &tObjPtrObjStrp2{P2: &tObjStrp{}} },
+				valueFn: func() interface{} {
+					str := "v2"
+					return tObjPtrObjStrp2{P1: &tObjStrp{&str}}
+				}},
+			{title: "into **tObjPtrObjStrp2{}, which hits a ptrdefer machine multiple times",
+				slotFn: func() interface{} { v := &tObjPtrObjStrp2{}; return &v },
+				valueFn: func() interface{} {
+					str := "v2"
+					return &tObjPtrObjStrp2{P1: &tObjStrp{&str}}
+				}},
 		},
 	},
 	{title: "array nest in map pt1",

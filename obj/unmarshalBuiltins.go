@@ -22,14 +22,14 @@ func (mach *ptrDerefDelegateUnmarshalMachine) Reset(slab *unmarshalSlab, rv refl
 	return nil
 }
 func (mach *ptrDerefDelegateUnmarshalMachine) Step(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
-	// If nil: easy road.  Nil the ptr.
-	if tok.Type == TNull {
-		mach.ptr_rv.Set(reflect.Zero(mach.ptr_rv.Type()))
-		return true, nil
-	}
-	// If real value: on the first step we have to do initializations.
+	// If first step: we have to do initializations.
 	if mach.firstStep {
 		mach.firstStep = false
+		// If nil: easy road.  Nil the ptr.
+		if tok.Type == TNull {
+			mach.ptr_rv.Set(reflect.Zero(mach.ptr_rv.Type()))
+			return true, nil
+		}
 		// Walk the pointers: if some already exist, we accept them unmodified;
 		//  if any are nil, make a new one, and recursively.
 		rv := mach.ptr_rv

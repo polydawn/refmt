@@ -160,6 +160,19 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"maps nested in maps with mixed nulls",
+		[]Token{
+			{Type: TMapOpen, Length: 2},
+			TokStr("k"),
+			{Type: TMapOpen, Length: 1},
+			TokStr("k2"),
+			TokStr("v2"),
+			{Type: TMapClose},
+			TokStr("k2"),
+			{Type: TNull},
+			{Type: TMapClose},
+		},
+	},
 	{"map[str][]map[str]int",
 		// this one is primarily for the objmapper tests
 		[]Token{
