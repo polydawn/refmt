@@ -12,7 +12,7 @@ func TestCborEncoder(t *testing.T) {
 	tt := cborFixtures
 	// Loop over test table.
 	for _, tr := range tt {
-		// Skip if fixture tagged as inapplicable to encoding.
+		// Ignore this row if tagged as inapplicable to encoding.
 		if tr.encodeResult == inapplicable {
 			continue
 		}
