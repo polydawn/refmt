@@ -18,8 +18,15 @@ func (d *Decoder) decodeString() (string, error) {
 	// Start tracking the byte slice; real string starts here.
 	d.r.Track()
 	// Scan until scanner tells us end of string.
-	var err error
-	for step := strscan_normal; step != nil && err == nil; step, err = step(d.r.Readn1()) {
+	for step := strscan_normal; step != nil; {
+		majorByte, err := d.r.Readn1()
+		if err != nil {
+			return "", err
+		}
+		step, err = step(majorByte)
+		if err != nil {
+			return "", err
+		}
 	}
 	// Unread one.  The scan loop consumed the trailing quote already,
 	// which we don't want to pass onto the parser.

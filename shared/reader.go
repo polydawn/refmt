@@ -44,8 +44,6 @@ func NewSliceReader(b []byte) SlickReader {
 //
 // All of these shortcuts mean correct usage is essential to avoid unexpected behaviors,
 // but in return allow avoiding many, many common sources of memory allocations in a parser.
-//
-// Implementations panic on unexpected IO errors.  TODO change this to swallow errors until checked.
 type SlickReader interface {
 
 	// Read n bytes into a byte slice which may be shared and must not be reused
@@ -53,21 +51,20 @@ type SlickReader interface {
 	// Readnzc will use the implementation scratch buffer if possible,
 	// i.e. n < len(scratchbuf), or may return a view of the []byte being decoded from.
 	// Requesting a zero length read will return `zeroByteSlice`, a len-zero cap-zero slice.
-	Readnzc(n int) []byte
+	Readnzc(n int) ([]byte, error)
 
 	// Read n bytes into a new byte slice.
 	// If zero-copy views into existing buffers are acceptable (e.g. you know you
 	// won't later mutate, reference or expose this memory again), prefer `Readnzc`.
 	// If you already have an existing slice of sufficient size to reuse, prefer `Readb`.
 	// Requesting a zero length read will return `zeroByteSlice`, a len-zero cap-zero slice.
-	Readn(n int) []byte
+	Readn(n int) ([]byte, error)
 
 	// Read `len(b)` bytes into the given slice, starting at its beginning,
 	// overwriting all values, and disregarding any extra capacity.
-	Readb(b []byte)
+	Readb(b []byte) error
 
-	Readn1() uint8
-	Readn1eof() (v uint8, eof bool)
+	Readn1() (uint8, error)
 	Unreadn1()
 	NumRead() int // number of bytes read
 	Track()
@@ -90,65 +87,48 @@ func (z *SlickReaderStream) NumRead() int {
 	return z.n
 }
 
-func (z *SlickReaderStream) Readnzc(n int) (bs []byte) {
+func (z *SlickReaderStream) Readnzc(n int) (bs []byte, err error) {
 	if n == 0 {
-		return zeroByteSlice
+		return zeroByteSlice, nil
 	}
 	if n < len(z.scratch) {
 		bs = z.scratch[:n]
 	} else {
 		bs = make([]byte, n)
 	}
-	z.Readb(bs)
+	err = z.Readb(bs)
 	return
 }
 
-func (z *SlickReaderStream) Readn(n int) (bs []byte) {
+func (z *SlickReaderStream) Readn(n int) (bs []byte, err error) {
 	if n == 0 {
-		return zeroByteSlice
+		return zeroByteSlice, nil
 	}
 	bs = make([]byte, n)
-	z.Readb(bs)
+	err = z.Readb(bs)
 	return
 }
 
-func (z *SlickReaderStream) Readb(bs []byte) {
+func (z *SlickReaderStream) Readb(bs []byte) error {
 	if len(bs) == 0 {
-		return
+		return nil
 	}
 	n, err := io.ReadAtLeast(z.br, bs, len(bs))
 	z.n += n
-	if err != nil {
-		panic(err)
-	}
 	if z.isTracking {
 		z.tracking = append(z.tracking, bs...)
 	}
+	return err
 }
 
-func (z *SlickReaderStream) Readn1() (b uint8) {
-	b, err := z.br.ReadByte()
+func (z *SlickReaderStream) Readn1() (b uint8, err error) {
+	b, err = z.br.ReadByte()
 	if err != nil {
-		panic(err)
+		return
 	}
 	z.n++
 	if z.isTracking {
 		z.tracking = append(z.tracking, b)
-	}
-	return b
-}
-
-func (z *SlickReaderStream) Readn1eof() (b uint8, eof bool) {
-	b, err := z.br.ReadByte()
-	if err == nil {
-		z.n++
-		if z.isTracking {
-			z.tracking = append(z.tracking, b)
-		}
-	} else if err == io.EOF {
-		eof = true
-	} else {
-		panic(err)
 	}
 	return
 }
@@ -207,13 +187,13 @@ func (z *SlickReaderSlice) Unreadn1() {
 	return
 }
 
-func (z *SlickReaderSlice) Readnzc(n int) (bs []byte) {
+func (z *SlickReaderSlice) Readnzc(n int) (bs []byte, err error) {
 	if n == 0 {
-		return zeroByteSlice
+		return zeroByteSlice, nil
 	} else if z.a == 0 {
-		panic(io.EOF)
+		return zeroByteSlice, io.EOF
 	} else if n > z.a {
-		panic(io.ErrUnexpectedEOF)
+		return zeroByteSlice, io.ErrUnexpectedEOF
 	} else {
 		c0 := z.c
 		z.c = c0 + n
@@ -223,16 +203,16 @@ func (z *SlickReaderSlice) Readnzc(n int) (bs []byte) {
 	return
 }
 
-func (z *SlickReaderSlice) Readn(n int) (bs []byte) {
+func (z *SlickReaderSlice) Readn(n int) (bs []byte, err error) {
 	if n == 0 {
-		return zeroByteSlice
+		return zeroByteSlice, nil
 	}
 	bs = make([]byte, n)
-	z.Readb(bs)
+	err = z.Readb(bs)
 	return
 }
 
-func (z *SlickReaderSlice) Readn1() (v uint8) {
+func (z *SlickReaderSlice) Readn1() (v uint8, err error) {
 	if z.a == 0 {
 		panic(io.EOF)
 	}
@@ -242,19 +222,10 @@ func (z *SlickReaderSlice) Readn1() (v uint8) {
 	return
 }
 
-func (z *SlickReaderSlice) Readn1eof() (v uint8, eof bool) {
-	if z.a == 0 {
-		eof = true
-		return
-	}
-	v = z.b[z.c]
-	z.c++
-	z.a--
-	return
-}
-
-func (z *SlickReaderSlice) Readb(bs []byte) {
-	copy(bs, z.Readnzc(len(bs)))
+func (z *SlickReaderSlice) Readb(bs []byte) error {
+	bs2, err := z.Readnzc(len(bs))
+	copy(bs, bs2)
+	return err
 }
 
 func (z *SlickReaderSlice) Track() {

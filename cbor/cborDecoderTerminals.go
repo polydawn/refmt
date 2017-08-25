@@ -6,14 +6,18 @@ import (
 	"math"
 )
 
-func (d *Decoder) decodeFloat(majorByte byte) (f float64) {
+func (d *Decoder) decodeFloat(majorByte byte) (f float64, err error) {
+	var bs []byte
 	switch majorByte {
 	case cborSigilFloat16:
-		f = float64(math.Float32frombits(halfFloatToFloatBits(binary.BigEndian.Uint16(d.r.Readnzc(2)))))
+		bs, err = d.r.Readnzc(2)
+		f = float64(math.Float32frombits(halfFloatToFloatBits(binary.BigEndian.Uint16(bs))))
 	case cborSigilFloat32:
-		f = float64(math.Float32frombits(binary.BigEndian.Uint32(d.r.Readnzc(4))))
+		bs, err = d.r.Readnzc(4)
+		f = float64(math.Float32frombits(binary.BigEndian.Uint32(bs)))
 	case cborSigilFloat64:
-		f = math.Float64frombits(binary.BigEndian.Uint64(d.r.Readnzc(8)))
+		bs, err = d.r.Readnzc(8)
+		f = math.Float64frombits(binary.BigEndian.Uint64(bs))
 	}
 	return
 }
@@ -27,13 +31,21 @@ func (d *Decoder) decodeUint(majorByte byte) (ui uint64, err error) {
 		ui = uint64(v)
 	} else {
 		if v == 0x18 {
-			ui = uint64(d.r.Readn1())
+			var b byte
+			b, err = d.r.Readn1()
+			ui = uint64(b)
 		} else if v == 0x19 {
-			ui = uint64(binary.BigEndian.Uint16(d.r.Readnzc(2)))
+			var bs []byte
+			bs, err = d.r.Readnzc(2)
+			ui = uint64(binary.BigEndian.Uint16(bs))
 		} else if v == 0x1a {
-			ui = uint64(binary.BigEndian.Uint32(d.r.Readnzc(4)))
+			var bs []byte
+			bs, err = d.r.Readnzc(4)
+			ui = uint64(binary.BigEndian.Uint32(bs))
 		} else if v == 0x1b {
-			ui = uint64(binary.BigEndian.Uint64(d.r.Readnzc(8)))
+			var bs []byte
+			bs, err = d.r.Readnzc(8)
+			ui = uint64(binary.BigEndian.Uint64(bs))
 		} else {
 			err = fmt.Errorf("decodeUint: Invalid descriptor: %v", majorByte)
 			return
@@ -96,7 +108,10 @@ func (d *Decoder) decodeBytesOrStringIndefinite(bs []byte, majorWanted byte) (bs
 		// Read first byte; check for break, or hunk, or invalid.
 		// (It's not necessary to have the first majorByte as a param to this function, because
 		// indefinite length sequences have a separate sigil which doesn't pack any len info.)
-		majorByte := d.r.Readn1()
+		majorByte, err := d.r.Readn1()
+		if err != nil {
+			return bs, err
+		}
 		if majorByte == cborSigilBreak {
 			return bs, nil
 		} else if major := majorByte | 0x1f - 0x1f; major != majorWanted {
@@ -153,7 +168,7 @@ func (d *Decoder) decodeBytes(majorByte byte) (bs []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
-	return d.r.Readn(n), nil
+	return d.r.Readn(n)
 }
 
 // Decode a single length-prefixed string.
@@ -162,7 +177,8 @@ func (d *Decoder) decodeString(majorByte byte) (s string, err error) {
 	if err != nil {
 		return "", err
 	}
-	return string(d.r.Readnzc(n)), nil
+	bs, err := d.r.Readnzc(n)
+	return string(bs), err
 }
 
 // culled from OGRE (Object-Oriented Graphics Rendering Engine)
