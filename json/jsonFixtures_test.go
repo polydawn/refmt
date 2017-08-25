@@ -2,7 +2,9 @@ package json
 
 import (
 	"fmt"
+	"io"
 
+	. "github.com/polydawn/refmt/tok"
 	"github.com/polydawn/refmt/tok/fixtures"
 )
 
@@ -158,5 +160,13 @@ var jsonFixtures = []struct {
 		`{"k":{"k2":"v2"}}`,
 		nil,
 		nil,
+	},
+
+	// Errors when decoding invalid inputs!
+	{"",
+		fixtures.SequenceMap["dangling arr open"].SansLengthInfo().Append(Token{}),
+		`[`,
+		inapplicable,
+		io.EOF, // REVIEW it's probably more explicitly unexpected than that...
 	},
 }

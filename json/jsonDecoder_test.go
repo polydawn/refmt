@@ -3,7 +3,6 @@ package json
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"strings"
 	"testing"
 
@@ -49,9 +48,6 @@ func TestJsonDecoder(t *testing.T) {
 						}
 					}
 					Convey("Result", FailureContinues, func() {
-						if tr.decodeResult == io.EOF {
-							expectSteps += 1 // because it's not an error until the read advances far enough to trip on it
-						}
 						So(nStep, ShouldEqual, expectSteps)
 						So(err, ShouldEqual, tr.decodeResult)
 					})

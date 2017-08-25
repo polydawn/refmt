@@ -227,6 +227,15 @@ var Sequences = []Sequence{
 			{Type: TBytes, Bytes: make([]byte, 400)},
 		},
 	},
+
+	// Partial sequences!
+	// Decoders may emit these before hitting an error (like EOF, or invalid following serial token).
+	// Encoders may consume these, but ending after them would be an unexpected end of sequence error.
+	{"dangling arr open",
+		[]Token{
+			{Type: TArrOpen, Length: 1},
+		},
+	},
 }
 
 // Returns a copy of the sequence with all length info at the start of maps and arrays stripped.
@@ -237,6 +246,16 @@ func (s Sequence) SansLengthInfo() Sequence {
 	for i := range v.Tokens {
 		v.Tokens[i].Length = -1
 	}
+	return v
+}
+
+// Returns a copy of the sequence with the given token appened.
+// This is mostly useful to test failure modes, like
+// appending an invalid token at the end so decoder lengths match up.
+func (s Sequence) Append(tok Token) Sequence {
+	v := Sequence{s.Title, make([]Token, len(s.Tokens)+1)}
+	copy(v.Tokens, s.Tokens)
+	v.Tokens[len(s.Tokens)] = tok
 	return v
 }
 
