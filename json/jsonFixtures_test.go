@@ -17,6 +17,20 @@ var jsonFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
+	// Booleans
+	{"",
+		fixtures.SequenceMap["true"],
+		`true`,
+		nil,
+		nil,
+	},
+	{"",
+		fixtures.SequenceMap["false"],
+		`false`,
+		nil,
+		nil,
+	},
+
 	// Strings
 	{"",
 		fixtures.SequenceMap["empty string"],
