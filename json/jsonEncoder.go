@@ -173,6 +173,13 @@ func (d *Encoder) flushValue(tok *Token) {
 	switch tok.Type {
 	case TString:
 		d.emitString(tok.Str)
+	case TBool:
+		switch tok.Bool {
+		case true:
+			d.wr.Write(wordTrue)
+		case false:
+			d.wr.Write(wordFalse)
+		}
 	case TInt:
 		b := strconv.AppendInt(d.scratch[:0], tok.Int, 10)
 		d.wr.Write(b)

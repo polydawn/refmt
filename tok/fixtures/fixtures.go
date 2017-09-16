@@ -16,6 +16,18 @@ type Sequence struct {
 
 // An array of well-formed token sequences.
 var Sequences = []Sequence{
+	// Booleans.
+	{"true",
+		[]Token{
+			{Type: TBool, Bool: true},
+		},
+	},
+	{"false",
+		[]Token{
+			{Type: TBool, Bool: false},
+		},
+	},
+
 	// Strings.
 	{"empty string",
 		[]Token{
