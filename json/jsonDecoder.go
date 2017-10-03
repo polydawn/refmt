@@ -201,6 +201,8 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 		// it's the Unmarshaller responsibility to decide to cast that.)
 		tokenSlot.Type = TFloat64
 		tokenSlot.Float64, err = d.decodeFloat(majorByte)
+		tokenSlot.Type = TInt                    // FIXME HACKS
+		tokenSlot.Int = int64(tokenSlot.Float64) // FIXME HACKS
 		return true, err
 	default:
 		return true, fmt.Errorf("Invalid byte while expecting start of value: 0x%x", majorByte)

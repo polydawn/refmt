@@ -7,6 +7,7 @@ package json
 
 import (
 	"fmt"
+	"io"
 	"strconv"
 	"unicode"
 	"unicode/utf16"
@@ -229,9 +230,10 @@ func getu4(s []byte) rune {
 
 func (d *Decoder) decodeFloat(majorByte byte) (float64, error) {
 	// First byte has already been eaten.
-	// Easiest to unread1, so we can use track.
+	// Easiest to unread1, so we can use track, then swallow it again.
 	d.r.Unreadn1()
 	d.r.Track()
+	d.r.Readn1()
 	// Scan until scanner tells us end of numeric.
 	// Pick the first scanner stepfunc based on the leading byte.
 	var step numscanStep
@@ -245,16 +247,26 @@ func (d *Decoder) decodeFloat(majorByte byte) (float64, error) {
 	default:
 		panic("unreachable")
 	}
-	var err error
-	for ; step != nil; step, err = step(d.r.Readn1()) {
+	for {
+		b, err := d.r.Readn1()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return 0, err
+		}
+		step, err = step(b)
+		if step == nil {
+			// Unread one.  The scan loop consumed one char beyond the end
+			// (this is necessary in json!),
+			// which the next part of the decoder will need elsewhere.
+			d.r.Unreadn1()
+			break
+		}
 		if err != nil {
 			return 0, err
 		}
 	}
-	// Unread one.  The scan loop consumed one char beyond the end
-	// (this is necessary in json!),
-	// which the next part of the decoder will need elsewhere.
-	d.r.Unreadn1()
 	// Parse!
 	// *This is not a fast parse*.
 	return strconv.ParseFloat(string(d.r.StopTrack()), 64)
