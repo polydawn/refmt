@@ -12,6 +12,8 @@ import (
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
+
+	"github.com/polydawn/refmt/tok"
 )
 
 func (d *Decoder) decodeString() (string, error) {
@@ -228,7 +230,9 @@ func getu4(s []byte) rune {
 	return rune(r)
 }
 
-func (d *Decoder) decodeFloat(majorByte byte) (float64, error) {
+// Returns *either* an int or a float -- json is ambigous.
+// An int is preferred if possible.
+func (d *Decoder) decodeNumber(majorByte byte) (tok.TokenType, int64, float64, error) {
 	// First byte has already been eaten.
 	// Easiest to unread1, so we can use track, then swallow it again.
 	d.r.Unreadn1()
@@ -253,7 +257,7 @@ func (d *Decoder) decodeFloat(majorByte byte) (float64, error) {
 			break
 		}
 		if err != nil {
-			return 0, err
+			return 0, 0, 0, err
 		}
 		step, err = step(b)
 		if step == nil {
@@ -264,12 +268,18 @@ func (d *Decoder) decodeFloat(majorByte byte) (float64, error) {
 			break
 		}
 		if err != nil {
-			return 0, err
+			return 0, 0, 0, err
 		}
 	}
 	// Parse!
 	// *This is not a fast parse*.
-	return strconv.ParseFloat(string(d.r.StopTrack()), 64)
+	// Try int first; if it fails try float; if that fails return the float error.
+	s := string(d.r.StopTrack())
+	if i, err := strconv.ParseInt(s, 10, 64); err == nil {
+		return tok.TInt, i, 0, nil
+	}
+	f, err := strconv.ParseFloat(s, 64)
+	return tok.TFloat64, 0, f, err
 }
 
 // Scan steps are looped over the stream to find how long the number is.
