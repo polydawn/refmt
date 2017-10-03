@@ -199,8 +199,7 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 		// JSON in general doesn't differentiate.  But we usually try to anyway.
 		// (If this results in us yielding an int, and an obj.Unmarshaller is filling a float,
 		// it's the Unmarshaller responsibility to decide to cast that.)
-		tokenSlot.Type = TFloat64
-		tokenSlot.Float64, err = d.decodeFloat(majorByte)
+		tokenSlot.Type, tokenSlot.Int, tokenSlot.Float64, err = d.decodeNumber(majorByte)
 		return true, err
 	default:
 		return true, fmt.Errorf("Invalid byte while expecting start of value: 0x%x", majorByte)
