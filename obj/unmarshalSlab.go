@@ -24,6 +24,7 @@ type unmarshalSlabRow struct {
 	unmarshalMachineWildcard
 	unmarshalMachineMapStringWildcard
 	unmarshalMachineSliceWildcard
+	unmarshalMachineArrayWildcard
 	unmarshalMachineStructAtlas
 	unmarshalMachineTransform
 
@@ -125,7 +126,7 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 		}
 		return &row.unmarshalMachineSliceWildcard
 	case reflect.Array:
-		panic("todo")
+		return &row.unmarshalMachineArrayWildcard
 	case reflect.Map:
 		return &row.unmarshalMachineMapStringWildcard
 	case reflect.Struct:
