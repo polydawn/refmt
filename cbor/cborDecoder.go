@@ -239,8 +239,24 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 			d.pushPhase(d.step_acceptMapKey)
 			return false, err
 		case majorByte >= cborMajorTag && majorByte < cborMajorSimple:
-			return true, fmt.Errorf("cbor tags not supported")
-			// but when we do, it'll be by saving it as another field of the Token, and recursing.
+			// CBOR tags are, frankly, bonkers, and should not be used.
+			// They break isomorphism to basic standards like JSON.
+			// We'll parse basic integer tag values -- SINGLE layer only.
+			// We will NOT parse the full gamut of recursive tags: doing so
+			// would mean allowing an unbounded number of allocs *during
+			// *processing of a single token*, which is _not reasonable_.
+			_, err = d.decodeLen(majorByte)
+			if err != nil {
+				return true, err
+			}
+			// Okay, we slurped a tag.
+			// And dropped it on the floor.  Because screw tags.
+			// Read next value.
+			majorByte, err := d.r.Readn1()
+			if err != nil {
+				return true, err
+			}
+			return d.stepHelper_acceptValue(majorByte, tokenSlot)
 		default:
 			return true, fmt.Errorf("Invalid majorByte: 0x%x", majorByte)
 		}
