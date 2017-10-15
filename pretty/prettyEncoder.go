@@ -65,8 +65,8 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		case TArrClose:
 			return true, fmt.Errorf("unexpected arrClose; expected start of value")
 		default:
-			// It's a value; handle it.
 			d.emitValue(tok)
+			d.wr.Write(wordBreak)
 			return true, nil
 		}
 	case phase_mapExpectKeyOrEnd:
@@ -81,11 +81,10 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		case TArrClose:
 			return true, fmt.Errorf("unexpected arrClose; expected start of key or end of map")
 		default:
-			// It's a key.  It'd better be a string.
 			switch tok.Type {
-			case TString:
+			case TString, TInt, TUint:
 				d.wr.Write(indentWord(len(d.stack)))
-				d.emitString(tok.Str)
+				d.emitValue(tok)
 				d.wr.Write(wordColon)
 				d.current = phase_mapExpectValue
 				return false, nil
@@ -108,9 +107,9 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		case TArrClose:
 			return true, fmt.Errorf("unexpected arrClose; expected start of value")
 		default:
-			// It's a value; handle it.
-			d.emitValue(tok)
 			d.current = phase_mapExpectKeyOrEnd
+			d.emitValue(tok)
+			d.wr.Write(wordBreak)
 			return false, nil
 		}
 	case phase_arrExpectValueOrEnd:
@@ -129,9 +128,9 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 			d.emitArrClose(tok)
 			return d.popPhase()
 		default:
-			// It's a value; handle it.
 			d.wr.Write(indentWord(len(d.stack)))
 			d.emitValue(tok)
+			d.wr.Write(wordBreak)
 			return false, nil
 		}
 	default:
@@ -230,7 +229,6 @@ func (d *Encoder) emitValue(tok *Token) {
 	default:
 		panic(fmt.Errorf("TODO finish more pretty.Encoder primitives support: unhandled token %s", tok))
 	}
-	d.wr.Write(wordBreak)
 }
 
 func (d *Encoder) writeByte(b byte) {
