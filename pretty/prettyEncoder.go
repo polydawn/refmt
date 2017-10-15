@@ -151,7 +151,7 @@ func (d *Encoder) popPhase() (bool, error) {
 		return true, nil
 	}
 	if n < 0 { // the state machines are supposed to have already errored better
-		panic("jsonEncoder stack overpopped")
+		panic("prettyEncoder stack overpopped")
 	}
 	d.current = d.stack[n-1]
 	d.stack = d.stack[0:n]
