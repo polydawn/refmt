@@ -159,6 +159,11 @@ func (d *Encoder) popPhase() (bool, error) {
 }
 
 func (d *Encoder) emitMapOpen(tok *Token) {
+	if tok.Tagged {
+		d.wr.Write(wordTag)
+		d.wr.Write([]byte(strconv.Itoa(tok.Tag)))
+		d.wr.Write(wordTagClose)
+	}
 	d.wr.Write(wordMapOpenPt1)
 	if tok.Length < 0 {
 		d.wr.Write(wordUnknownLen)
@@ -176,6 +181,11 @@ func (d *Encoder) emitMapClose(tok *Token) {
 }
 
 func (d *Encoder) emitArrOpen(tok *Token) {
+	if tok.Tagged {
+		d.wr.Write(wordTag)
+		d.wr.Write([]byte(strconv.Itoa(tok.Tag)))
+		d.wr.Write(wordTagClose)
+	}
 	d.wr.Write(wordArrOpenPt1)
 	if tok.Length < 0 {
 		d.wr.Write(wordUnknownLen)
@@ -193,6 +203,11 @@ func (d *Encoder) emitArrClose(tok *Token) {
 }
 
 func (d *Encoder) emitValue(tok *Token) {
+	if tok.Tagged {
+		d.wr.Write(wordTag)
+		d.wr.Write([]byte(strconv.Itoa(tok.Tag)))
+		d.wr.Write(wordTagClose)
+	}
 	switch tok.Type {
 	case TNull:
 		d.wr.Write(wordNull)
