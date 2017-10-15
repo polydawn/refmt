@@ -15,7 +15,6 @@ type Token struct {
 	// or has a special value to indicate beginnings and endings of maps and arrays.
 	Type   TokenType
 	Length int // If this is a TMapOpen or TArrOpen, a length may be specified.  Use -1 for unknown.
-	//Tag interface{} // Extension slot (mainly for cbor).
 
 	Str     string  // Value union.  Only one of these has meaning, depending on the value of 'Type'.
 	Bytes   []byte  // Value union.  Only one of these has meaning, depending on the value of 'Type'.
@@ -23,6 +22,9 @@ type Token struct {
 	Int     int64   // Value union.  Only one of these has meaning, depending on the value of 'Type'.
 	Uint    uint64  // Value union.  Only one of these has meaning, depending on the value of 'Type'.
 	Float64 float64 // Value union.  Only one of these has meaning, depending on the value of 'Type'.
+
+	Tagged bool // Extension slot for cbor.
+	Tag    int  // Extension slot for cbor.  Only applicable if tagged=true.
 }
 
 type TokenType byte
@@ -153,6 +155,13 @@ func (t Token) Value() interface{} {
 }
 
 func (t Token) String() string {
+	if !t.Tagged {
+		return t.StringSansTag()
+	}
+	return fmt.Sprintf("_%d:%s", t.Tag, t.StringSansTag())
+}
+
+func (t Token) StringSansTag() string {
 	switch t.Type {
 	case TMapOpen:
 		if t.Length == -1 {

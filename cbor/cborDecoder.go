@@ -66,6 +66,7 @@ func (d *Decoder) step_acceptValue(tokenSlot *Token) (done bool, err error) {
 	if err != nil {
 		return true, err
 	}
+	tokenSlot.Tagged = false
 	return d.stepHelper_acceptValue(majorByte, tokenSlot)
 }
 
@@ -75,6 +76,7 @@ func (d *Decoder) step_acceptArrValueOrBreak(tokenSlot *Token) (done bool, err e
 	if err != nil {
 		return true, err
 	}
+	tokenSlot.Tagged = false
 	switch majorByte {
 	case cborSigilBreak:
 		tokenSlot.Type = TArrClose
@@ -91,6 +93,7 @@ func (d *Decoder) step_acceptMapIndefKey(tokenSlot *Token) (done bool, err error
 	if err != nil {
 		return true, err
 	}
+	tokenSlot.Tagged = false
 	switch majorByte {
 	case cborSigilBreak:
 		tokenSlot.Type = TMapClose
@@ -108,6 +111,7 @@ func (d *Decoder) step_acceptMapIndefValueOrBreak(tokenSlot *Token) (done bool, 
 	if err != nil {
 		return true, err
 	}
+	tokenSlot.Tagged = false
 	switch majorByte {
 	case cborSigilBreak:
 		return true, fmt.Errorf("unexpected break; expected value in indefinite-length map")
@@ -133,6 +137,7 @@ func (d *Decoder) step_acceptArrValue(tokenSlot *Token) (done bool, err error) {
 	if err != nil {
 		return true, err
 	}
+	tokenSlot.Tagged = false
 	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
 	return false, err
 }
@@ -153,6 +158,7 @@ func (d *Decoder) step_acceptMapKey(tokenSlot *Token) (done bool, err error) {
 		return true, err
 	}
 	d.step = d.step_acceptMapValue
+	tokenSlot.Tagged = false
 	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot) // FIXME surely not *any* value?  not composites, at least?
 	return false, err
 }
@@ -165,6 +171,7 @@ func (d *Decoder) step_acceptMapValue(tokenSlot *Token) (done bool, err error) {
 		return true, err
 	}
 	d.step = d.step_acceptMapKey
+	tokenSlot.Tagged = false
 	_, err = d.stepHelper_acceptValue(majorByte, tokenSlot)
 	return false, err
 }
@@ -239,8 +246,27 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 			d.pushPhase(d.step_acceptMapKey)
 			return false, err
 		case majorByte >= cborMajorTag && majorByte < cborMajorSimple:
-			return true, fmt.Errorf("cbor tags not supported")
-			// but when we do, it'll be by saving it as another field of the Token, and recursing.
+			// CBOR tags are, frankly, bonkers, and should not be used.
+			// They break isomorphism to basic standards like JSON.
+			// We'll parse basic integer tag values -- SINGLE layer only.
+			// We will NOT parse the full gamut of recursive tags: doing so
+			// would mean allowing an unbounded number of allocs *during
+			// *processing of a single token*, which is _not reasonable_.
+			if tokenSlot.Tagged {
+				return true, fmt.Errorf("unsupported multiple tags on a single data item")
+			}
+			tokenSlot.Tagged = true
+			tokenSlot.Tag, err = d.decodeLen(majorByte)
+			if err != nil {
+				return true, err
+			}
+			// Okay, we slurped a tag.
+			// Read next value.
+			majorByte, err := d.r.Readn1()
+			if err != nil {
+				return true, err
+			}
+			return d.stepHelper_acceptValue(majorByte, tokenSlot)
 		default:
 			return true, fmt.Errorf("Invalid majorByte: 0x%x", majorByte)
 		}

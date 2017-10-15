@@ -79,6 +79,9 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 			d.current -= 1
 			fallthrough
 		case phase_anyExpectValue, phase_arrDefExpectValueOrEnd, phase_arrIndefExpectValueOrEnd:
+			if tokenSlot.Tagged {
+				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
+			}
 			if tokenSlot.Length >= 0 {
 				d.pushPhase(phase_mapDefExpectKeyOrEnd)
 				d.emitMajorPlusLen(cborMajorMap, uint64(tokenSlot.Length))
@@ -110,6 +113,9 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 			d.current -= 1
 			fallthrough
 		case phase_anyExpectValue, phase_arrDefExpectValueOrEnd, phase_arrIndefExpectValueOrEnd:
+			if tokenSlot.Tagged {
+				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
+			}
 			if tokenSlot.Length >= 0 {
 				d.pushPhase(phase_arrDefExpectValueOrEnd)
 				d.emitMajorPlusLen(cborMajorArray, uint64(tokenSlot.Length))
@@ -143,6 +149,9 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 			d.current -= 1
 			fallthrough
 		case phase_anyExpectValue, phase_arrDefExpectValueOrEnd, phase_arrIndefExpectValueOrEnd:
+			if tokenSlot.Tagged {
+				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
+			}
 			d.w.writen1(cborSigilBreak)
 			return d.popPhase(), d.w.checkErr()
 		case phase_mapDefExpectKeyOrEnd, phase_mapIndefExpectKeyOrEnd:
@@ -165,6 +174,9 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 		}
 	emitStr:
 		{
+			if tokenSlot.Tagged {
+				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
+			}
 			d.encodeString(tokenSlot.Str)
 			return phase == phase_anyExpectValue, d.w.checkErr()
 		}
@@ -174,6 +186,9 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 			d.current -= 1
 			fallthrough
 		case phase_anyExpectValue, phase_arrDefExpectValueOrEnd, phase_arrIndefExpectValueOrEnd:
+			if tokenSlot.Tagged {
+				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
+			}
 			d.encodeBytes(tokenSlot.Bytes)
 			return phase == phase_anyExpectValue, d.w.checkErr()
 		case phase_mapDefExpectKeyOrEnd, phase_mapIndefExpectKeyOrEnd:
@@ -187,6 +202,9 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 			d.current -= 1
 			fallthrough
 		case phase_anyExpectValue, phase_arrDefExpectValueOrEnd, phase_arrIndefExpectValueOrEnd:
+			if tokenSlot.Tagged {
+				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
+			}
 			d.encodeBool(tokenSlot.Bool)
 			return phase == phase_anyExpectValue, d.w.checkErr()
 		case phase_mapDefExpectKeyOrEnd, phase_mapIndefExpectKeyOrEnd:
@@ -209,6 +227,9 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 		}
 	emitInt:
 		{
+			if tokenSlot.Tagged {
+				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
+			}
 			d.encodeInt64(tokenSlot.Int)
 			return phase == phase_anyExpectValue, d.w.checkErr()
 		}
@@ -227,6 +248,9 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 		}
 	emitUint:
 		{
+			if tokenSlot.Tagged {
+				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
+			}
 			d.encodeUint64(tokenSlot.Uint)
 			return phase == phase_anyExpectValue, d.w.checkErr()
 		}
@@ -236,6 +260,9 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 			d.current -= 1
 			fallthrough
 		case phase_anyExpectValue, phase_arrDefExpectValueOrEnd, phase_arrIndefExpectValueOrEnd:
+			if tokenSlot.Tagged {
+				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
+			}
 			d.encodeFloat64(tokenSlot.Float64)
 			return phase == phase_anyExpectValue, d.w.checkErr()
 		case phase_mapDefExpectKeyOrEnd, phase_mapIndefExpectKeyOrEnd:

@@ -54,33 +54,19 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		switch tok.Type {
 		case TMapOpen:
 			d.pushPhase(phase_mapExpectKeyOrEnd)
-			d.wr.Write(wordMapOpenPt1)
-			if tok.Length < 0 {
-				d.wr.Write(wordUnknownLen)
-			} else {
-				d.wr.Write([]byte(strconv.Itoa(tok.Length)))
-			}
-			d.wr.Write(wordMapOpenPt2)
-			d.wr.Write(wordBreak)
+			d.emitMapOpen(tok)
 			return false, nil
 		case TArrOpen:
 			d.pushPhase(phase_arrExpectValueOrEnd)
-			d.wr.Write(wordArrOpenPt1)
-			if tok.Length < 0 {
-				d.wr.Write(wordUnknownLen)
-			} else {
-				d.wr.Write([]byte(strconv.Itoa(tok.Length)))
-			}
-			d.wr.Write(wordArrOpenPt2)
-			d.wr.Write(wordBreak)
+			d.emitArrOpen(tok)
 			return false, nil
 		case TMapClose:
 			return true, fmt.Errorf("unexpected mapClose; expected start of value")
 		case TArrClose:
 			return true, fmt.Errorf("unexpected arrClose; expected start of value")
 		default:
-			// It's a value; handle it.
-			d.flushValue(tok)
+			d.emitValue(tok)
+			d.wr.Write(wordBreak)
 			return true, nil
 		}
 	case phase_mapExpectKeyOrEnd:
@@ -90,18 +76,15 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		case TArrOpen:
 			return true, fmt.Errorf("unexpected arrOpen; expected start of key or end of map")
 		case TMapClose:
-			d.wr.Write(indentWord(len(d.stack) - 1))
-			d.wr.Write(wordMapClose)
-			d.wr.Write(wordBreak)
+			d.emitMapClose(tok)
 			return d.popPhase()
 		case TArrClose:
 			return true, fmt.Errorf("unexpected arrClose; expected start of key or end of map")
 		default:
-			// It's a key.  It'd better be a string.
 			switch tok.Type {
-			case TString:
+			case TString, TInt, TUint:
 				d.wr.Write(indentWord(len(d.stack)))
-				d.emitString(tok.Str)
+				d.emitValue(tok)
 				d.wr.Write(wordColon)
 				d.current = phase_mapExpectValue
 				return false, nil
@@ -113,73 +96,41 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		switch tok.Type {
 		case TMapOpen:
 			d.pushPhase(phase_mapExpectKeyOrEnd)
-			d.wr.Write(wordMapOpenPt1)
-			if tok.Length < 0 {
-				d.wr.Write(wordUnknownLen)
-			} else {
-				d.wr.Write([]byte(strconv.Itoa(tok.Length)))
-			}
-			d.wr.Write(wordMapOpenPt2)
-			d.wr.Write(wordBreak)
+			d.emitMapOpen(tok)
 			return false, nil
 		case TArrOpen:
 			d.pushPhase(phase_arrExpectValueOrEnd)
-			d.wr.Write(wordArrOpenPt1)
-			if tok.Length < 0 {
-				d.wr.Write(wordUnknownLen)
-			} else {
-				d.wr.Write([]byte(strconv.Itoa(tok.Length)))
-			}
-			d.wr.Write(wordArrOpenPt2)
-			d.wr.Write(wordBreak)
+			d.emitArrOpen(tok)
 			return false, nil
 		case TMapClose:
 			return true, fmt.Errorf("unexpected mapClose; expected start of value")
 		case TArrClose:
 			return true, fmt.Errorf("unexpected arrClose; expected start of value")
 		default:
-			// It's a value; handle it.
-			d.flushValue(tok)
 			d.current = phase_mapExpectKeyOrEnd
+			d.emitValue(tok)
+			d.wr.Write(wordBreak)
 			return false, nil
 		}
 	case phase_arrExpectValueOrEnd:
 		switch tok.Type {
 		case TMapOpen:
 			d.pushPhase(phase_mapExpectKeyOrEnd)
-			d.wr.Write(indentWord(len(d.stack)))
-			d.wr.Write(wordMapOpenPt1)
-			if tok.Length < 0 {
-				d.wr.Write(wordUnknownLen)
-			} else {
-				d.wr.Write([]byte(strconv.Itoa(tok.Length)))
-			}
-			d.wr.Write(wordMapOpenPt2)
-			d.wr.Write(wordBreak)
+			d.emitMapOpen(tok)
 			return false, nil
 		case TArrOpen:
 			d.pushPhase(phase_arrExpectValueOrEnd)
-			d.wr.Write(indentWord(len(d.stack)))
-			d.wr.Write(wordArrOpenPt1)
-			if tok.Length < 0 {
-				d.wr.Write(wordUnknownLen)
-			} else {
-				d.wr.Write([]byte(strconv.Itoa(tok.Length)))
-			}
-			d.wr.Write(wordArrOpenPt2)
-			d.wr.Write(wordBreak)
+			d.emitArrOpen(tok)
 			return false, nil
 		case TMapClose:
 			return true, fmt.Errorf("unexpected mapClose; expected start of value or end of array")
 		case TArrClose:
-			d.wr.Write(indentWord(len(d.stack) - 1))
-			d.wr.Write(wordArrClose)
-			d.wr.Write(wordBreak)
+			d.emitArrClose(tok)
 			return d.popPhase()
 		default:
-			// It's a value; handle it.
 			d.wr.Write(indentWord(len(d.stack)))
-			d.flushValue(tok)
+			d.emitValue(tok)
+			d.wr.Write(wordBreak)
 			return false, nil
 		}
 	default:
@@ -199,14 +150,63 @@ func (d *Encoder) popPhase() (bool, error) {
 		return true, nil
 	}
 	if n < 0 { // the state machines are supposed to have already errored better
-		panic("jsonEncoder stack overpopped")
+		panic("prettyEncoder stack overpopped")
 	}
 	d.current = d.stack[n-1]
 	d.stack = d.stack[0:n]
 	return false, nil
 }
 
-func (d *Encoder) flushValue(tok *Token) {
+func (d *Encoder) emitMapOpen(tok *Token) {
+	if tok.Tagged {
+		d.wr.Write(wordTag)
+		d.wr.Write([]byte(strconv.Itoa(tok.Tag)))
+		d.wr.Write(wordTagClose)
+	}
+	d.wr.Write(wordMapOpenPt1)
+	if tok.Length < 0 {
+		d.wr.Write(wordUnknownLen)
+	} else {
+		d.wr.Write([]byte(strconv.Itoa(tok.Length)))
+	}
+	d.wr.Write(wordMapOpenPt2)
+	d.wr.Write(wordBreak)
+}
+
+func (d *Encoder) emitMapClose(tok *Token) {
+	d.wr.Write(indentWord(len(d.stack) - 1))
+	d.wr.Write(wordMapClose)
+	d.wr.Write(wordBreak)
+}
+
+func (d *Encoder) emitArrOpen(tok *Token) {
+	if tok.Tagged {
+		d.wr.Write(wordTag)
+		d.wr.Write([]byte(strconv.Itoa(tok.Tag)))
+		d.wr.Write(wordTagClose)
+	}
+	d.wr.Write(wordArrOpenPt1)
+	if tok.Length < 0 {
+		d.wr.Write(wordUnknownLen)
+	} else {
+		d.wr.Write([]byte(strconv.Itoa(tok.Length)))
+	}
+	d.wr.Write(wordArrOpenPt2)
+	d.wr.Write(wordBreak)
+}
+
+func (d *Encoder) emitArrClose(tok *Token) {
+	d.wr.Write(indentWord(len(d.stack) - 1))
+	d.wr.Write(wordArrClose)
+	d.wr.Write(wordBreak)
+}
+
+func (d *Encoder) emitValue(tok *Token) {
+	if tok.Tagged {
+		d.wr.Write(wordTag)
+		d.wr.Write([]byte(strconv.Itoa(tok.Tag)))
+		d.wr.Write(wordTagClose)
+	}
 	switch tok.Type {
 	case TNull:
 		d.wr.Write(wordNull)
@@ -229,7 +229,6 @@ func (d *Encoder) flushValue(tok *Token) {
 	default:
 		panic(fmt.Errorf("TODO finish more pretty.Encoder primitives support: unhandled token %s", tok))
 	}
-	d.wr.Write(wordBreak)
 }
 
 func (d *Encoder) writeByte(b byte) {
