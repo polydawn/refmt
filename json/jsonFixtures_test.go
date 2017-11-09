@@ -215,11 +215,10 @@ var jsonFixtures = []struct {
 		nil,
 		nil,
 	},
-	// FIXME floats require finishing moar state machine
-	//	{"",
-	//		fixtures.Sequence{"float 1 e+100", []Token{{Type: TFloat64, Float64: 1.0e+300}}},
-	//		`1e+300`,
-	//		inapplicable, // TODO should support situationEncoding too
-	//		nil,
-	//	},
+	{"",
+		fixtures.Sequence{"float 1 e+100", []Token{{Type: TFloat64, Float64: 1.0e+300}}},
+		`1e+300`,
+		inapplicable, // TODO should support situationEncoding too
+		nil,
+	},
 }
