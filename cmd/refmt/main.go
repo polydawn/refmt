@@ -59,6 +59,17 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		},
 		cli.Command{
 			Category: "convert",
+			Name:     "json=cbor=hex",
+			Usage:    "read json, emit equivalent cbor in hex",
+			Action: func(c *cli.Context) error {
+				return shared.TokenPump{
+					json.NewDecoder(stdin),
+					cbor.NewEncoder(hexWriter{stdout}),
+				}.Run()
+			},
+		},
+		cli.Command{
+			Category: "convert",
 			Name:     "hex=cbor=json",
 			Usage:    "read cbor in hex, emit equivalent json",
 			Action: func(c *cli.Context) error {
