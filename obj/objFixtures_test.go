@@ -1023,7 +1023,7 @@ var objFixtures = []struct {
 				Complete(),
 		),
 		marshalResults: []marshalResults{
-			{title: "from tObjPtrObjMap",
+			{title: "from tObjStr",
 				valueFn: func() interface{} { return tObjStr{"v"} }},
 		},
 		unmarshalResults: []unmarshalResults{
@@ -1079,6 +1079,33 @@ var objFixtures = []struct {
 			{title: "into *map[str]str", // DUBIOUS: at the moment, we don't *reject* if forced into something other than what the tag would hint.
 				slotFn:  func() interface{} { var v map[string]string; return &v },
 				valueFn: func() interface{} { return map[string]string{"k": "v"} }},
+		},
+	},
+	{title: "tagged and transformed",
+		sequence: fixtures.SequenceMap["tagged string"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).UseTag(50).Transform().
+				TransformMarshal(atlas.MakeMarshalTransformFunc(
+					func(x tObjStr) (string, error) {
+						return x.X, nil
+					})).
+				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+					func(x string) (tObjStr, error) {
+						return tObjStr{x}, nil
+					})).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from tObjStr",
+				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "to *tObjStr",
+				slotFn:  func() interface{} { return &tObjStr{} },
+				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
+			{title: "into *wildcard",
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
 		},
 	},
 }

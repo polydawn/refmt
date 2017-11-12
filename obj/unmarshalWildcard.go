@@ -24,7 +24,10 @@ func (mach *unmarshalMachineWildcard) Reset(_ *unmarshalSlab, rv reflect.Value, 
 
 func (mach *unmarshalMachineWildcard) Step(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	if mach.delegate == nil {
-		return mach.step_demux(driver, slab, tok)
+		done, err = mach.prepareDemux(driver, slab, tok)
+		if done {
+			return
+		}
 	}
 	done, err = mach.delegate.Step(driver, slab, tok)
 	if !done {
@@ -36,7 +39,7 @@ func (mach *unmarshalMachineWildcard) Step(driver *Unmarshaller, slab *unmarshal
 	return
 }
 
-func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineWildcard) prepareDemux(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	// If a "tag" is set in the token, we try to follow that as a hint for
 	//  any specifically customized behaviors for how this should be unmarshalled.
 	if tok.Tagged == true {
@@ -50,7 +53,7 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaller, slab *unm
 		if err := mach.delegate.Reset(slab, mach.holder_rv, value_rt); err != nil {
 			return true, err
 		}
-		return mach.delegate.Step(driver, slab, tok)
+		return false, nil
 	}
 
 	// Switch on token type: we may be able to delegate to a primitive machine,
@@ -64,7 +67,7 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaller, slab *unm
 		if err := mach.delegate.Reset(slab, child_rv, child_rv.Type()); err != nil {
 			return true, err
 		}
-		return mach.delegate.Step(driver, slab, tok)
+		return false, nil
 
 	case TArrOpen:
 		// Stdlib has very interesting branch here: 'case reflect.Interface: if v.NumMethod() == 0 {'
@@ -83,7 +86,7 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaller, slab *unm
 		if err := mach.delegate.Reset(slab, mach.holder_rv, mach.holder_rv.Type()); err != nil {
 			return true, err
 		}
-		return mach.delegate.Step(driver, slab, tok)
+		return false, nil
 
 	case TMapClose:
 		return true, ErrMalformedTokenStream{tok.Type, "start of value"}
@@ -97,7 +100,8 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaller, slab *unm
 
 	default:
 		// If it wasn't the start of composite, shell out to the machine for literals.
-		// Don't bother to replace our internal step func because literal machines are never multi-call.
+		// Don't bother to replace our internal step func because literal machines are never multi-call,
+		//  and this lets us avoid grabbing a pointer and it shuffling around.
 		delegateMach := slab.tip().unmarshalMachinePrimitive
 		delegateMach.kind = reflect.Interface
 		if err := delegateMach.Reset(slab, mach.target_rv, nil); err != nil {

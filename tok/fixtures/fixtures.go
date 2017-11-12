@@ -266,6 +266,11 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"tagged string",
+		[]Token{
+			{Type: TString, Str: "wahoo", Tagged: true, Tag: 50},
+		},
+	},
 	{"array with mixed tagged values",
 		[]Token{
 			{Type: TArrOpen, Length: 2},
