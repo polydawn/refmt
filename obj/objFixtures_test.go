@@ -696,6 +696,38 @@ var objFixtures = []struct {
 			//  those situations wouldn't provide type info that would trigger these paths.
 		},
 	},
+	{title: "transform funks (struct<->string) in a slice",
+		sequence: fixtures.SequenceMap["duo entry array"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).Transform().
+				TransformMarshal(atlas.MakeMarshalTransformFunc(
+					func(x tObjStr) (string, error) {
+						return x.X, nil
+					})).
+				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+					func(x string) (tObjStr, error) {
+						return tObjStr{x}, nil
+					})).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from []tObjStr",
+				valueFn: func() interface{} { return []tObjStr{{"value"}, {"v2"}} }},
+			{title: "from *[]tObjStr",
+				valueFn: func() interface{} { return &[]tObjStr{{"value"}, {"v2"}} }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into *tObjStr",
+				slotFn:    func() interface{} { return &tObjStr{} },
+				expectErr: ErrUnmarshalTypeCantFit{Token{Type: TArrOpen, Length: 2}, reflect.ValueOf("")}},
+			{title: "into []tObjStr",
+				slotFn:    func() interface{} { return []tObjStr{} },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]tObjStr{})}},
+			{title: "into *[]tObjStr",
+				slotFn:  func() interface{} { return &[]tObjStr{} },
+				valueFn: func() interface{} { return []tObjStr{{"value"}, {"v2"}} }},
+		},
+	},
 	{title: "typedef strings",
 		sequence: fixtures.SequenceMap["flat string"],
 		// no atlas necessary: the default behavior for a kind, even if typedef'd,
