@@ -1022,11 +1022,10 @@ var objFixtures = []struct {
 				AddField("X", atlas.StructMapEntry{SerialName: "k"}).
 				Complete(),
 		),
-		// SOON
-		//		marshalResults: []marshalResults{
-		//			{title: "from tObjPtrObjMap",
-		//				valueFn: func() interface{} { return tObjStr{"v"} }},
-		//		},
+		marshalResults: []marshalResults{
+			{title: "from tObjPtrObjMap",
+				valueFn: func() interface{} { return tObjStr{"v"} }},
+		},
 		unmarshalResults: []unmarshalResults{
 			{title: "to tObjStr",
 				slotFn:    func() interface{} { return tObjStr{} },

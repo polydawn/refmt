@@ -9,7 +9,7 @@ import (
 )
 
 type marshalMachineStructAtlas struct {
-	cfg *atlas.StructMap // set on initialization
+	cfg *atlas.AtlasEntry // set on initialization
 
 	rv    reflect.Value
 	index int  // Progress marker
@@ -25,10 +25,14 @@ func (mach *marshalMachineStructAtlas) Reset(_ *marshalSlab, rv reflect.Value, _
 
 func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSlab, tok *Token) (done bool, err error) {
 	//fmt.Printf("--step on %#v: i=%d/%d v=%v\n", mach.rv, mach.index, len(mach.cfg.Fields), mach.value)
-	nEntries := len(mach.cfg.Fields)
+	nEntries := len(mach.cfg.StructMap.Fields)
 	if mach.index < 0 {
 		tok.Type = TMapOpen
 		tok.Length = nEntries
+		if mach.cfg.Tagged {
+			tok.Tagged = true
+			tok.Tag = mach.cfg.Tag
+		}
 		mach.index++
 		return false, nil
 	}
@@ -43,7 +47,7 @@ func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSla
 	}
 
 	if mach.value {
-		fieldEntry := mach.cfg.Fields[mach.index]
+		fieldEntry := mach.cfg.StructMap.Fields[mach.index]
 		child_rv := fieldEntry.ReflectRoute.TraverseToValue(mach.rv)
 		mach.index++
 		mach.value = false
@@ -55,7 +59,7 @@ func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSla
 		)
 	}
 	tok.Type = TString
-	tok.Str = mach.cfg.Fields[mach.index].SerialName
+	tok.Str = mach.cfg.StructMap.Fields[mach.index].SerialName
 	mach.value = true
 	if mach.index > 0 {
 		slab.release()
