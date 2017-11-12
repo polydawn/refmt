@@ -7,3 +7,6 @@
 [submodule ".gopath/src/github.com/jtolds/gls"]
 	path = .gopath/src/github.com/jtolds/gls
 	url = https://github.com/jtolds/gls
+[submodule ".gopath/src/github.com/urfave/cli"]
+	path = .gopath/src/github.com/urfave/cli
+	url = https://github.com/urfave/cli/
