@@ -1015,6 +1015,72 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return tObjPtrObjMap{} }},
 		},
 	},
+	{title: "tagged object",
+		sequence: fixtures.SequenceMap["tagged object"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).UseTag(50).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from tObjPtrObjMap",
+				valueFn: func() interface{} { return tObjStr{"v"} }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "to tObjStr",
+				slotFn:    func() interface{} { return tObjStr{} },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(tObjStr{})}},
+			{title: "to *tObjStr",
+				slotFn:  func() interface{} { return &tObjStr{} },
+				valueFn: func() interface{} { return tObjStr{"v"} }},
+			{title: "into wildcard",
+				slotFn:    func() interface{} { var v interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
+			{title: "into *wildcard",
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { return tObjStr{"v"} }},
+			{title: "into map[str]iface",
+				slotFn:    func() interface{} { var v map[string]interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(map[string]interface{}(nil))}},
+			{title: "into *map[str]iface", // DUBIOUS: at the moment, we don't *reject* if forced into something other than what the tag would hint.
+				slotFn:  func() interface{} { var v map[string]interface{}; return &v },
+				valueFn: func() interface{} { return map[string]interface{}{"k": "v"} }},
+			{title: "into *map[str]str", // DUBIOUS: at the moment, we don't *reject* if forced into something other than what the tag would hint.
+				slotFn:  func() interface{} { var v map[string]string; return &v },
+				valueFn: func() interface{} { return map[string]string{"k": "v"} }},
+		},
+	},
+	{title: "unmarshalling tag with no matching configuration",
+		sequence: fixtures.SequenceMap["tagged object"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).UseTag(59).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "k"}).
+				Complete(),
+		),
+		unmarshalResults: []unmarshalResults{
+			{title: "to tObjStr",
+				slotFn:    func() interface{} { return tObjStr{} },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(tObjStr{})}},
+			{title: "to *tObjStr", // DUBIOUS: at the moment, we don't *reject* if forced into something other than what the tag would hint.
+				slotFn:  func() interface{} { return &tObjStr{} },
+				valueFn: func() interface{} { return tObjStr{"v"} }},
+			{title: "into wildcard",
+				slotFn:    func() interface{} { var v interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(interface{}(nil))}},
+			{title: "into *wildcard",
+				slotFn:    func() interface{} { var v interface{}; return &v },
+				expectErr: fmt.Errorf("missing an unmarshaller for tag 50")},
+			{title: "into map[str]iface",
+				slotFn:    func() interface{} { var v map[string]interface{}; return v },
+				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(map[string]interface{}(nil))}},
+			{title: "into *map[str]iface", // DUBIOUS: at the moment, we don't *reject* if forced into something other than what the tag would hint.
+				slotFn:  func() interface{} { var v map[string]interface{}; return &v },
+				valueFn: func() interface{} { return map[string]interface{}{"k": "v"} }},
+			{title: "into *map[str]str", // DUBIOUS: at the moment, we don't *reject* if forced into something other than what the tag would hint.
+				slotFn:  func() interface{} { var v map[string]string; return &v },
+				valueFn: func() interface{} { return map[string]string{"k": "v"} }},
+		},
+	},
 }
 
 func TestMarshaller(t *testing.T) {

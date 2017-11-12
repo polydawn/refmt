@@ -53,6 +53,7 @@ type MarshalMachine interface {
 }
 
 func (d *Marshaller) Step(tok *Token) (bool, error) {
+	tok.Tagged = false
 	//	fmt.Printf("> next step is %#v\n", d.step)
 	done, err := d.step.Step(d, &d.marshalSlab, tok)
 	//	fmt.Printf(">> yield is %#v\n", TokenToString(*tok))

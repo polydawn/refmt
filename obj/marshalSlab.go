@@ -105,7 +105,7 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 			row.marshalMachineTransform.delegate = _yieldMarshalMachinePtr(row, atl, entry.MarshalTransformTargetType)
 			return &row.marshalMachineTransform
 		case entry.StructMap != nil:
-			row.marshalMachineStructAtlas.cfg = entry.StructMap
+			row.marshalMachineStructAtlas.cfg = entry
 			return &row.marshalMachineStructAtlas
 		default:
 			panic("invalid atlas entry")
