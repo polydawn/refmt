@@ -28,7 +28,7 @@ func hexReader(hr io.Reader) io.Reader {
 	if n != len(in)/2 {
 		return errthunkReader{fmt.Errorf("hex len mismatch: %d chars became %d bytes", len(in), n)}
 	}
-	return bytes.NewBuffer(in)
+	return bytes.NewBuffer(bs)
 }
 
 type errthunkReader struct {
