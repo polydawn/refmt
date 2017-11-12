@@ -36,6 +36,12 @@ func (mach *unmarshalMachineWildcard) Step(driver *Unmarshaller, slab *unmarshal
 }
 
 func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
+	// If a "tag" is set in the token, we try to follow that as a hint for
+	//  any specifically customized behaviors for how this should be unmarshalled.
+	if tok.Tagged == true {
+		// TODO WOOWEE
+	}
+
 	// Switch on token type: we may be able to delegate to a primitive machine,
 	//  but we may also need to initialize a container type and then hand off.
 	switch tok.Type {

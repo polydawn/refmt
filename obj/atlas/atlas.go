@@ -23,11 +23,21 @@ type Atlas struct {
 	// faster to compare against than reflect.Type (which is an interface that
 	// tends to contain fairly large structures).
 	mappings map[uintptr]*AtlasEntry
+
+	// Mapping of tag ints to atlasEntry for quick lookups when the
+	// unmarshaller hits a tag.  Values are a subset of `mappings`.
+	tagMappings map[int]*AtlasEntry
 }
 
 // Gets the AtlasEntry for a typeID.  Used by obj package, not meant for user facing.
 func (atl Atlas) Get(rtid uintptr) (*AtlasEntry, bool) {
 	ent, ok := atl.mappings[rtid]
+	return ent, ok
+}
+
+// Gets the AtlasEntry for a tag int.  Used by obj package, not meant for user facing.
+func (atl Atlas) GetEntryByTag(tag int) (*AtlasEntry, bool) {
+	ent, ok := atl.tagMappings[tag]
 	return ent, ok
 }
 
@@ -97,6 +107,13 @@ type AtlasEntry struct {
 	// --------------------------------------------------------
 	// Standard options for how to map (varies by Kind)
 	// --------------------------------------------------------
+
+	// A "tag" to emit when marshalling this type of value;
+	// and when unmarshalling, this tag will cause unmarshal to pick
+	// this atlas (and if there's conflicting type info, error).
+	Tag int
+	// Flag for whether the Tag feature should be used (zero is a valid tag).
+	Tagged bool
 
 	// A mapping of fields in a struct to serial keys.
 	// Only valid if `this.Type.Kind() == Struct`.
