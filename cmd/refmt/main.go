@@ -60,6 +60,17 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
+		cli.Command{
+			Category: "prettyprint",
+			Name:     "yaml=pretty",
+			Usage:    "read yaml, then pretty print it",
+			Action: func(c *cli.Context) error {
+				return shared.TokenPump{
+					newYamlTokenSource(stdin),
+					pretty.NewEncoder(stdout),
+				}.Run()
+			},
+		},
 		//
 		// Converters
 		//
@@ -104,6 +115,39 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				return shared.TokenPump{
 					cbor.NewDecoder(hexReader(stdin)),
 					json.NewEncoder(stdout),
+				}.Run()
+			},
+		},
+		cli.Command{
+			Category: "convert",
+			Name:     "yaml=json",
+			Usage:    "read yaml, emit equivalent json",
+			Action: func(c *cli.Context) error {
+				return shared.TokenPump{
+					newYamlTokenSource(stdin),
+					json.NewEncoder(stdout),
+				}.Run()
+			},
+		},
+		cli.Command{
+			Category: "convert",
+			Name:     "yaml=cbor",
+			Usage:    "read yaml, emit equivalent cbor",
+			Action: func(c *cli.Context) error {
+				return shared.TokenPump{
+					newYamlTokenSource(stdin),
+					cbor.NewEncoder(stdout),
+				}.Run()
+			},
+		},
+		cli.Command{
+			Category: "convert",
+			Name:     "yaml=cbor.hex",
+			Usage:    "read yaml, emit equivalent cbor in hex",
+			Action: func(c *cli.Context) error {
+				return shared.TokenPump{
+					newYamlTokenSource(stdin),
+					cbor.NewEncoder(hexWriter{stdout}),
 				}.Run()
 			},
 		},
