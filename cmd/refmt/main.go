@@ -1,11 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"github.com/urfave/cli"
@@ -31,25 +28,10 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Name:     "hex=cbor=pretty",
 			Usage:    "read cbor in hex, then pretty print it",
 			Action: func(c *cli.Context) error {
-				fmt.Fprintf(stderr, "hello\n")
-				in, err := ioutil.ReadAll(os.Stdin)
-				if err != nil {
-					return err
-				}
-				bs := make([]byte, len(in)/2)
-				n, err := hex.Decode(bs, in)
-				if err != nil {
-					return err
-				}
-				if n != len(in)/2 {
-					return fmt.Errorf("hex len mismatch: %d chars became %d bytes", len(in), n)
-				}
-
-				pump := shared.TokenPump{
-					cbor.NewDecoder(bytes.NewBuffer(bs)),
-					pretty.NewEncoder(os.Stdout),
-				}
-				return pump.Run()
+				return shared.TokenPump{
+					cbor.NewDecoder(hexReader(stdin)),
+					pretty.NewEncoder(stdout),
+				}.Run()
 			},
 		},
 	}
