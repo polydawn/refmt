@@ -1,6 +1,7 @@
 package obj
 
 import (
+	"fmt"
 	"reflect"
 
 	. "github.com/polydawn/refmt/tok"
@@ -39,7 +40,17 @@ func (mach *unmarshalMachineWildcard) step_demux(driver *Unmarshaller, slab *unm
 	// If a "tag" is set in the token, we try to follow that as a hint for
 	//  any specifically customized behaviors for how this should be unmarshalled.
 	if tok.Tagged == true {
-		// TODO WOOWEE
+		atlasEntry, exists := slab.atlas.GetEntryByTag(tok.Tag)
+		if !exists {
+			return true, fmt.Errorf("missing an unmarshaller for tag %v", tok.Tag)
+		}
+		value_rt := atlasEntry.Type
+		mach.holder_rv = reflect.New(value_rt).Elem()
+		mach.delegate = _yieldUnmarshalMachinePtr(slab.tip(), slab.atlas, value_rt)
+		if err := mach.delegate.Reset(slab, mach.holder_rv, value_rt); err != nil {
+			return true, err
+		}
+		return mach.delegate.Step(driver, slab, tok)
 	}
 
 	// Switch on token type: we may be able to delegate to a primitive machine,

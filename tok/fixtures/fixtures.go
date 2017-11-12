@@ -253,6 +253,28 @@ var Sequences = []Sequence{
 		},
 	},
 
+	// Tags.
+	// Warning: contentious topic.
+	// This is basically a CBOR-specific feature.
+	// We also baked some support for it into the obj traversers, though that
+	// of course also does not make much sense except used in combo with CBOR.
+	{"tagged object",
+		[]Token{
+			{Type: TMapOpen, Length: 1, Tagged: true, Tag: 50},
+			{Type: TString, Str: "k"},
+			{Type: TString, Str: "v"},
+			{Type: TMapClose},
+		},
+	},
+	{"array with mixed tagged values",
+		[]Token{
+			{Type: TArrOpen, Length: 2},
+			{Type: TInt, Int: 400, Tagged: true, Tag: 40},
+			{Type: TString, Str: "500", Tagged: true, Tag: 50},
+			{Type: TArrClose},
+		},
+	},
+
 	// Partial sequences!
 	// Decoders may emit these before hitting an error (like EOF, or invalid following serial token).
 	// Encoders may consume these, but ending after them would be an unexpected end of sequence error.
