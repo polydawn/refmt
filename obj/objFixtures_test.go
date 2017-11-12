@@ -1081,6 +1081,33 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return map[string]string{"k": "v"} }},
 		},
 	},
+	{title: "tagged and transformed",
+		sequence: fixtures.SequenceMap["tagged string"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).UseTag(50).Transform().
+				TransformMarshal(atlas.MakeMarshalTransformFunc(
+					func(x tObjStr) (string, error) {
+						return x.X, nil
+					})).
+				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+					func(x string) (tObjStr, error) {
+						return tObjStr{x}, nil
+					})).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from tObjStr",
+				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "to *tObjStr",
+				slotFn:  func() interface{} { return &tObjStr{} },
+				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
+			{title: "into *wildcard",
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
+		},
+	},
 }
 
 func TestMarshaller(t *testing.T) {

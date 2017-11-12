@@ -103,6 +103,11 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 			row.marshalMachineTransform.trFunc = entry.MarshalTransformFunc
 			// Pick delegate without growing stack.  (This currently means recursive transform won't fly.)
 			row.marshalMachineTransform.delegate = _yieldMarshalMachinePtr(row, atl, entry.MarshalTransformTargetType)
+			// If tags are in play: have the transformer machine glue that on.
+			if entry.Tagged {
+				row.marshalMachineTransform.tagged = true
+				row.marshalMachineTransform.tag = entry.Tag
+			}
 			return &row.marshalMachineTransform
 		case entry.StructMap != nil:
 			row.marshalMachineStructAtlas.cfg = entry
