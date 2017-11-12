@@ -1023,7 +1023,7 @@ var objFixtures = []struct {
 				Complete(),
 		),
 		marshalResults: []marshalResults{
-			{title: "from tObjPtrObjMap",
+			{title: "from tObjStr",
 				valueFn: func() interface{} { return tObjStr{"v"} }},
 		},
 		unmarshalResults: []unmarshalResults{
