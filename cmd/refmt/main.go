@@ -24,6 +24,9 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		cli.Author{Name: "Eric Myhre", Email: "hash@exultant.us"},
 	}
 	app.Commands = []cli.Command{
+		//
+		// Prettyprinters
+		//
 		cli.Command{
 			Category: "prettyprint",
 			Name:     "json=pretty",
@@ -37,7 +40,18 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		},
 		cli.Command{
 			Category: "prettyprint",
-			Name:     "hex=cbor=pretty",
+			Name:     "cbor=pretty",
+			Usage:    "read cbor, then pretty print it",
+			Action: func(c *cli.Context) error {
+				return shared.TokenPump{
+					cbor.NewDecoder(stdin),
+					pretty.NewEncoder(stdout),
+				}.Run()
+			},
+		},
+		cli.Command{
+			Category: "prettyprint",
+			Name:     "cbor.hex=pretty",
 			Usage:    "read cbor in hex, then pretty print it",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
@@ -46,6 +60,9 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
+		//
+		// Converters
+		//
 		cli.Command{
 			Category: "convert",
 			Name:     "json=cbor",
@@ -59,7 +76,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		},
 		cli.Command{
 			Category: "convert",
-			Name:     "json=cbor=hex",
+			Name:     "json=cbor.hex",
 			Usage:    "read json, emit equivalent cbor in hex",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
@@ -70,7 +87,18 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		},
 		cli.Command{
 			Category: "convert",
-			Name:     "hex=cbor=json",
+			Name:     "cbor=json",
+			Usage:    "read cbor, emit equivalent json",
+			Action: func(c *cli.Context) error {
+				return shared.TokenPump{
+					cbor.NewDecoder(stdin),
+					json.NewEncoder(stdout),
+				}.Run()
+			},
+		},
+		cli.Command{
+			Category: "convert",
+			Name:     "cbor.hex=json",
 			Usage:    "read cbor in hex, emit equivalent json",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
