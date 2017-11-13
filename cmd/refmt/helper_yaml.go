@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -24,16 +25,17 @@ import (
 func newYamlTokenSource(in io.Reader) shared.TokenSource {
 	byts, err := ioutil.ReadAll(in)
 	if err != nil {
-		return errthunkTokenSource{err}
+		return errthunkTokenSource{fmt.Errorf("refmt: error reading: %s", err)}
 	}
 	byts = tab2space(byts)
 	var barf interface{}
 	if err := yaml.Unmarshal(byts, &barf); err != nil {
-		return errthunkTokenSource{err}
+		return errthunkTokenSource{fmt.Errorf("refmt: error deserializing yaml: %s", err)}
 	}
+	barf = stringifyMapKeys(barf)
 	tokenSrc := obj.NewMarshaller(atlas.MustBuild())
 	if err := tokenSrc.Bind(barf); err != nil {
-		return errthunkTokenSource{err}
+		return errthunkTokenSource{fmt.Errorf("refmt: error deserializing yaml: %s", err)}
 	}
 	return tokenSrc
 }
@@ -44,6 +46,29 @@ type errthunkTokenSource struct {
 
 func (x errthunkTokenSource) Step(*tok.Token) (done bool, err error) {
 	return true, x.err
+}
+
+/*
+	Yaml things anything can be a map key.
+	Most things think only strings can be a map key.
+	This func makes yaml outputs into what everyone else expects.
+*/
+func stringifyMapKeys(value interface{}) interface{} {
+	switch value := value.(type) {
+	case map[interface{}]interface{}:
+		next := make(map[string]interface{}, len(value))
+		for k, v := range value {
+			next[k.(string)] = stringifyMapKeys(v)
+		}
+		return next
+	case []interface{}:
+		for i := 0; i < len(value); i++ {
+			value[i] = stringifyMapKeys(value[i])
+		}
+		return value
+	default:
+		return value
+	}
 }
 
 /*
