@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 
@@ -24,16 +25,16 @@ import (
 func newYamlTokenSource(in io.Reader) shared.TokenSource {
 	byts, err := ioutil.ReadAll(in)
 	if err != nil {
-		return errthunkTokenSource{err}
+		return errthunkTokenSource{fmt.Errorf("refmt: error reading: %s", err)}
 	}
 	byts = tab2space(byts)
 	var barf interface{}
 	if err := yaml.Unmarshal(byts, &barf); err != nil {
-		return errthunkTokenSource{err}
+		return errthunkTokenSource{fmt.Errorf("refmt: error deserializing yaml: %s", err)}
 	}
 	tokenSrc := obj.NewMarshaller(atlas.MustBuild())
 	if err := tokenSrc.Bind(barf); err != nil {
-		return errthunkTokenSource{err}
+		return errthunkTokenSource{fmt.Errorf("refmt: error deserializing yaml: %s", err)}
 	}
 	return tokenSrc
 }
