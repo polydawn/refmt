@@ -226,6 +226,15 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"null in array in array",
+		[]Token{
+			{Type: TArrOpen, Length: 1},
+			{Type: TArrOpen, Length: 1},
+			{Type: TNull},
+			{Type: TArrClose},
+			{Type: TArrClose},
+		},
+	},
 
 	// Numbers.
 	// Warning: surprisingly contentious topic.
