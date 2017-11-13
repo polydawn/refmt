@@ -138,7 +138,10 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 	case reflect.Map:
 		return &row.marshalMachineMapWildcard
 	case reflect.Struct:
-		panic("todo") // this is where we auto-detect, if you've enabled that; otherwise, raise error for missing configuration / unexpected type.
+		// TODO here we could also invoke automatic atlas autogen, if configured to be permitted
+		mach := &row.errThunkMarshalMachine
+		mach.err = fmt.Errorf("no atlas found for struct type %q", rt.String())
+		return mach
 	case reflect.Interface:
 		return &row.marshalMachineWildcard
 	case reflect.Func:
