@@ -152,8 +152,8 @@ func (d *Encoder) Step(tokenSlot *Token) (done bool, err error) {
 			if tokenSlot.Tagged {
 				d.emitMajorPlusLen(cborMajorTag, uint64(tokenSlot.Tag))
 			}
-			d.w.writen1(cborSigilBreak)
-			return d.popPhase(), d.w.checkErr()
+			d.w.writen1(cborSigilNil)
+			return phase == phase_anyExpectValue, d.w.checkErr()
 		case phase_mapDefExpectKeyOrEnd, phase_mapIndefExpectKeyOrEnd:
 			return true, &ErrInvalidTokenStream{Got: *tokenSlot, Acceptable: tokenTypesForKey}
 		default:
