@@ -18,6 +18,7 @@ type marshalMachineWildcard struct {
 func (mach *marshalMachineWildcard) Reset(slab *marshalSlab, rv reflect.Value, rt reflect.Type) error {
 	// If the interface contains nil, go no further; we'll simply yield that single token.
 	if rv.IsNil() {
+		mach.delegate = nil
 		return nil
 	}
 	// Pick, reset, and retain a delegate machine for the interior type.

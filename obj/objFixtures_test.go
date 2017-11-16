@@ -1068,6 +1068,8 @@ var objFixtures = []struct {
 	{title: "nulls in midst of arrays",
 		sequence: fixtures.SequenceMap["null in middle of array"],
 		marshalResults: []marshalResults{
+			{title: "from []iface",
+				valueFn: func() interface{} { return []interface{}{"one", nil, "three", nil, "five"} }},
 			{title: "from []*str",
 				valueFn: func() interface{} {
 					one, three, five := "one", "three", "five"
