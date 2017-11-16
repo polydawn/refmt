@@ -27,6 +27,12 @@ func TestRoundTrip(t *testing.T) {
 	t.Run("nil map[string]interface{}", func(t *testing.T) {
 		testRoundTripAllEncodings(t, map[string]interface{}(nil), atlas.MustBuild())
 	})
+	t.Run("4-value []interface{str}", func(t *testing.T) {
+		testRoundTripAllEncodings(t, []interface{}{"str", "ing", "bri", "ng"}, atlas.MustBuild())
+	})
+	t.Run("4-value map[string]interface{str|int}", func(t *testing.T) {
+		testRoundTripAllEncodings(t, map[string]interface{}{"k": "v", "a": "b", "z": 26, "m": 9}, atlas.MustBuild())
+	})
 }
 
 func testRoundTripAllEncodings(
