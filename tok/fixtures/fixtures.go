@@ -235,6 +235,17 @@ var Sequences = []Sequence{
 			{Type: TArrClose},
 		},
 	},
+	{"null in middle of array",
+		[]Token{
+			{Type: TArrOpen, Length: 5},
+			TokStr("one"),
+			{Type: TNull},
+			TokStr("three"),
+			{Type: TNull},
+			TokStr("five"),
+			{Type: TArrClose},
+		},
+	},
 
 	// Numbers.
 	// Warning: surprisingly contentious topic.
