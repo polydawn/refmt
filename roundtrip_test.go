@@ -12,14 +12,20 @@ import (
 )
 
 func TestRoundTrip(t *testing.T) {
-	t.Run("empty []interface{}", func(t *testing.T) {
-		testRoundTripAllEncodings(t, []interface{}{}, atlas.MustBuild())
-	})
 	t.Run("nil nil", func(t *testing.T) {
 		testRoundTripAllEncodings(t, nil, atlas.MustBuild())
 	})
+	t.Run("empty []interface{}", func(t *testing.T) {
+		testRoundTripAllEncodings(t, []interface{}{}, atlas.MustBuild())
+	})
 	t.Run("nil []interface{}", func(t *testing.T) {
 		testRoundTripAllEncodings(t, []interface{}(nil), atlas.MustBuild())
+	})
+	t.Run("empty map[string]interface{}", func(t *testing.T) {
+		testRoundTripAllEncodings(t, map[string]interface{}(nil), atlas.MustBuild())
+	})
+	t.Run("nil map[string]interface{}", func(t *testing.T) {
+		testRoundTripAllEncodings(t, map[string]interface{}(nil), atlas.MustBuild())
 	})
 }
 
