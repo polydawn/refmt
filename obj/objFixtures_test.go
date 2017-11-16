@@ -1047,6 +1047,47 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return tObjPtrObjMap{} }},
 		},
 	},
+	{title: "nulls in deeper arrays",
+		sequence: fixtures.SequenceMap["null in array in array"],
+		marshalResults: []marshalResults{
+			{title: "from []iface[]iface",
+				valueFn: func() interface{} { return []interface{}{[]interface{}{nil}} }},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into *iface",
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { return []interface{}{[]interface{}{nil}} }},
+			{title: "into []iface",
+				slotFn:  func() interface{} { var v []interface{}; return &v },
+				valueFn: func() interface{} { return []interface{}{[]interface{}{nil}} }},
+			{title: "into *map[str]iface",
+				slotFn:    func() interface{} { var v map[string]interface{}; return &v },
+				expectErr: ErrUnmarshalTypeCantFit{Token{Type: TArrOpen, Length: 1}, reflect.ValueOf(map[string]interface{}{})}},
+		},
+	},
+	{title: "nulls in midst of arrays",
+		sequence: fixtures.SequenceMap["null in middle of array"],
+		marshalResults: []marshalResults{
+			{title: "from []iface",
+				valueFn: func() interface{} { return []interface{}{"one", nil, "three", nil, "five"} }},
+			{title: "from []*str",
+				valueFn: func() interface{} {
+					one, three, five := "one", "three", "five"
+					return []*string{&one, nil, &three, nil, &five}
+				}},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into *iface",
+				slotFn:  func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} { return []interface{}{"one", nil, "three", nil, "five"} }},
+			{title: "into []iface",
+				slotFn:  func() interface{} { var v []interface{}; return &v },
+				valueFn: func() interface{} { return []interface{}{"one", nil, "three", nil, "five"} }},
+			{title: "into *map[str]iface",
+				slotFn:    func() interface{} { var v map[string]interface{}; return &v },
+				expectErr: ErrUnmarshalTypeCantFit{Token{Type: TArrOpen, Length: 5}, reflect.ValueOf(map[string]interface{}{})}},
+		},
+	},
 	{title: "tagged object",
 		sequence: fixtures.SequenceMap["tagged object"],
 		atlas: atlas.MustBuild(
