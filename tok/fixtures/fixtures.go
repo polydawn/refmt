@@ -294,7 +294,7 @@ var Sequences = []Sequence{
 	{"array with mixed tagged values",
 		[]Token{
 			{Type: TArrOpen, Length: 2},
-			{Type: TInt, Int: 400, Tagged: true, Tag: 40},
+			{Type: TUint, Uint: 400, Tagged: true, Tag: 40},
 			{Type: TString, Str: "500", Tagged: true, Tag: 50},
 			{Type: TArrClose},
 		},
