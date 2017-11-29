@@ -1251,6 +1251,17 @@ var objFixtures = []struct {
 			{title: "to *t5",
 				slotFn:  func() interface{} { return &t5{} },
 				valueFn: func() interface{} { return t5{"500", "untagged", "600", []string{"asdf", "qwer"}, "505"} }},
+			{title: "to *iface{}",
+				slotFn: func() interface{} { var v interface{}; return &v },
+				valueFn: func() interface{} {
+					return map[string]interface{}{
+						"k1": tObjStr{"500"},
+						"k2": "untagged",
+						"k3": tObjStr2{"600", ""},
+						"k4": []interface{}{tObjStr{"asdf"}, tObjStr{"qwer"}},
+						"k5": tObjStr{"505"},
+					}
+				}},
 		},
 	},
 }
