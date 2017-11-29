@@ -33,6 +33,24 @@ func TestRoundTrip(t *testing.T) {
 	t.Run("4-value map[string]interface{str|int}", func(t *testing.T) {
 		testRoundTripAllEncodings(t, map[string]interface{}{"k": "v", "a": "b", "z": 26, "m": 9}, atlas.MustBuild())
 	})
+	t.Run("cbor tagging and transform", func(t *testing.T) {
+		type Taggery string
+		roundTrip(t,
+			map[string]interface{}{"k": Taggery("v"), "a": "b", "z": 26, "m": 9},
+			cbor.EncodeOptions{}, cbor.DecodeOptions{},
+			atlas.MustBuild(
+				atlas.BuildEntry(Taggery("")).UseTag(54).Transform().
+					TransformMarshal(atlas.MakeMarshalTransformFunc(
+						func(x Taggery) (string, error) {
+							return string(x), nil
+						})).
+					TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+						func(x string) (Taggery, error) {
+							return Taggery(x), nil
+						})).
+					Complete()),
+		)
+	})
 }
 
 func testRoundTripAllEncodings(
