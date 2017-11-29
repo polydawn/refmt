@@ -33,6 +33,52 @@ func TestRoundTrip(t *testing.T) {
 	t.Run("4-value map[string]interface{str|int}", func(t *testing.T) {
 		testRoundTripAllEncodings(t, map[string]interface{}{"k": "v", "a": "b", "z": 26, "m": 9}, atlas.MustBuild())
 	})
+	t.Run("cbor tagging and str-str transform", func(t *testing.T) {
+		type Taggery string
+		roundTrip(t,
+			map[string]interface{}{"k": Taggery("v"), "a": "b", "z": 26, "m": 9},
+			cbor.EncodeOptions{}, cbor.DecodeOptions{},
+			atlas.MustBuild(
+				atlas.BuildEntry(Taggery("")).UseTag(54).Transform().
+					TransformMarshal(atlas.MakeMarshalTransformFunc(
+						func(x Taggery) (string, error) {
+							return string(x), nil
+						})).
+					TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+						func(x string) (Taggery, error) {
+							return Taggery(x), nil
+						})).
+					Complete()),
+		)
+	})
+	t.Run("cbor tagging and struct-[]byte transform", func(t *testing.T) {
+		type Taggery struct{ x []byte }
+		roundTrip(t,
+			map[string]interface{}{
+				"foo":   "bar",
+				"hello": Taggery{[]byte("c1")},
+				"baz": []interface{}{
+					Taggery{[]byte("c1")},
+					Taggery{[]byte("c2")},
+				},
+				"cats": map[string]interface{}{
+					"qux": Taggery{[]byte("c3")},
+				},
+			},
+			cbor.EncodeOptions{}, cbor.DecodeOptions{},
+			atlas.MustBuild(
+				atlas.BuildEntry(Taggery{}).UseTag(54).Transform().
+					TransformMarshal(atlas.MakeMarshalTransformFunc(
+						func(x Taggery) ([]byte, error) {
+							return x.x, nil
+						})).
+					TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+						func(x []byte) (Taggery, error) {
+							return Taggery{x}, nil
+						})).
+					Complete()),
+		)
+	})
 }
 
 func testRoundTripAllEncodings(
