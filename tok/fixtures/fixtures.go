@@ -299,6 +299,20 @@ var Sequences = []Sequence{
 			{Type: TArrClose},
 		},
 	},
+	{"object with deeper tagged values",
+		[]Token{
+			{Type: TMapOpen, Length: 5},
+			{Type: TString, Str: "k1"}, {Type: TString, Str: "500", Tagged: true, Tag: 50},
+			{Type: TString, Str: "k2"}, {Type: TString, Str: "untagged"},
+			{Type: TString, Str: "k3"}, {Type: TString, Str: "600", Tagged: true, Tag: 60},
+			{Type: TString, Str: "k4"}, {Type: TArrOpen, Length: 2},
+			/**/ {Type: TString, Str: "asdf", Tagged: true, Tag: 50},
+			/**/ {Type: TString, Str: "qwer", Tagged: true, Tag: 50},
+			/**/ {Type: TArrClose},
+			{Type: TString, Str: "k5"}, {Type: TString, Str: "505", Tagged: true, Tag: 50},
+			{Type: TMapClose},
+		},
+	},
 
 	// Partial sequences!
 	// Decoders may emit these before hitting an error (like EOF, or invalid following serial token).

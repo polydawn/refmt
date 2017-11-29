@@ -77,6 +77,22 @@ type tObjPtrObjMap struct {
 	P *tObjMap
 }
 
+type t5 struct {
+	K1 string
+	K2 string
+	K3 string
+	K4 []string
+	K5 string
+}
+
+type t5b struct {
+	K1 tObjStr
+	K2 string
+	K3 tObjStr2
+	K4 []tObjStr
+	K5 tObjStr
+}
+
 var objFixtures = []struct {
 	title string
 
@@ -1179,6 +1195,62 @@ var objFixtures = []struct {
 			{title: "into *wildcard",
 				slotFn:  func() interface{} { var v interface{}; return &v },
 				valueFn: func() interface{} { return tObjStr{"wahoo"} }},
+		},
+	},
+	{title: "tagged complex objects without tagged atlas",
+		sequence: fixtures.SequenceMap["object with deeper tagged values"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(t5{}).StructMap().Autogenerate().Complete(),
+		),
+		// No marshal entries: Nothing marshals to tags without custom atlasing.
+		unmarshalResults: []unmarshalResults{
+			{title: "to *t5",
+				slotFn:  func() interface{} { return &t5{} },
+				valueFn: func() interface{} { return t5{"500", "untagged", "600", []string{"asdf", "qwer"}, "505"} }},
+		},
+	},
+	{title: "tagged complex objects",
+		sequence: fixtures.SequenceMap["object with deeper tagged values"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(t5{}).StructMap().Autogenerate().Complete(),
+			atlas.BuildEntry(t5b{}).StructMap().Autogenerate().Complete(),
+			atlas.BuildEntry(tObjStr{}).UseTag(50).Transform().
+				TransformMarshal(atlas.MakeMarshalTransformFunc(
+					func(x tObjStr) (string, error) {
+						return x.X, nil
+					})).
+				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+					func(x string) (tObjStr, error) {
+						return tObjStr{x}, nil
+					})).
+				Complete(),
+			atlas.BuildEntry(tObjStr2{}).UseTag(60).Transform().
+				TransformMarshal(atlas.MakeMarshalTransformFunc(
+					func(x tObjStr2) (string, error) {
+						return x.X, nil
+					})).
+				TransformUnmarshal(atlas.MakeUnmarshalTransformFunc(
+					func(x string) (tObjStr2, error) {
+						return tObjStr2{x, ""}, nil
+					})).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from t5b",
+				valueFn: func() interface{} {
+					return t5b{
+						tObjStr{"500"},
+						"untagged",
+						tObjStr2{"600", ""},
+						[]tObjStr{{"asdf"}, {"qwer"}},
+						tObjStr{"505"},
+					}
+				}},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "to *t5",
+				slotFn:  func() interface{} { return &t5{} },
+				valueFn: func() interface{} { return t5{"500", "untagged", "600", []string{"asdf", "qwer"}, "505"} }},
 		},
 	},
 }
