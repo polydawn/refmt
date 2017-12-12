@@ -226,6 +226,9 @@ func (d *Encoder) emitValue(tok *Token) {
 	case TInt:
 		b := strconv.AppendInt(d.scratch[:0], tok.Int, 10)
 		d.wr.Write(b)
+	case TFloat64:
+		b := strconv.AppendFloat(d.scratch[:0], tok.Float64, 'f', 6, 64)
+		d.wr.Write(b)
 	default:
 		panic(fmt.Errorf("TODO finish more pretty.Encoder primitives support: unhandled token %s", tok))
 	}
