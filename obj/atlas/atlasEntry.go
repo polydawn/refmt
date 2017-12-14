@@ -82,6 +82,10 @@ type AtlasEntry struct {
 	// Only valid if `this.Type.Kind() == Struct`.
 	StructMap *StructMap
 
+	// Configuration for how to traverse a map kind.
+	// Only valid if `this.Type.Kind() == Map`.
+	MapMorphism *MapMorphism
+
 	// FUTURE: enum-ish primitives, multiplexers for interfaces,
 	//  lots of such things will belong here.
 
