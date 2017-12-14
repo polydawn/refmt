@@ -112,6 +112,9 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 		case entry.StructMap != nil:
 			row.marshalMachineStructAtlas.cfg = entry
 			return &row.marshalMachineStructAtlas
+		case entry.MapMorphism != nil:
+			row.marshalMachineMapWildcard.cfg = entry
+			return &row.marshalMachineMapWildcard
 		default:
 			panic("invalid atlas entry")
 		}

@@ -5,10 +5,13 @@ import (
 	"reflect"
 	"sort"
 
+	"github.com/polydawn/refmt/obj/atlas"
 	. "github.com/polydawn/refmt/tok"
 )
 
 type marshalMachineMapWildcard struct {
+	cfg *atlas.AtlasEntry // set on initialization
+
 	target_rv reflect.Value
 	value_rt  reflect.Type
 	valueMach MarshalMachine
@@ -44,6 +47,7 @@ func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value
 		mach.keys[i].rv = v
 		mach.keys[i].s = v.String()
 	}
+	// TODO switch mach.cfg.MapMorphism.KeySortMode { ...
 	sort.Sort(wildcardMapStringyKey_byString(mach.keys))
 
 	mach.index = -1
