@@ -100,3 +100,15 @@ type wildcardMapStringyKey_byString []wildcardMapStringyKey
 func (x wildcardMapStringyKey_byString) Len() int           { return len(x) }
 func (x wildcardMapStringyKey_byString) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 func (x wildcardMapStringyKey_byString) Less(i, j int) bool { return x[i].s < x[j].s }
+
+type wildcardMapStringyKey_RFC7049 []wildcardMapStringyKey
+
+func (x wildcardMapStringyKey_RFC7049) Len() int      { return len(x) }
+func (x wildcardMapStringyKey_RFC7049) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
+func (x wildcardMapStringyKey_RFC7049) Less(i, j int) bool {
+	li, lj := len(x[i].s), len(x[j].s)
+	if li == lj {
+		return x[i].s < x[j].s
+	}
+	return li < lj
+}
