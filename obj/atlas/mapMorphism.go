@@ -17,7 +17,9 @@ type MapMorphism struct {
 }
 
 func (x *BuilderCore) MapMorphism() *BuilderMapMorphism {
-	x.entry.MapMorphism = &MapMorphism{}
+	x.entry.MapMorphism = &MapMorphism{
+		KeySortMode_Default,
+	}
 	return &BuilderMapMorphism{x.entry}
 }
 
