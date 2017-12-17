@@ -47,8 +47,14 @@ func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value
 		mach.keys[i].rv = v
 		mach.keys[i].s = v.String()
 	}
-	// TODO switch mach.cfg.MapMorphism.KeySortMode { ...
-	sort.Sort(wildcardMapStringyKey_byString(mach.keys))
+	switch mach.cfg.MapMorphism.KeySortMode {
+	case atlas.KeySortMode_Default:
+		sort.Sort(wildcardMapStringyKey_byString(mach.keys))
+	case atlas.KeySortMode_RFC7049:
+		sort.Sort(wildcardMapStringyKey_RFC7049(mach.keys))
+	default:
+		panic(fmt.Errorf("unknown map key sort mode %q", mach.cfg.MapMorphism.KeySortMode))
+	}
 
 	mach.index = -1
 	return nil
@@ -100,3 +106,15 @@ type wildcardMapStringyKey_byString []wildcardMapStringyKey
 func (x wildcardMapStringyKey_byString) Len() int           { return len(x) }
 func (x wildcardMapStringyKey_byString) Swap(i, j int)      { x[i], x[j] = x[j], x[i] }
 func (x wildcardMapStringyKey_byString) Less(i, j int) bool { return x[i].s < x[j].s }
+
+type wildcardMapStringyKey_RFC7049 []wildcardMapStringyKey
+
+func (x wildcardMapStringyKey_RFC7049) Len() int      { return len(x) }
+func (x wildcardMapStringyKey_RFC7049) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
+func (x wildcardMapStringyKey_RFC7049) Less(i, j int) bool {
+	li, lj := len(x[i].s), len(x[j].s)
+	if li == lj {
+		return x[i].s < x[j].s
+	}
+	return li < lj
+}
