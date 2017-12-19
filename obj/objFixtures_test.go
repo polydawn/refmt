@@ -344,6 +344,46 @@ var objFixtures = []struct {
 				expectErr: ErrNoSuchField{"k2"}},
 		},
 	},
+	{title: "object with four string fields, with atlas entry (default key ordering), marshals ordered correctly",
+		// Note this test is capable of passing *by luck* since map walks are semi-random.
+		// Map walks *are* biased towards their declaration order though, as far as I can tell,
+		// so it's less than a 1/4 chance here.
+		sequence: fixtures.SequenceMap["quad map default order"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(map[string]string{}).MapMorphism().SetKeySortMode(atlas.KeySortMode_Default).Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from map",
+				valueFn: func() interface{} {
+					return map[string]string{
+						"d":  "4", // n.b. intentionally not in same order as tokens should be
+						"b":  "2",
+						"bc": "3",
+						"1":  "1",
+					}
+				}},
+		},
+	},
+	{title: "object with four string fields, with atlas entry (rfc7049 key ordering), marshals ordered correctly",
+		// Note this test is capable of passing *by luck* since map walks are semi-random.
+		// Map walks *are* biased towards their declaration order though, as far as I can tell,
+		// so it's less than a 1/4 chance here.
+		sequence: fixtures.SequenceMap["quad map rfc7049 order"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(map[string]string{}).MapMorphism().SetKeySortMode(atlas.KeySortMode_RFC7049).Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from map",
+				valueFn: func() interface{} {
+					return map[string]string{
+						"d":  "3", // n.b. intentionally not in same order as tokens should be
+						"b":  "2",
+						"bc": "4",
+						"1":  "1",
+					}
+				}},
+		},
+	},
 	{title: "empty primitive arrays",
 		sequence: fixtures.SequenceMap["empty array"],
 		marshalResults: []marshalResults{
