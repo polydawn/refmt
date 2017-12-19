@@ -81,6 +81,26 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"quad map default order",
+		[]Token{
+			{Type: TMapOpen, Length: 4},
+			TokStr("1"), TokStr("1"),
+			TokStr("b"), TokStr("2"),
+			TokStr("bc"), TokStr("3"),
+			TokStr("d"), TokStr("4"),
+			{Type: TMapClose},
+		},
+	},
+	{"quad map rfc7049 order",
+		[]Token{
+			{Type: TMapOpen, Length: 4},
+			TokStr("1"), TokStr("1"),
+			TokStr("b"), TokStr("2"),
+			TokStr("d"), TokStr("3"),
+			TokStr("bc"), TokStr("4"),
+			{Type: TMapClose},
+		},
+	},
 
 	// Arrays.
 	{"empty array",
