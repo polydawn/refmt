@@ -21,6 +21,9 @@ type Atlas struct {
 	// Mapping of tag ints to atlasEntry for quick lookups when the
 	// unmarshaller hits a tag.  Values are a subset of `mappings`.
 	tagMappings map[int]*AtlasEntry
+
+	// MapMorphism specifies the default map sorting scheme
+	MapMorphism *MapMorphism
 }
 
 func Build(entries ...*AtlasEntry) (Atlas, error) {
@@ -62,4 +65,9 @@ func (atl Atlas) Get(rtid uintptr) (*AtlasEntry, bool) {
 func (atl Atlas) GetEntryByTag(tag int) (*AtlasEntry, bool) {
 	ent, ok := atl.tagMappings[tag]
 	return ent, ok
+}
+
+func (atl Atlas) WithMapMorphism(m *MapMorphism) Atlas {
+	atl.MapMorphism = m
+	return atl
 }

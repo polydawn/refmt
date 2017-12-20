@@ -10,7 +10,7 @@ import (
 )
 
 type marshalMachineMapWildcard struct {
-	cfg *atlas.AtlasEntry // set on initialization
+	morphism *atlas.MapMorphism // set on initialization
 
 	target_rv reflect.Value
 	value_rt  reflect.Type
@@ -47,13 +47,19 @@ func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value
 		mach.keys[i].rv = v
 		mach.keys[i].s = v.String()
 	}
-	switch mach.cfg.MapMorphism.KeySortMode {
+
+	ksm := atlas.KeySortMode_Default
+	if mach.morphism != nil {
+		ksm = mach.morphism.KeySortMode
+	}
+
+	switch ksm {
 	case atlas.KeySortMode_Default:
 		sort.Sort(wildcardMapStringyKey_byString(mach.keys))
 	case atlas.KeySortMode_RFC7049:
 		sort.Sort(wildcardMapStringyKey_RFC7049(mach.keys))
 	default:
-		panic(fmt.Errorf("unknown map key sort mode %q", mach.cfg.MapMorphism.KeySortMode))
+		panic(fmt.Errorf("unknown map key sort mode %q", ksm))
 	}
 
 	mach.index = -1
