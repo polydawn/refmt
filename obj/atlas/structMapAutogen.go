@@ -140,6 +140,9 @@ func exploreFields(rt reflect.Type, tagName string, sorter KeySortMode) []Struct
 	switch sorter {
 	case KeySortMode_Default:
 		sort.Sort(StructMapEntry_byFieldRoute(fields))
+	case KeySortMode_Strings:
+		//sort.Sort(StructMapEntry_byName(fields))
+		// it's already in this order, though, so, pass
 	case KeySortMode_RFC7049:
 		sort.Sort(StructMapEntry_RFC7049(fields))
 	default:

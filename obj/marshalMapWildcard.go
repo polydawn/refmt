@@ -56,6 +56,8 @@ func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value
 	switch ksm {
 	case atlas.KeySortMode_Default:
 		sort.Sort(wildcardMapStringyKey_byString(mach.keys))
+	case atlas.KeySortMode_Strings:
+		sort.Sort(wildcardMapStringyKey_byString(mach.keys))
 	case atlas.KeySortMode_RFC7049:
 		sort.Sort(wildcardMapStringyKey_RFC7049(mach.keys))
 	default:
