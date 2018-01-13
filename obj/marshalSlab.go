@@ -76,12 +76,6 @@ func (slab *marshalSlab) requisitionMachine(rt reflect.Type) MarshalMachine {
 	return &row.ptrDerefDelegateMarshalMachine
 }
 
-var defaultCfg = &atlas.AtlasEntry{
-	MapMorphism: &atlas.MapMorphism{
-		atlas.KeySortMode_Default,
-	},
-}
-
 func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Type) MarshalMachine {
 	rtid := reflect.ValueOf(rt).Pointer()
 
