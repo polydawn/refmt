@@ -349,7 +349,7 @@ var objFixtures = []struct {
 		// Map walks *are* biased towards their declaration order though, as far as I can tell,
 		// so it's less than a 1/4 chance here.
 		sequence: fixtures.SequenceMap["quad map default order"],
-		atlas:    atlas.MustBuild().WithMapMorphism(&atlas.MapMorphism{atlas.KeySortMode_Default}),
+		atlas:    atlas.MustBuild().WithMapMorphism(atlas.MapMorphism{atlas.KeySortMode_Default}),
 		marshalResults: []marshalResults{
 			{title: "from map",
 				valueFn: func() interface{} {
@@ -367,7 +367,7 @@ var objFixtures = []struct {
 		// Map walks *are* biased towards their declaration order though, as far as I can tell,
 		// so it's less than a 1/4 chance here.
 		sequence: fixtures.SequenceMap["quad map rfc7049 order"],
-		atlas:    atlas.MustBuild().WithMapMorphism(&atlas.MapMorphism{atlas.KeySortMode_RFC7049}),
+		atlas:    atlas.MustBuild().WithMapMorphism(atlas.MapMorphism{atlas.KeySortMode_RFC7049}),
 		marshalResults: []marshalResults{
 			{title: "from map",
 				valueFn: func() interface{} {

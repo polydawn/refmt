@@ -115,9 +115,6 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 		case entry.MapMorphism != nil:
 			row.marshalMachineMapWildcard.morphism = entry.MapMorphism
 			return &row.marshalMachineMapWildcard
-		case atl.MapMorphism != nil:
-			row.marshalMachineMapWildcard.morphism = atl.MapMorphism
-			return &row.marshalMachineMapWildcard
 		default:
 			panic("invalid atlas entry")
 		}
@@ -142,7 +139,7 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 	case reflect.Array:
 		return &row.marshalMachineSliceWildcard.marshalMachineArrayWildcard
 	case reflect.Map:
-		row.marshalMachineMapWildcard.morphism = atl.MapMorphism
+		row.marshalMachineMapWildcard.morphism = atl.GetDefaultMapMorphism()
 		return &row.marshalMachineMapWildcard
 	case reflect.Struct:
 		// TODO here we could also invoke automatic atlas autogen, if configured to be permitted

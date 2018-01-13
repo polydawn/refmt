@@ -31,7 +31,7 @@ func ExampleAtlasBuilding() {
 			Complete(),
 		// and carry on; this `Build` method takes `AtlasEntry...` as a vararg.
 	)
-	atl = atl.WithMapMorphism(&atlas.MapMorphism{atlas.KeySortMode_RFC7049}) // eh?
+	atl = atl.WithMapMorphism(atlas.MapMorphism{atlas.KeySortMode_RFC7049})
 	_, _ = atl, err
 
 	// Output:
