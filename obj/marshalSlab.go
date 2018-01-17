@@ -150,7 +150,7 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 	case reflect.Struct:
 		// TODO here we could also invoke automatic atlas autogen, if configured to be permitted
 		mach := &row.errThunkMarshalMachine
-		mach.err = fmt.Errorf("no atlas found for struct type %q", rt.String())
+		mach.err = fmt.Errorf("missing an atlas entry describing how to marshal type %v (and auto-atlasing for structs is not enabled)", rt)
 		return mach
 	case reflect.Interface:
 		return &row.marshalMachineWildcard
