@@ -130,7 +130,10 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 	case reflect.Map:
 		return &row.unmarshalMachineMapStringWildcard
 	case reflect.Struct:
-		panic("todo")
+		// TODO here we could also invoke automatic atlas autogen, if configured to be permitted
+		mach := &row.errThunkUnmarshalMachine
+		mach.err = fmt.Errorf("missing an atlas entry describing how to unmarshal type %v (and auto-atlasing for structs is not enabled)", rt)
+		return mach
 	case reflect.Interface:
 		return &row.unmarshalMachineWildcard
 	case reflect.Func:
