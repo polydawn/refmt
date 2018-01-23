@@ -103,9 +103,12 @@ type AtlasEntry struct {
 }
 
 func BuildEntry(typeHintObj interface{}) *BuilderCore {
-	// TODO more validations and immediate errors if typeHintObj doesn't smell right
+	rt := reflect.TypeOf(typeHintObj)
+	if rt.Kind() == reflect.Ptr {
+		panic("invalid atlas build: use the bare object, not a pointer (refmt will handle pointers automatically)")
+	}
 	return &BuilderCore{
-		&AtlasEntry{Type: reflect.TypeOf(typeHintObj)},
+		&AtlasEntry{Type: rt},
 	}
 }
 
