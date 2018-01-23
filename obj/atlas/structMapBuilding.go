@@ -1,11 +1,15 @@
 package atlas
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 )
 
 func (x *BuilderCore) StructMap() *BuilderStructMap {
+	if x.entry.Type.Kind() != reflect.Struct {
+		panic(fmt.Errorf("cannot use structMap for type %q, which is kind %s", x.entry.Type, x.entry.Type.Kind()))
+	}
 	x.entry.StructMap = &StructMap{}
 	return &BuilderStructMap{x.entry}
 }

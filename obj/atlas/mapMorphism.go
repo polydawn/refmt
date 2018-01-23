@@ -2,6 +2,7 @@ package atlas
 
 import (
 	"fmt"
+	"reflect"
 )
 
 type MapMorphism struct {
@@ -9,6 +10,9 @@ type MapMorphism struct {
 }
 
 func (x *BuilderCore) MapMorphism() *BuilderMapMorphism {
+	if x.entry.Type.Kind() != reflect.Map {
+		panic(fmt.Errorf("cannot use mapMorphism for type %q, which is kind %s", x.entry.Type, x.entry.Type.Kind()))
+	}
 	x.entry.MapMorphism = &MapMorphism{
 		KeySortMode_Default,
 	}

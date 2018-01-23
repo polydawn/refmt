@@ -5,6 +5,7 @@ import (
 )
 
 func (x *BuilderCore) Transform() *BuilderTransform {
+	// no checks on x.entry.Type.Kind() here -- transforms can be pretty much any<->any
 	return &BuilderTransform{x.entry}
 }
 

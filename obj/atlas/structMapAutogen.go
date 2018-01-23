@@ -1,6 +1,7 @@
 package atlas
 
 import (
+	"fmt"
 	"reflect"
 	"sort"
 	"strings"
@@ -12,6 +13,9 @@ func AutogenerateStructMapEntry(rt reflect.Type) *AtlasEntry {
 }
 
 func AutogenerateStructMapEntryUsingTags(rt reflect.Type, tagName string, sorter KeySortMode) *AtlasEntry {
+	if rt.Kind() != reflect.Struct {
+		panic(fmt.Errorf("cannot use structMap for type %q, which is kind %s", rt, rt.Kind()))
+	}
 	entry := &AtlasEntry{
 		Type:      rt,
 		StructMap: &StructMap{Fields: exploreFields(rt, tagName, sorter)},
