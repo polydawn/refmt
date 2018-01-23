@@ -101,6 +101,22 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"10 map rfc7049 order",
+		[]Token{
+			{Type: TMapOpen, Length: 10},
+			TokStr("1"), TokStr("1"),
+			TokStr("2"), TokStr("2"),
+			TokStr("b"), TokStr("3"),
+			TokStr("d"), TokStr("4"),
+			TokStr("11"), TokStr("5"),
+			TokStr("bc"), TokStr("6"),
+			TokStr("he"), TokStr("7"),
+			TokStr("hell"), TokStr("8"),
+			TokStr("hello"), TokStr("9"),
+			TokStr("bccccc"), TokStr("10"),
+			{Type: TMapClose},
+		},
+	},
 
 	// Arrays.
 	{"empty array",

@@ -380,6 +380,27 @@ var objFixtures = []struct {
 				}},
 		},
 	},
+	{title: "object with 10 string fields, with atlas entry (rfc7049 key ordering), marshals ordered correctly",
+		sequence: fixtures.SequenceMap["10 map rfc7049 order"],
+		atlas:    atlas.MustBuild().WithMapMorphism(atlas.MapMorphism{atlas.KeySortMode_RFC7049}),
+		marshalResults: []marshalResults{
+			{title: "from map",
+				valueFn: func() interface{} {
+					return map[string]string{
+						"hello":  "9",
+						"d":      "4",
+						"b":      "3",
+						"bc":     "6",
+						"1":      "1",
+						"bccccc": "10",
+						"2":      "2",
+						"11":     "5",
+						"hell":   "8",
+						"he":     "7",
+					}
+				}},
+		},
+	},
 	{title: "empty primitive arrays",
 		sequence: fixtures.SequenceMap["empty array"],
 		marshalResults: []marshalResults{
