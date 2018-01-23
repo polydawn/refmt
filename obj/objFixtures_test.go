@@ -93,6 +93,16 @@ type t5b struct {
 	K5 tObjStr
 }
 
+type tFieldSort1 struct {
+	Aaaaa string
+	Bbbb  string
+	Ddd   string
+	Ccc   string
+	Eee   string
+	Ff    string
+	G     string
+}
+
 var objFixtures = []struct {
 	title string
 
@@ -397,6 +407,24 @@ var objFixtures = []struct {
 						"11":     "5",
 						"hell":   "8",
 						"he":     "7",
+					}
+				}},
+		},
+	},
+	{title: "struct with fields in different than expected order (rfc7049 expected)",
+		sequence: fixtures.SequenceMap["7 struct rfc7049 order"],
+		atlas:    atlas.MustBuild(atlas.BuildEntry(tFieldSort1{}).StructMap().AutogenerateWithSortingScheme(atlas.KeySortMode_RFC7049).Complete()),
+		marshalResults: []marshalResults{
+			{title: "from struct",
+				valueFn: func() interface{} {
+					return tFieldSort1{
+						G:     "1",
+						Ff:    "2",
+						Ccc:   "3",
+						Ddd:   "4",
+						Eee:   "5",
+						Bbbb:  "6",
+						Aaaaa: "7",
 					}
 				}},
 		},

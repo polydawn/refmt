@@ -117,6 +117,19 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"7 struct rfc7049 order",
+		[]Token{
+			{Type: TMapOpen, Length: 7},
+			TokStr("g"), TokStr("1"),
+			TokStr("ff"), TokStr("2"),
+			TokStr("ccc"), TokStr("3"),
+			TokStr("ddd"), TokStr("4"),
+			TokStr("eee"), TokStr("5"),
+			TokStr("bbbb"), TokStr("6"),
+			TokStr("aaaaa"), TokStr("7"),
+			{Type: TMapClose},
+		},
+	},
 
 	// Arrays.
 	{"empty array",
