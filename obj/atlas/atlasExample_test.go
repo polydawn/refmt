@@ -29,11 +29,9 @@ func ExampleAtlasBuilding() {
 			AddField("FieldName", atlas.StructMapEntry{SerialName: "fn", OmitEmpty: true}).
 			AddField("Nested.Thing", atlas.StructMapEntry{SerialName: "nt"}).
 			Complete(),
-		atlas.BuildEntry(map[string]typeExample1{}).MapMorphism().
-			SetKeySortMode(atlas.KeySortMode_RFC7049).
-			Complete(),
 		// and carry on; this `Build` method takes `AtlasEntry...` as a vararg.
 	)
+	atl = atl.WithMapMorphism(atlas.MapMorphism{atlas.KeySortMode_RFC7049})
 	_, _ = atl, err
 
 	// Output:

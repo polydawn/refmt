@@ -93,6 +93,16 @@ type t5b struct {
 	K5 tObjStr
 }
 
+type tFieldSort1 struct {
+	Aaaaa string
+	Bbbb  string
+	Ddd   string
+	Ccc   string
+	Eee   string
+	Ff    string
+	G     string
+}
+
 var objFixtures = []struct {
 	title string
 
@@ -349,9 +359,7 @@ var objFixtures = []struct {
 		// Map walks *are* biased towards their declaration order though, as far as I can tell,
 		// so it's less than a 1/4 chance here.
 		sequence: fixtures.SequenceMap["quad map default order"],
-		atlas: atlas.MustBuild(
-			atlas.BuildEntry(map[string]string{}).MapMorphism().SetKeySortMode(atlas.KeySortMode_Default).Complete(),
-		),
+		atlas:    atlas.MustBuild().WithMapMorphism(atlas.MapMorphism{atlas.KeySortMode_Default}),
 		marshalResults: []marshalResults{
 			{title: "from map",
 				valueFn: func() interface{} {
@@ -369,9 +377,7 @@ var objFixtures = []struct {
 		// Map walks *are* biased towards their declaration order though, as far as I can tell,
 		// so it's less than a 1/4 chance here.
 		sequence: fixtures.SequenceMap["quad map rfc7049 order"],
-		atlas: atlas.MustBuild(
-			atlas.BuildEntry(map[string]string{}).MapMorphism().SetKeySortMode(atlas.KeySortMode_RFC7049).Complete(),
-		),
+		atlas:    atlas.MustBuild().WithMapMorphism(atlas.MapMorphism{atlas.KeySortMode_RFC7049}),
 		marshalResults: []marshalResults{
 			{title: "from map",
 				valueFn: func() interface{} {
@@ -380,6 +386,45 @@ var objFixtures = []struct {
 						"b":  "2",
 						"bc": "4",
 						"1":  "1",
+					}
+				}},
+		},
+	},
+	{title: "object with 10 string fields, with atlas entry (rfc7049 key ordering), marshals ordered correctly",
+		sequence: fixtures.SequenceMap["10 map rfc7049 order"],
+		atlas:    atlas.MustBuild().WithMapMorphism(atlas.MapMorphism{atlas.KeySortMode_RFC7049}),
+		marshalResults: []marshalResults{
+			{title: "from map",
+				valueFn: func() interface{} {
+					return map[string]string{
+						"hello":  "9",
+						"d":      "4",
+						"b":      "3",
+						"bc":     "6",
+						"1":      "1",
+						"bccccc": "10",
+						"2":      "2",
+						"11":     "5",
+						"hell":   "8",
+						"he":     "7",
+					}
+				}},
+		},
+	},
+	{title: "struct with fields in different than expected order (rfc7049 expected)",
+		sequence: fixtures.SequenceMap["7 struct rfc7049 order"],
+		atlas:    atlas.MustBuild(atlas.BuildEntry(tFieldSort1{}).StructMap().AutogenerateWithSortingScheme(atlas.KeySortMode_RFC7049).Complete()),
+		marshalResults: []marshalResults{
+			{title: "from struct",
+				valueFn: func() interface{} {
+					return tFieldSort1{
+						G:     "1",
+						Ff:    "2",
+						Ccc:   "3",
+						Ddd:   "4",
+						Eee:   "5",
+						Bbbb:  "6",
+						Aaaaa: "7",
 					}
 				}},
 		},

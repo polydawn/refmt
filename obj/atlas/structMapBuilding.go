@@ -73,3 +73,12 @@ func (x *BuilderStructMap) Autogenerate() *BuilderStructMap {
 	x.entry.StructMap.Fields = append(x.entry.StructMap.Fields, autoEntry.StructMap.Fields...)
 	return x
 }
+
+/*
+	Automatically generate mappings using a given struct field sorting scheme
+*/
+func (x *BuilderStructMap) AutogenerateWithSortingScheme(sorting KeySortMode) *BuilderStructMap {
+	autoEntry := AutogenerateStructMapEntryUsingTags(x.entry.Type, "refmt", sorting)
+	x.entry.StructMap.Fields = append(x.entry.StructMap.Fields, autoEntry.StructMap.Fields...)
+	return x
+}

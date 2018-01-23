@@ -8,13 +8,13 @@ import (
 )
 
 func AutogenerateStructMapEntry(rt reflect.Type) *AtlasEntry {
-	return AutogenerateStructMapEntryUsingTags(rt, "refmt")
+	return AutogenerateStructMapEntryUsingTags(rt, "refmt", KeySortMode_Default)
 }
 
-func AutogenerateStructMapEntryUsingTags(rt reflect.Type, tagName string) *AtlasEntry {
+func AutogenerateStructMapEntryUsingTags(rt reflect.Type, tagName string, sorter KeySortMode) *AtlasEntry {
 	entry := &AtlasEntry{
 		Type:      rt,
-		StructMap: &StructMap{Fields: exploreFields(rt, tagName)},
+		StructMap: &StructMap{Fields: exploreFields(rt, tagName, sorter)},
 	}
 	return entry
 }
@@ -22,7 +22,7 @@ func AutogenerateStructMapEntryUsingTags(rt reflect.Type, tagName string) *Atlas
 // exploreFields returns a list of fields that StructAtlas should recognize for the given type.
 // The algorithm is breadth-first search over the set of structs to include - the top struct
 // and then any reachable anonymous structs.
-func exploreFields(rt reflect.Type, tagName string) []StructMapEntry {
+func exploreFields(rt reflect.Type, tagName string, sorter KeySortMode) []StructMapEntry {
 	// Anonymous fields to explore at the current level and the next.
 	current := []StructMapEntry{}
 	next := []StructMapEntry{{Type: rt}}
@@ -137,7 +137,17 @@ func exploreFields(rt reflect.Type, tagName string) []StructMapEntry {
 	}
 
 	fields = out
-	sort.Sort(StructMapEntry_byFieldRoute(fields))
+	switch sorter {
+	case KeySortMode_Default:
+		sort.Sort(StructMapEntry_byFieldRoute(fields))
+	case KeySortMode_Strings:
+		//sort.Sort(StructMapEntry_byName(fields))
+		// it's already in this order, though, so, pass
+	case KeySortMode_RFC7049:
+		sort.Sort(StructMapEntry_RFC7049(fields))
+	default:
+		panic("invalid struct sorter option")
+	}
 
 	return fields
 }
@@ -214,6 +224,23 @@ func (x StructMapEntry_byName) Less(i, j int) bool {
 		return x[i].tagged
 	}
 	return StructMapEntry_byFieldRoute(x).Less(i, j)
+}
+
+// StructMapEntry_RFC7049 sorts fields as specified in RFC7049,
+type StructMapEntry_RFC7049 []StructMapEntry
+
+func (x StructMapEntry_RFC7049) Len() int      { return len(x) }
+func (x StructMapEntry_RFC7049) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
+func (x StructMapEntry_RFC7049) Less(i, j int) bool {
+	il, jl := len(x[i].SerialName), len(x[j].SerialName)
+	switch {
+	case il < jl:
+		return true
+	case il > jl:
+		return false
+	default:
+		return x[i].SerialName < x[j].SerialName
+	}
 }
 
 // StructMapEntry_byFieldRoute sorts field by FieldRoute sequence

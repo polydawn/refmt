@@ -76,12 +76,6 @@ func (slab *marshalSlab) requisitionMachine(rt reflect.Type) MarshalMachine {
 	return &row.ptrDerefDelegateMarshalMachine
 }
 
-var defaultCfg = &atlas.AtlasEntry{
-	MapMorphism: &atlas.MapMorphism{
-		atlas.KeySortMode_Default,
-	},
-}
-
 func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Type) MarshalMachine {
 	rtid := reflect.ValueOf(rt).Pointer()
 
@@ -119,7 +113,7 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 			row.marshalMachineStructAtlas.cfg = entry
 			return &row.marshalMachineStructAtlas
 		case entry.MapMorphism != nil:
-			row.marshalMachineMapWildcard.cfg = entry
+			row.marshalMachineMapWildcard.morphism = entry.MapMorphism
 			return &row.marshalMachineMapWildcard
 		default:
 			panic("invalid atlas entry")
@@ -145,7 +139,7 @@ func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Ty
 	case reflect.Array:
 		return &row.marshalMachineSliceWildcard.marshalMachineArrayWildcard
 	case reflect.Map:
-		row.marshalMachineMapWildcard.cfg = defaultCfg
+		row.marshalMachineMapWildcard.morphism = atl.GetDefaultMapMorphism()
 		return &row.marshalMachineMapWildcard
 	case reflect.Struct:
 		// TODO here we could also invoke automatic atlas autogen, if configured to be permitted

@@ -21,12 +21,16 @@ type Atlas struct {
 	// Mapping of tag ints to atlasEntry for quick lookups when the
 	// unmarshaller hits a tag.  Values are a subset of `mappings`.
 	tagMappings map[int]*AtlasEntry
+
+	// MapMorphism specifies the default map sorting scheme
+	defaultMapMorphism *MapMorphism
 }
 
 func Build(entries ...*AtlasEntry) (Atlas, error) {
 	atl := Atlas{
-		mappings:    make(map[uintptr]*AtlasEntry),
-		tagMappings: make(map[int]*AtlasEntry),
+		mappings:           make(map[uintptr]*AtlasEntry),
+		tagMappings:        make(map[int]*AtlasEntry),
+		defaultMapMorphism: &MapMorphism{KeySortMode_Default},
 	}
 	for _, entry := range entries {
 		rtid := reflect.ValueOf(entry.Type).Pointer()
@@ -52,6 +56,11 @@ func MustBuild(entries ...*AtlasEntry) Atlas {
 	return atl
 }
 
+func (atl Atlas) WithMapMorphism(m MapMorphism) Atlas {
+	atl.defaultMapMorphism = &m
+	return atl
+}
+
 // Gets the AtlasEntry for a typeID.  Used by obj package, not meant for user facing.
 func (atl Atlas) Get(rtid uintptr) (*AtlasEntry, bool) {
 	ent, ok := atl.mappings[rtid]
@@ -62,4 +71,9 @@ func (atl Atlas) Get(rtid uintptr) (*AtlasEntry, bool) {
 func (atl Atlas) GetEntryByTag(tag int) (*AtlasEntry, bool) {
 	ent, ok := atl.tagMappings[tag]
 	return ent, ok
+}
+
+// Gets the default map morphism config.  Used by obj package, not meant for user facing.
+func (atl Atlas) GetDefaultMapMorphism() *MapMorphism {
+	return atl.defaultMapMorphism
 }
