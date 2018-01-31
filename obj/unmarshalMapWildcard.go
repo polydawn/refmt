@@ -58,7 +58,7 @@ func (mach *unmarshalMachineMapStringWildcard) step_Initial(_ *Unmarshaller, _ *
 	}
 }
 
-func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *Unmarshaller, _ *unmarshalSlab, tok *Token) (done bool, err error) {
+func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	// First, save any refs from the last value.
 	//  (This is fiddly: the delay comes mostly from the handling of slices, which may end up re-allocating
 	//   themselves during their decoding.)
@@ -73,6 +73,8 @@ func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *Unmarshaller, _
 		return true, fmt.Errorf("unexpected arrOpen; expected map key")
 	case TMapClose:
 		// no special checks for ends of wildcard map; no such thing as incomplete.
+		// release the slab row we requisitioned for our value machine.
+		slab.release()
 		return true, nil
 	case TArrClose:
 		return true, fmt.Errorf("unexpected arrClose; expected map key")
