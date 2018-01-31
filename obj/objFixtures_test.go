@@ -769,6 +769,35 @@ var objFixtures = []struct {
 				}},
 		},
 	},
+	{title: "nested map-struct-map",
+		// the tmp slot required in map unmarshalling creates the potential for
+		//  some really wild edge cases...
+		sequence: fixtures.SequenceMap["map[str]map[str]map[str]str"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjMap{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "f"}).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from map[str]tObjMap{map[str]iface}",
+				valueFn: func() interface{} {
+					return map[string]tObjMap{
+						"k1": {X: map[string]interface{}{"d": "aa"}},
+						"k2": {X: map[string]interface{}{"d": "bb"}},
+					}
+				}},
+		},
+		unmarshalResults: []unmarshalResults{
+			{title: "into map[str]tObjMap",
+				slotFn: func() interface{} { return &map[string]tObjMap{} },
+				valueFn: func() interface{} {
+					return map[string]tObjMap{
+						"k1": {X: map[string]interface{}{"d": "aa"}},
+						"k2": {X: map[string]interface{}{"d": "bb"}},
+					}
+				}},
+		},
+	},
 	{title: "transform funks (struct<->string)",
 		sequence: fixtures.SequenceMap["flat string"],
 		atlas: atlas.MustBuild(

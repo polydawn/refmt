@@ -99,6 +99,7 @@ func (mach *unmarshalMachineMapStringWildcard) mustAcceptKey(key_rv reflect.Valu
 
 func (mach *unmarshalMachineMapStringWildcard) step_AcceptValue(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	mach.step = mach.step_AcceptKey
+	mach.tmp_rv.Set(reflect.Zero(mach.value_rt))
 	mach.haveValue = true
 	return false, driver.Recurse(
 		tok,

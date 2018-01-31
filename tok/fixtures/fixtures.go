@@ -250,6 +250,23 @@ var Sequences = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"map[str]map[str]map[str]str",
+		// this is primarily for the objmapper tests (map-struct-map case).
+		[]Token{
+			{Type: TMapOpen, Length: 2},
+			TokStr("k1"), {Type: TMapOpen, Length: 1},
+			/**/ TokStr("f"), {Type: TMapOpen, Length: 1},
+			/**/ /**/ TokStr("d"), TokStr("aa"),
+			/**/ /**/ {Type: TMapClose},
+			/**/ {Type: TMapClose},
+			TokStr("k2"), {Type: TMapOpen, Length: 1},
+			/**/ TokStr("f"), {Type: TMapOpen, Length: 1},
+			/**/ /**/ TokStr("d"), TokStr("bb"),
+			/**/ /**/ {Type: TMapClose},
+			/**/ {Type: TMapClose},
+			{Type: TMapClose},
+		},
+	},
 
 	// Empty and null and null-at-depth.
 	{"empty",
