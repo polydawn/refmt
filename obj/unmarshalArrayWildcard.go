@@ -62,7 +62,8 @@ func (mach *unmarshalMachineArrayWildcard) step_AcceptValue(driver *Unmarshaller
 		// no special checks for ends of wildcard slice; no such thing as incomplete.
 		return true, ErrMalformedTokenStream{tok.Type, "start of value or end of array"}
 	case TArrClose:
-		// Finishing step: push our current slice ref all the way to original target.
+		// release the slab row we requisitioned for our value machine.
+		slab.release()
 		return true, nil
 	}
 
