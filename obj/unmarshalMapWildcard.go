@@ -22,7 +22,6 @@ func (mach *unmarshalMachineMapStringWildcard) Reset(slab *unmarshalSlab, rv ref
 	mach.value_rt = rt.Elem()
 	mach.valueMach = slab.requisitionMachine(mach.value_rt)
 	mach.key_rv = reflect.New(rt.Key()).Elem()
-	mach.tmp_rv = reflect.New(mach.value_rt).Elem()
 	mach.step = mach.step_Initial
 	mach.haveValue = false
 	return nil
@@ -99,6 +98,7 @@ func (mach *unmarshalMachineMapStringWildcard) mustAcceptKey(key_rv reflect.Valu
 
 func (mach *unmarshalMachineMapStringWildcard) step_AcceptValue(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	mach.step = mach.step_AcceptKey
+	mach.tmp_rv = reflect.New(mach.value_rt).Elem()
 	mach.haveValue = true
 	return false, driver.Recurse(
 		tok,
