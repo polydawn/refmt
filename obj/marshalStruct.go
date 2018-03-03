@@ -16,10 +16,11 @@ type marshalMachineStructAtlas struct {
 	value_rv  reflect.Value // Next value (or nil if next step is key).
 }
 
-func (mach *marshalMachineStructAtlas) Reset(_ *marshalSlab, rv reflect.Value, _ reflect.Type) error {
+func (mach *marshalMachineStructAtlas) Reset(slab *marshalSlab, rv reflect.Value, _ reflect.Type) error {
 	mach.target_rv = rv
 	mach.index = -1
 	mach.value_rv = reflect.Value{}
+	slab.grow() // we'll reuse the same row for all fields
 	return nil
 }
 
@@ -58,7 +59,7 @@ func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSla
 			tok,
 			child_rv,
 			fieldEntry.Type,
-			slab.requisitionMachine(fieldEntry.Type),
+			slab.yieldMachine(fieldEntry.Type),
 		)
 	}
 
@@ -73,9 +74,6 @@ func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSla
 	}
 	tok.Type = TString
 	tok.Str = fieldEntry.SerialName
-	if mach.index > 0 {
-		slab.release()
-	}
 	return false, nil
 }
 
