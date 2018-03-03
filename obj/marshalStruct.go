@@ -30,7 +30,7 @@ func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSla
 	nEntries := len(mach.cfg.StructMap.Fields)
 	if mach.index < 0 {
 		tok.Type = TMapOpen
-		tok.Length = nEntries
+		tok.Length = countEmittableStructFields(mach.cfg, mach.target_rv)
 		if mach.cfg.Tagged {
 			tok.Tagged = true
 			tok.Tag = mach.cfg.Tag
@@ -77,4 +77,22 @@ func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSla
 		slab.release()
 	}
 	return false, nil
+}
+
+// Count how many fields in a struct should actually be marshalled.
+// Fields that are tagged omitEmpty and are isEmptyValue are not counted, so
+// this number may be less than the number of fields in the AtlasEntry.StructMap.
+func countEmittableStructFields(cfg *atlas.AtlasEntry, target_rv reflect.Value) int {
+	total := 0
+	for _, fieldEntry := range cfg.StructMap.Fields {
+		if !fieldEntry.OmitEmpty {
+			total++
+			continue
+		}
+		if !isEmptyValue(fieldEntry.ReflectRoute.TraverseToValue(target_rv)) {
+			total++
+			continue
+		}
+	}
+	return total
 }
