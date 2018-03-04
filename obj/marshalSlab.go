@@ -48,6 +48,24 @@ func (slab *marshalSlab) requisitionMachine(rt reflect.Type) MarshalMachine {
 	slab.grow()
 	row := &slab.rows[off]
 
+	// Yield machinery.
+	return _yieldMarshalMachinePtr(row, slab.atlas, rt)
+}
+
+/*
+	Like requisitionMachine, but does *not* grow the slab; assumes the current
+	tip row is usable.
+	Thus, you must grow() before using, and release correspondingly.
+*/
+func (slab *marshalSlab) yieldMachine(rt reflect.Type) MarshalMachine {
+	// Grab the last row.
+	row := &slab.rows[len(slab.rows)-1]
+
+	// Yield machinery.
+	return _yieldMarshalMachinePtr(row, slab.atlas, rt)
+}
+
+func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Type) MarshalMachine {
 	// Indirect pointers as necessary.
 	//  Keep count of how many times we do this; we'll use this again at the end.
 	peelCount := 0
@@ -57,7 +75,7 @@ func (slab *marshalSlab) requisitionMachine(rt reflect.Type) MarshalMachine {
 	}
 
 	// Figure out what machinery to use at heart.
-	mach := _yieldMarshalMachinePtr(row, slab.atlas, rt)
+	mach := _yieldBareMarshalMachinePtr(row, atl, rt)
 	// If nil answer, we had no match: yield an error thunk.
 	if mach == nil {
 		mach := &row.errThunkMarshalMachine
@@ -76,7 +94,8 @@ func (slab *marshalSlab) requisitionMachine(rt reflect.Type) MarshalMachine {
 	return &row.ptrDerefDelegateMarshalMachine
 }
 
-func _yieldMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Type) MarshalMachine {
+// Like _yieldMarshalMachinePtr, but assumes the ptr unwrapping has already been done.
+func _yieldBareMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflect.Type) MarshalMachine {
 	rtid := reflect.ValueOf(rt).Pointer()
 
 	// Check primitives first; cheapest (and unoverridable).

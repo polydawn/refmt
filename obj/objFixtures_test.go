@@ -1124,6 +1124,18 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return tObjStr{""} }},
 		},
 	},
+	{title: "omitEmpty resulting in empty map",
+		sequence: fixtures.SequenceMap["empty map"],
+		atlas: atlas.MustBuild(
+			atlas.BuildEntry(tObjStr{}).StructMap().
+				AddField("X", atlas.StructMapEntry{SerialName: "key", OmitEmpty: true}).
+				Complete(),
+		),
+		marshalResults: []marshalResults{
+			{title: "from tObjStr",
+				valueFn: func() interface{} { var v tObjStr; return v }},
+		},
+	},
 	{title: "nulls in map values and struct fields",
 		sequence: fixtures.SequenceMap["null in map"],
 		atlas: atlas.MustBuild(
