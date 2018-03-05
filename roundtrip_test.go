@@ -114,7 +114,7 @@ func roundTrip(
 	if err := decoder.Unmarshal(&slot); err != nil {
 		t.Fatalf("failed decoding: %s", err)
 	}
-	t.Logf("%#T -- %#v", slot, slot)
+	t.Logf("%T -- %#v", slot, slot)
 
 	// Re-encode.  Expect to get same encoded form.
 	var buf2 bytes.Buffer

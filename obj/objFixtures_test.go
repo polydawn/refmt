@@ -961,7 +961,7 @@ var objFixtures = []struct {
 	{title: "empty",
 		sequence:       fixtures.SequenceMap["empty"],
 		marshalResults: []marshalResults{
-		// not much marshals to empty!
+			// not much marshals to empty!
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
