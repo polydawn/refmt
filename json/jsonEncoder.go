@@ -76,9 +76,11 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		case TArrOpen:
 			return true, fmt.Errorf("unexpected arrOpen; expected start of key or end of map")
 		case TMapClose:
-			d.wr.Write(d.cfg.Line)
-			for i := 1; i < len(d.stack); i++ {
-				d.wr.Write(d.cfg.Indent)
+			if d.some {
+				d.wr.Write(d.cfg.Line)
+				for i := 1; i < len(d.stack); i++ {
+					d.wr.Write(d.cfg.Indent)
+				}
 			}
 			d.wr.Write(wordMapClose)
 			return d.popPhase()
@@ -91,6 +93,9 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 				d.entrySep()
 				d.emitString(tok.Str)
 				d.wr.Write(wordColon)
+				if d.cfg.Line != nil {
+					d.wr.Write(wordSpace)
+				}
 				d.current = phase_mapExpectValue
 				return false, nil
 			default:
@@ -132,9 +137,11 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		case TMapClose:
 			return true, fmt.Errorf("unexpected mapClose; expected start of value or end of array")
 		case TArrClose:
-			d.wr.Write(d.cfg.Line)
-			for i := 1; i < len(d.stack); i++ {
-				d.wr.Write(d.cfg.Indent)
+			if d.some {
+				d.wr.Write(d.cfg.Line)
+				for i := 1; i < len(d.stack); i++ {
+					d.wr.Write(d.cfg.Indent)
+				}
 			}
 			d.wr.Write(wordArrClose)
 			return d.popPhase()
