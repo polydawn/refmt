@@ -23,7 +23,7 @@ func TestJsonEncoder(t *testing.T) {
 			title = strings.Join([]string{tr.sequence.Title, tr.title}, ", ")
 		}
 		buf := &bytes.Buffer{}
-		tokenSink := NewEncoder(buf)
+		tokenSink := NewEncoder(buf, EncodeOptions{})
 
 		// Run steps.
 		var done bool
