@@ -91,6 +91,9 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 				d.entrySep()
 				d.emitString(tok.Str)
 				d.wr.Write(wordColon)
+				if d.cfg.Line != nil {
+					d.wr.Write(wordSpace)
+				}
 				d.current = phase_mapExpectValue
 				return false, nil
 			default:

@@ -15,4 +15,5 @@ var (
 	wordMapClose = []byte("}")
 	wordColon    = []byte(":")
 	wordComma    = []byte(",")
+	wordSpace    = []byte(" ")
 )
