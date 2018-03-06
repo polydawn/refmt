@@ -36,7 +36,7 @@ func Marshal(v interface{}) ([]byte, error) {
 
 func MarshalAtlased(v interface{}, atl atlas.Atlas) ([]byte, error) {
 	var buf bytes.Buffer
-	if err := NewMarshallerAtlased(&buf, atl).Marshal(v); err != nil {
+	if err := NewMarshallerAtlased(&buf, EncodeOptions{}, atl).Marshal(v); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
@@ -55,13 +55,13 @@ func (x *Marshaller) Marshal(v interface{}) error {
 }
 
 func NewMarshaller(wr io.Writer) *Marshaller {
-	return NewMarshallerAtlased(wr, atlas.MustBuild())
+	return NewMarshallerAtlased(wr, EncodeOptions{}, atlas.MustBuild())
 }
 
-func NewMarshallerAtlased(wr io.Writer, atl atlas.Atlas) *Marshaller {
+func NewMarshallerAtlased(wr io.Writer, cfg EncodeOptions, atl atlas.Atlas) *Marshaller {
 	x := &Marshaller{
 		marshaller: obj.NewMarshaller(atl),
-		encoder:    NewEncoder(wr),
+		encoder:    NewEncoder(wr, cfg),
 	}
 	x.pump = shared.TokenPump{
 		x.marshaller,

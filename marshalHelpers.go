@@ -50,9 +50,9 @@ func NewMarshaller(opts EncodeOptions, wr io.Writer) Marshaller {
 }
 
 func NewMarshallerAtlased(opts EncodeOptions, wr io.Writer, atl atlas.Atlas) Marshaller {
-	switch opts.(type) {
+	switch o2 := opts.(type) {
 	case json.EncodeOptions:
-		return json.NewMarshallerAtlased(wr, atl)
+		return json.NewMarshallerAtlased(wr, o2, atl)
 	case cbor.EncodeOptions:
 		return cbor.NewMarshallerAtlased(wr, atl)
 	default:

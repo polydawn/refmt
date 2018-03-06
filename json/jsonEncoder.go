@@ -8,9 +8,10 @@ import (
 	. "github.com/polydawn/refmt/tok"
 )
 
-func NewEncoder(wr io.Writer) *Encoder {
+func NewEncoder(wr io.Writer, cfg EncodeOptions) *Encoder {
 	return &Encoder{
 		wr:    wr,
+		cfg:   cfg,
 		stack: make([]phase, 0, 10),
 	}
 }
@@ -25,7 +26,8 @@ func (d *Encoder) Reset() {
 	A json.Encoder is a TokenSink implementation that emits json bytes.
 */
 type Encoder struct {
-	wr io.Writer
+	wr  io.Writer
+	cfg EncodeOptions
 
 	// Stack, tracking how many array and map opens are outstanding.
 	// (Values are only 'phase_mapExpectKeyOrEnd' and 'phase_arrExpectValueOrEnd'.)
@@ -74,6 +76,10 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		case TArrOpen:
 			return true, fmt.Errorf("unexpected arrOpen; expected start of key or end of map")
 		case TMapClose:
+			d.wr.Write(d.cfg.Line)
+			for i := 1; i < len(d.stack); i++ {
+				d.wr.Write(d.cfg.Indent)
+			}
 			d.wr.Write(wordMapClose)
 			return d.popPhase()
 		case TArrClose:
@@ -126,6 +132,10 @@ func (d *Encoder) Step(tok *Token) (done bool, err error) {
 		case TMapClose:
 			return true, fmt.Errorf("unexpected mapClose; expected start of value or end of array")
 		case TArrClose:
+			d.wr.Write(d.cfg.Line)
+			for i := 1; i < len(d.stack); i++ {
+				d.wr.Write(d.cfg.Indent)
+			}
 			d.wr.Write(wordArrClose)
 			return d.popPhase()
 		default:
@@ -149,6 +159,7 @@ func (d *Encoder) pushPhase(p phase) {
 func (d *Encoder) popPhase() (bool, error) {
 	n := len(d.stack) - 1
 	if n == 0 {
+		d.wr.Write(d.cfg.Line)
 		return true, nil
 	}
 	if n < 0 { // the state machines are supposed to have already errored better
@@ -167,6 +178,10 @@ func (d *Encoder) entrySep() {
 		d.wr.Write(wordComma)
 	}
 	d.some = true
+	d.wr.Write(d.cfg.Line)
+	for i := 0; i < len(d.stack); i++ {
+		d.wr.Write(d.cfg.Indent)
+	}
 }
 
 func (d *Encoder) flushValue(tok *Token) {

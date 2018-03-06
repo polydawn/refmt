@@ -103,7 +103,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
 					cbor.NewDecoder(stdin),
-					json.NewEncoder(stdout),
+					json.NewEncoder(stdout, json.EncodeOptions{}),
 				}.Run()
 			},
 		},
@@ -114,7 +114,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
 					cbor.NewDecoder(hexReader(stdin)),
-					json.NewEncoder(stdout),
+					json.NewEncoder(stdout, json.EncodeOptions{}),
 				}.Run()
 			},
 		},
@@ -125,7 +125,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
 					newYamlTokenSource(stdin),
-					json.NewEncoder(stdout),
+					json.NewEncoder(stdout, json.EncodeOptions{}),
 				}.Run()
 			},
 		},
