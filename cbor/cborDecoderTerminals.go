@@ -124,6 +124,9 @@ func (d *Decoder) decodeBytesOrStringIndefinite(bs []byte, majorWanted byte) (bs
 		}
 		oldLen := len(bs)
 		newLen := oldLen + n
+		if n > 33554432 {
+			return nil, fmt.Errorf("cbor: decoding rejected oversized indefinite string/bytes field: %d is too large", n)
+		}
 		if newLen > cap(bs) {
 			bs2 := make([]byte, newLen, 2*cap(bs)+n)
 			copy(bs2, bs)
@@ -168,6 +171,9 @@ func (d *Decoder) decodeBytes(majorByte byte) (bs []byte, err error) {
 	if err != nil {
 		return nil, err
 	}
+	if n > 33554432 {
+		return nil, fmt.Errorf("cbor: decoding rejected oversized byte field: %d is too large", n)
+	}
 	return d.r.Readn(n)
 }
 
@@ -176,6 +182,9 @@ func (d *Decoder) decodeString(majorByte byte) (s string, err error) {
 	n, err := d.decodeLen(majorByte)
 	if err != nil {
 		return "", err
+	}
+	if n > 33554432 {
+		return "", fmt.Errorf("cbor: decoding rejected oversized string field: %d is too large", n)
 	}
 	bs, err := d.r.Readnzc(n)
 	return string(bs), err
