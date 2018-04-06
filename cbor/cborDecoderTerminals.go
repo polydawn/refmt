@@ -2,8 +2,14 @@ package cbor
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"math"
+)
+
+const (
+	maxUint = ^uint(0)
+	maxInt  = int(maxUint >> 1)
 )
 
 func (d *Decoder) decodeFloat(majorByte byte) (f float64, err error) {
@@ -66,8 +72,12 @@ func (d *Decoder) decodeNegInt(majorByte byte) (i int64, err error) {
 	if err != nil {
 		return 0, err
 	}
-	// TODO needs overflow check
-	return -1 - int64(ui), nil
+	pos := ui + 1
+	if pos > uint64(-math.MinInt64) {
+		return -1, errors.New("cbor: negative integer out of rage of int64 type")
+	}
+
+	return -int64(pos), nil
 }
 
 // Decode expecting a positive integer.
@@ -80,7 +90,9 @@ func (d *Decoder) decodeLen(majorByte byte) (i int, err error) {
 	if err != nil {
 		return 0, err
 	}
-	// TODO needs overflow check
+	if ui > uint64(maxInt) {
+		return 0, errors.New("cbor: positive integer is out of length")
+	}
 	return int(ui), nil
 }
 
