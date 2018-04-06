@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
+	"io/ioutil"
+	"testing"
 
 	. "github.com/polydawn/refmt/tok"
 	"github.com/polydawn/refmt/tok/fixtures"
@@ -29,6 +31,21 @@ func deB64(s string) []byte {
 		panic(err)
 	}
 	return bs
+}
+
+func TestExportFixtures(t *testing.T) {
+	t.SkipNow()
+	for i, fix := range cborFixtures {
+		if fix.encodeResult != nil || fix.decodeResult != nil {
+			continue
+		}
+
+		err := ioutil.WriteFile(fmt.Sprintf("fuzz-data/corpus/%d", i), fix.serial, 0666)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
 }
 
 var inapplicable = fmt.Errorf("skipme: inapplicable")
