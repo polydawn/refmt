@@ -24,6 +24,7 @@ func Test(t *testing.T) {
 	testMap(t)
 	testArray(t)
 	testComposite(t)
+	testNumber(t)
 }
 
 func checkCanonical(t *testing.T, sequence fixtures.Sequence, serial string) {
@@ -113,43 +114,5 @@ var jsonFixtures = []struct {
 		`[`,
 		inapplicable,
 		io.EOF, // REVIEW it's probably more explicitly unexpected than that...
-	},
-
-	// Numeric.
-	{"",
-		fixtures.Sequence{"integer zero", []Token{{Type: TInt, Int: 0}}},
-		"0",
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.Sequence{"integer one", []Token{{Type: TInt, Int: 1}}},
-		"1",
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.Sequence{"integer neg 1", []Token{{Type: TInt, Int: -1}}},
-		"-1",
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.Sequence{"integer neg 100", []Token{{Type: TInt, Int: -100}}},
-		"-100",
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.Sequence{"integer 1000000", []Token{{Type: TInt, Int: 1000000}}},
-		"1000000",
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.Sequence{"float 1 e+100", []Token{{Type: TFloat64, Float64: 1.0e+300}}},
-		`1e+300`,
-		inapplicable, // TODO should support situationEncoding too
-		nil,
 	},
 }
