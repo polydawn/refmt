@@ -23,6 +23,7 @@ func Test(t *testing.T) {
 	testString(t)
 	testMap(t)
 	testArray(t)
+	testComposite(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string, expectErr error) {
@@ -97,38 +98,6 @@ var jsonFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
-	// Complex / mixed / nested.
-	{"",
-		fixtures.SequenceMap["array nested in map as non-first and final entry"].SansLengthInfo(),
-		`{"k1":"v1","ke":["oh","whee","wow"]}`,
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["array nested in map as first and non-final entry"].SansLengthInfo(),
-		`{"ke":["oh","whee","wow"],"k1":"v1"}`,
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["maps nested in array"].SansLengthInfo(),
-		`[{"k":"v"},"whee",{"k1":"v1"}]`,
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["arrays in arrays in arrays"].SansLengthInfo(),
-		`[[[]]]`,
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["maps nested in maps"].SansLengthInfo(),
-		`{"k":{"k2":"v2"}}`,
-		nil,
-		nil,
-	},
-
 	// Errors when decoding invalid inputs!
 	{"",
 		fixtures.SequenceMap["dangling arr open"].SansLengthInfo().Append(Token{}),
