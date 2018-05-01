@@ -15,6 +15,7 @@ import (
 func Test(t *testing.T) {
 	testBool(t)
 	testString(t)
+	testMap(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial []byte, expectErr error) {
@@ -105,56 +106,6 @@ var cborFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
-	// Maps.
-	{"",
-		fixtures.SequenceMap["empty map"],
-		bcat(b(0xa0)),
-		nil,
-		nil,
-	},
-	{"indefinite length",
-		fixtures.SequenceMap["empty map"].SansLengthInfo(),
-		bcat(b(0xbf), b(0xff)),
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["single row map"],
-		bcat(b(0xa0+1),
-			b(0x60+3), []byte(`key`), b(0x60+5), []byte(`value`),
-		),
-		nil,
-		nil,
-	},
-	{"indefinite length",
-		fixtures.SequenceMap["single row map"].SansLengthInfo(),
-		bcat(b(0xbf),
-			b(0x60+3), []byte(`key`), b(0x60+5), []byte(`value`),
-			b(0xff),
-		),
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["duo row map"],
-		bcat(b(0xa0+2),
-			b(0x60+3), []byte(`key`), b(0x60+5), []byte(`value`),
-			b(0x60+2), []byte(`k2`), b(0x60+2), []byte(`v2`),
-		),
-		nil,
-		nil,
-	},
-	{"indefinite length",
-		fixtures.SequenceMap["duo row map"].SansLengthInfo(),
-		bcat(b(0xbf),
-			b(0x60+3), []byte(`key`), b(0x60+5), []byte(`value`),
-			b(0x60+2), []byte(`k2`), b(0x60+2), []byte(`v2`),
-			b(0xff),
-		),
-		nil,
-		nil,
-	},
-
 	// Arrays.
 	{"",
 		fixtures.SequenceMap["empty array"],
