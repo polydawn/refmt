@@ -20,10 +20,12 @@ import (
 
 func TestEncoding(t *testing.T) {
 	testBoolEncoding(t)
+	testStringEncoding(t)
 }
 
 func TestDecoding(t *testing.T) {
 	testBoolDecoding(t)
+	testStringDecoding(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string, expectErr error) {
@@ -94,32 +96,6 @@ var jsonFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
-	// Strings
-	{"",
-		fixtures.SequenceMap["empty string"],
-		`""`,
-		nil,
-		nil,
-	},
-	{"decoding with extra whitespace",
-		fixtures.SequenceMap["empty string"].SansLengthInfo(),
-		`  "" `,
-		inapplicable,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["flat string"],
-		`"value"`,
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["strings needing escape"],
-		`"str\nbroken\ttabbed"`,
-		nil,
-		nil,
-	},
-
 	// Maps
 	{"",
 		fixtures.SequenceMap["empty map"].SansLengthInfo(),
