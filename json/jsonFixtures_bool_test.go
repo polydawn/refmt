@@ -11,3 +11,9 @@ func testBoolEncoding(t *testing.T) {
 		checkEncoding(t, fixtures.SequenceMap["true"], `true`, nil)
 	})
 }
+
+func testBoolDecoding(t *testing.T) {
+	t.Run("decode bool", func(t *testing.T) {
+		checkDecoding(t, `true`, fixtures.SequenceMap["true"], nil)
+	})
+}

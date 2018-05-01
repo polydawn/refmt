@@ -22,6 +22,10 @@ func TestEncoding(t *testing.T) {
 	testBoolEncoding(t)
 }
 
+func TestDecoding(t *testing.T) {
+	testBoolDecoding(t)
+}
+
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string, expectErr error) {
 	t.Helper()
 	outputBuf := &bytes.Buffer{}
@@ -46,6 +50,37 @@ func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string
 	Wish(t, nStep, ShouldEqual, len(sequence.Tokens))
 	Wish(t, err, ShouldEqual, expectErr)
 	Wish(t, outputBuf.String(), ShouldEqual, expectSerial)
+}
+
+func checkDecoding(t *testing.T, serial string, expectSequence fixtures.Sequence, expectErr error) {
+	t.Helper()
+	inputBuf := bytes.NewBufferString(serial)
+	tokenSrc := NewDecoder(inputBuf)
+
+	// Run steps, advancing until the decoder reports it's done.
+	//  If the decoder keeps yielding more tokens than we expect, that's fine...
+	//  we just keep recording them, and we'll diff later.
+	//  There's a cutoff when it overshoots by 10 tokens because generally
+	//  that indicates we've found some sort of loop bug and 10 extra token
+	//  yields is typically enough info to diagnose with.
+	var nStep int
+	var done bool
+	var yield = make([]Token, len(expectSequence.Tokens)+10)
+	var err error
+	for ; nStep <= len(expectSequence.Tokens)+10; nStep++ {
+		done, err = tokenSrc.Step(&yield[nStep])
+		if done || err != nil {
+			break
+		}
+	}
+	nStep++
+	yield = yield[:nStep]
+
+	// Assert final result.
+	Wish(t, done, ShouldEqual, true)
+	Wish(t, nStep, ShouldEqual, len(expectSequence.Tokens))
+	Wish(t, yield, ShouldEqual, expectSequence.Tokens)
+	Wish(t, err, ShouldEqual, expectErr)
 }
 
 // --------------
