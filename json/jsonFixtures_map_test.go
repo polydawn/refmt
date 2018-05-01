@@ -13,13 +13,47 @@ func testMap(t *testing.T) {
 			checkEncoding(t, seq, `{}`, nil)
 		})
 		t.Run("decode", func(t *testing.T) {
-			checkEncoding(t, seq, `{}`, nil)
+			checkDecoding(t, seq, `{}`, nil)
 		})
 		t.Run("decode with extra interior whitespace", func(t *testing.T) {
 			checkDecoding(t, seq, `{  }`, nil)
 		})
 		t.Run("decode with extra flanking whitespace", func(t *testing.T) {
 			checkDecoding(t, seq, `  {  }  `, nil)
+		})
+	})
+	t.Run("single row map", func(t *testing.T) {
+		seq := fixtures.SequenceMap["single row map"]
+		t.Run("encode", func(t *testing.T) {
+			checkEncoding(t, seq, `{"key":"value"}`, nil)
+		})
+		t.Run("decode", func(t *testing.T) {
+			checkDecoding(t, seq, `{"key":"value"}`, nil)
+		})
+		t.Run("decode with extra whitespace", func(t *testing.T) {
+			checkDecoding(t, seq, ` { "key"  :  "value" } `, nil)
+		})
+	})
+	t.Run("duo row map", func(t *testing.T) {
+		seq := fixtures.SequenceMap["duo row map"]
+		t.Run("encode", func(t *testing.T) {
+			checkEncoding(t, seq, `{"key":"value","k2":"v2"}`, nil)
+		})
+		t.Run("decode", func(t *testing.T) {
+			checkDecoding(t, seq, `{"key":"value","k2":"v2"}`, nil)
+		})
+		t.Run("decode with extra whitespace", func(t *testing.T) {
+			checkDecoding(t, seq, `{"key":"value",  "k2":"v2"}`, nil)
+		})
+		t.Run("decode with trailing comma", func(t *testing.T) {
+			checkDecoding(t, seq, `{"key":"value","k2":"v2",}`, nil)
+		})
+	})
+	t.Run("duo row map alt2", func(t *testing.T) {
+		seq := fixtures.SequenceMap["duo row map alt2"]
+		// note: no encode check here, because this is noncanonical order, so we'd never emit it.
+		t.Run("decode noncanonical order", func(t *testing.T) {
+			checkDecoding(t, seq, `{"k2":"v2","key":"value"}`, nil)
 		})
 	})
 }
