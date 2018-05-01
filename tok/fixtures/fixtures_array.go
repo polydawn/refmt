@@ -34,6 +34,7 @@ var sequences_Array = []Sequence{
 	{"dangling arr open",
 		[]Token{
 			{Type: TArrOpen, Length: 1},
+			{}, // The error step yields an invalid token.
 		},
 	},
 }
