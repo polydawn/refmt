@@ -22,6 +22,7 @@ func Test(t *testing.T) {
 	testBool(t)
 	testString(t)
 	testMap(t)
+	testArray(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string, expectErr error) {
@@ -96,43 +97,6 @@ var jsonFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
-	// Arrays
-	{"",
-		fixtures.SequenceMap["empty array"].SansLengthInfo(),
-		`[]`,
-		nil,
-		nil,
-	},
-	{"decoding with extra whitespace",
-		fixtures.SequenceMap["empty array"].SansLengthInfo(),
-		`  [ ] `,
-		inapplicable, nil,
-	},
-	{"",
-		fixtures.SequenceMap["single entry array"].SansLengthInfo(),
-		`["value"]`,
-		nil,
-		nil,
-	},
-	{"decoding with extra whitespace",
-		fixtures.SequenceMap["single entry array"].SansLengthInfo(),
-		`  [ "value" ] `,
-		inapplicable,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["duo entry array"].SansLengthInfo(),
-		`["value","v2"]`,
-		nil,
-		nil,
-	},
-	{"decoding with extra whitespace",
-		fixtures.SequenceMap["duo entry array"].SansLengthInfo(),
-		`["value",  "v2"]`,
-		inapplicable,
-		nil,
-	},
-
 	// Complex / mixed / nested.
 	{"",
 		fixtures.SequenceMap["array nested in map as non-first and final entry"].SansLengthInfo(),
