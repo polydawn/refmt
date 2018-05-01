@@ -52,7 +52,7 @@ func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string
 	Wish(t, outputBuf.String(), ShouldEqual, expectSerial)
 }
 
-func checkDecoding(t *testing.T, serial string, expectSequence fixtures.Sequence, expectErr error) {
+func checkDecoding(t *testing.T, expectSequence fixtures.Sequence, serial string, expectErr error) {
 	t.Helper()
 	inputBuf := bytes.NewBufferString(serial)
 	tokenSrc := NewDecoder(inputBuf)
@@ -94,20 +94,6 @@ var jsonFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
-	// Booleans
-	{"",
-		fixtures.SequenceMap["true"],
-		`true`,
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["false"],
-		`false`,
-		nil,
-		nil,
-	},
-
 	// Strings
 	{"",
 		fixtures.SequenceMap["empty string"],
