@@ -9,12 +9,7 @@ import (
 func testMap(t *testing.T) {
 	t.Run("empty map", func(t *testing.T) {
 		seq := fixtures.SequenceMap["empty map"]
-		t.Run("encode", func(t *testing.T) {
-			checkEncoding(t, seq, `{}`, nil)
-		})
-		t.Run("decode", func(t *testing.T) {
-			checkDecoding(t, seq, `{}`, nil)
-		})
+		checkCanonical(t, seq, `{}`)
 		t.Run("decode with extra interior whitespace", func(t *testing.T) {
 			checkDecoding(t, seq, `{  }`, nil)
 		})
@@ -24,24 +19,14 @@ func testMap(t *testing.T) {
 	})
 	t.Run("single row map", func(t *testing.T) {
 		seq := fixtures.SequenceMap["single row map"]
-		t.Run("encode", func(t *testing.T) {
-			checkEncoding(t, seq, `{"key":"value"}`, nil)
-		})
-		t.Run("decode", func(t *testing.T) {
-			checkDecoding(t, seq, `{"key":"value"}`, nil)
-		})
+		checkCanonical(t, seq, `{"key":"value"}`)
 		t.Run("decode with extra whitespace", func(t *testing.T) {
 			checkDecoding(t, seq, ` { "key"  :  "value" } `, nil)
 		})
 	})
 	t.Run("duo row map", func(t *testing.T) {
 		seq := fixtures.SequenceMap["duo row map"]
-		t.Run("encode", func(t *testing.T) {
-			checkEncoding(t, seq, `{"key":"value","k2":"v2"}`, nil)
-		})
-		t.Run("decode", func(t *testing.T) {
-			checkDecoding(t, seq, `{"key":"value","k2":"v2"}`, nil)
-		})
+		checkCanonical(t, seq, `{"key":"value","k2":"v2"}`)
 		t.Run("decode with extra whitespace", func(t *testing.T) {
 			checkDecoding(t, seq, `{"key":"value",  "k2":"v2"}`, nil)
 		})

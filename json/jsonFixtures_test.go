@@ -26,6 +26,15 @@ func Test(t *testing.T) {
 	testComposite(t)
 }
 
+func checkCanonical(t *testing.T, sequence fixtures.Sequence, serial string) {
+	t.Run("encode canonical", func(t *testing.T) {
+		checkEncoding(t, sequence, serial, nil)
+	})
+	t.Run("decode canonical", func(t *testing.T) {
+		checkDecoding(t, sequence, serial, nil)
+	})
+}
+
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string, expectErr error) {
 	t.Helper()
 	outputBuf := &bytes.Buffer{}
