@@ -21,11 +21,13 @@ import (
 func TestEncoding(t *testing.T) {
 	testBoolEncoding(t)
 	testStringEncoding(t)
+	testMapEncoding(t)
 }
 
 func TestDecoding(t *testing.T) {
 	testBoolDecoding(t)
 	testStringDecoding(t)
+	testMapDecoding(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string, expectErr error) {
@@ -55,6 +57,10 @@ func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string
 }
 
 func checkDecoding(t *testing.T, expectSequence fixtures.Sequence, serial string, expectErr error) {
+	// Decoding JSON is *never* going to yield length info on tokens,
+	//  so we'll strip that here rather than forcing all our fixtures to say it.
+	expectSequence = expectSequence.SansLengthInfo()
+
 	t.Helper()
 	inputBuf := bytes.NewBufferString(serial)
 	tokenSrc := NewDecoder(inputBuf)
@@ -97,18 +103,6 @@ var jsonFixtures = []struct {
 	decodeResult error
 }{
 	// Maps
-	{"",
-		fixtures.SequenceMap["empty map"].SansLengthInfo(),
-		`{}`,
-		nil,
-		nil,
-	},
-	{"decoding with extra whitespace",
-		fixtures.SequenceMap["empty map"].SansLengthInfo(),
-		`{  }`,
-		inapplicable,
-		nil,
-	},
 	{"",
 		fixtures.SequenceMap["single row map"].SansLengthInfo(),
 		`{"key":"value"}`,

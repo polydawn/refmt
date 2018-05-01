@@ -33,9 +33,7 @@ var Sequences []Sequence
 func (s Sequence) SansLengthInfo() Sequence {
 	v := Sequence{s.Title, make([]Token, len(s.Tokens))}
 	copy(v.Tokens, s.Tokens)
-	for i := range v.Tokens {
-		v.Tokens[i].Length = -1
-	}
+	StompLengths(v.Tokens)
 	return v
 }
 
