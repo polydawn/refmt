@@ -1,7 +1,7 @@
 package atlas_test
 
 import (
-	"."
+	"github.com/polydawn/refmt/obj/atlas"
 )
 
 // Design notes:
