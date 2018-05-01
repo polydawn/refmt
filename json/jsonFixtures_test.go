@@ -2,8 +2,6 @@ package json
 
 import (
 	"bytes"
-	"fmt"
-	"io"
 	"testing"
 
 	. "github.com/warpfork/go-wish"
@@ -95,24 +93,4 @@ func checkDecoding(t *testing.T, expectSequence fixtures.Sequence, serial string
 	Wish(t, nStep, ShouldEqual, len(expectSequence.Tokens))
 	Wish(t, yield, ShouldEqual, expectSequence.Tokens)
 	Wish(t, err, ShouldEqual, expectErr)
-}
-
-// --------------
-
-var inapplicable = fmt.Errorf("skipme: inapplicable")
-
-var jsonFixtures = []struct {
-	title        string
-	sequence     fixtures.Sequence
-	serial       string
-	encodeResult error
-	decodeResult error
-}{
-	// Errors when decoding invalid inputs!
-	{"",
-		fixtures.SequenceMap["dangling arr open"].SansLengthInfo().Append(Token{}),
-		`[`,
-		inapplicable,
-		io.EOF, // REVIEW it's probably more explicitly unexpected than that...
-	},
 }

@@ -1,6 +1,7 @@
 package json
 
 import (
+	"io"
 	"testing"
 
 	"github.com/polydawn/refmt/tok/fixtures"
@@ -24,5 +25,9 @@ func testArray(t *testing.T) {
 	t.Run("duo entry array", func(t *testing.T) {
 		seq := fixtures.SequenceMap["duo entry array"]
 		checkCanonical(t, seq, `["value","v2"]`)
+	})
+	t.Run("reject dangling arr open", func(t *testing.T) {
+		seq := fixtures.SequenceMap["dangling arr open"]
+		checkDecoding(t, seq, `[`, io.EOF)
 	})
 }
