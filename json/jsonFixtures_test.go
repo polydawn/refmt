@@ -1,12 +1,54 @@
 package json
 
 import (
+	"bytes"
 	"fmt"
 	"io"
+	"testing"
+
+	. "github.com/warpfork/go-wish"
 
 	. "github.com/polydawn/refmt/tok"
 	"github.com/polydawn/refmt/tok/fixtures"
 )
+
+// note: we still put all tests in one func so we control order.
+// this will let us someday refactor all `fixtures.SequenceMap` refs to use a
+// func which quietly records which sequences have tests aimed at them, and we
+// can read that back at out the end of the tests and use the info to
+// proactively warn ourselves when we have unreferenced tok fixtures.
+
+func TestEncoding(t *testing.T) {
+	testBoolEncoding(t)
+}
+
+func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string, expectErr error) {
+	t.Helper()
+	outputBuf := &bytes.Buffer{}
+	tokenSink := NewEncoder(outputBuf, EncodeOptions{})
+
+	// Run steps, advancing through the token sequence.
+	//  If it stops early, just report how many steps in; we Wish on that value.
+	//  If it doesn't stop in time, just report that bool; we Wish on that value.
+	var nStep int
+	var done bool
+	var err error
+	for _, tok := range sequence.Tokens {
+		nStep++
+		done, err = tokenSink.Step(&tok)
+		if done || err != nil {
+			break
+		}
+	}
+
+	// Assert final result.
+	Wish(t, done, ShouldEqual, true)
+	Wish(t, nStep, ShouldEqual, len(sequence.Tokens))
+	Wish(t, err, ShouldEqual, expectErr)
+	Wish(t, outputBuf.String(), ShouldEqual, expectSerial)
+}
+
+// --------------
 
 var inapplicable = fmt.Errorf("skipme: inapplicable")
 
