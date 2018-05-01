@@ -18,16 +18,10 @@ import (
 // can read that back at out the end of the tests and use the info to
 // proactively warn ourselves when we have unreferenced tok fixtures.
 
-func TestEncoding(t *testing.T) {
-	testBoolEncoding(t)
-	testStringEncoding(t)
-	testMapEncoding(t)
-}
-
-func TestDecoding(t *testing.T) {
-	testBoolDecoding(t)
-	testStringDecoding(t)
-	testMapDecoding(t)
+func Test(t *testing.T) {
+	testBool(t)
+	testString(t)
+	testMap(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial string, expectErr error) {
