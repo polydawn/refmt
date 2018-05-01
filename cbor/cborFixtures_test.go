@@ -14,6 +14,7 @@ import (
 
 func Test(t *testing.T) {
 	testBool(t)
+	testString(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial []byte, expectErr error) {
@@ -43,10 +44,6 @@ func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial []byte
 }
 
 func checkDecoding(t *testing.T, expectSequence fixtures.Sequence, serial []byte, expectErr error) {
-	// Decoding JSON is *never* going to yield length info on tokens,
-	//  so we'll strip that here rather than forcing all our fixtures to say it.
-	expectSequence = expectSequence.SansLengthInfo()
-
 	t.Helper()
 	inputBuf := bytes.NewBuffer(serial)
 	tokenSrc := NewDecoder(inputBuf)
@@ -108,32 +105,6 @@ var cborFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
-	// Strings.
-	{"",
-		fixtures.SequenceMap["flat string"],
-		bcat(b(0x60+5), []byte(`value`)),
-		nil,
-		nil,
-	},
-	{"indefinite length string (single actual hunk)",
-		fixtures.SequenceMap["flat string"],
-		bcat(b(0x7f), b(0x60+5), []byte(`value`), b(0xff)),
-		inapplicable,
-		nil,
-	},
-	{"indefinite length string (multiple hunks)",
-		fixtures.SequenceMap["flat string"],
-		bcat(b(0x7f), b(0x60+2), []byte(`va`), b(0x60+3), []byte(`lue`), b(0xff)),
-		inapplicable,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["strings needing escape"],
-		bcat(b(0x60+17), []byte("str\nbroken\ttabbed")),
-		nil,
-		nil,
-	},
-
 	// Maps.
 	{"",
 		fixtures.SequenceMap["empty map"],
