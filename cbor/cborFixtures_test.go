@@ -16,6 +16,7 @@ func Test(t *testing.T) {
 	testBool(t)
 	testString(t)
 	testMap(t)
+	testArray(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial []byte, expectErr error) {
@@ -106,65 +107,6 @@ var cborFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
-	// Arrays.
-	{"",
-		fixtures.SequenceMap["empty array"],
-		bcat(b(0x80)),
-		nil,
-		nil,
-	},
-	{"indefinite length",
-		fixtures.SequenceMap["empty array"].SansLengthInfo(),
-		bcat(b(0x9f), b(0xff)),
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["single entry array"],
-		bcat(b(0x80+1),
-			b(0x60+5), []byte(`value`),
-		),
-		nil,
-		nil,
-	},
-	{"indefinite length",
-		fixtures.SequenceMap["single entry array"].SansLengthInfo(),
-		bcat(b(0x9f),
-			b(0x60+5), []byte(`value`),
-			b(0xff),
-		),
-		nil,
-		nil,
-	},
-	{"indefinite length with nested indef string",
-		fixtures.SequenceMap["single entry array"].SansLengthInfo(),
-		bcat(b(0x9f),
-			bcat(b(0x7f), b(0x60+5), []byte(`value`), b(0xff)),
-			b(0xff),
-		),
-		inapplicable,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["duo entry array"],
-		bcat(b(0x80+2),
-			b(0x60+5), []byte(`value`),
-			b(0x60+2), []byte(`v2`),
-		),
-		nil,
-		nil,
-	},
-	{"indefinite length",
-		fixtures.SequenceMap["duo entry array"].SansLengthInfo(),
-		bcat(b(0x9f),
-			b(0x60+5), []byte(`value`),
-			b(0x60+2), []byte(`v2`),
-			b(0xff),
-		),
-		nil,
-		nil,
-	},
-
 	// Complex / mixed / nested.
 	{"all indefinite length",
 		fixtures.SequenceMap["array nested in map as non-first and final entry"].SansLengthInfo(),
