@@ -18,6 +18,7 @@ func Test(t *testing.T) {
 	testMap(t)
 	testArray(t)
 	testComposite(t)
+	testNumber(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial []byte, expectErr error) {
@@ -108,67 +109,6 @@ var cborFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
-	// Numbers.
-	{"",
-		fixtures.Sequence{"integer zero", []Token{{Type: TInt, Int: 0}}},
-		deB64("AA=="),
-		nil,
-		inapplicable, // Impossible to decode to this token because cbor doens't disambiguate positive vs signed ints.
-	},
-	{"",
-		fixtures.Sequence{"integer zero unsigned", []Token{{Type: TUint, Uint: 0}}},
-		deB64("AA=="),
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.Sequence{"integer one", []Token{{Type: TInt, Int: 1}}},
-		deB64("AQ=="),
-		nil,
-		inapplicable, // Impossible to decode to this token because cbor doens't disambiguate positive vs signed ints.
-	},
-	{"",
-		fixtures.Sequence{"integer one unsigned", []Token{{Type: TUint, Uint: 1}}},
-		deB64("AQ=="),
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.Sequence{"integer neg 1", []Token{{Type: TInt, Int: -1}}},
-		deB64("IA=="),
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.Sequence{"integer neg 100", []Token{{Type: TInt, Int: -100}}},
-		deB64("OGM="),
-		nil,
-		nil,
-	},
-	{"",
-		fixtures.Sequence{"integer 1000000", []Token{{Type: TInt, Int: 1000000}}},
-		deB64("GgAPQkA="),
-		nil,
-		inapplicable, // Impossible to decode to this token because cbor doens't disambiguate positive vs signed ints.
-	},
-	{"",
-		fixtures.Sequence{"integer 1000000 unsigned", []Token{{Type: TUint, Uint: 1000000}}},
-		deB64("GgAPQkA="),
-		nil,
-		nil,
-	},
-	//	{"",  // This fixture expects the float32 encoding, and we currently lack support for detecting when things can be safely packed thusly.
-	//		fixtures.Sequence{"float decimal e+38", []Token{{Type: TFloat64, Float64: 3.4028234663852886e+38}}},
-	//		deB64("+n9///8="),
-	//		nil,nil,
-	//	},
-	{"",
-		fixtures.Sequence{"float 1 e+100", []Token{{Type: TFloat64, Float64: 1.0e+300}}},
-		deB64("+3435DyIAHWc"),
-		nil,
-		nil,
-	},
-
 	// Byte strings.
 	{"",
 		fixtures.SequenceMap["short byte array"],
