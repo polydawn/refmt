@@ -18,6 +18,9 @@ func TestRoundTrip(t *testing.T) {
 	t.Run("empty []interface{}", func(t *testing.T) {
 		testRoundTripAllEncodings(t, []interface{}{}, atlas.MustBuild())
 	})
+	t.Run("nil []byte{}", func(t *testing.T) {
+		testRoundTripAllEncodings(t, []byte(nil), atlas.MustBuild())
+	})
 	t.Run("nil []interface{}", func(t *testing.T) {
 		testRoundTripAllEncodings(t, []interface{}(nil), atlas.MustBuild())
 	})
