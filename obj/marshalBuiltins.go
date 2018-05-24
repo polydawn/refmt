@@ -65,6 +65,10 @@ func (mach *marshalMachinePrimitive) Step(_ *Marshaller, _ *marshalSlab, tok *To
 		tok.Float64 = mach.rv.Float()
 		return true, nil
 	case reflect.Slice: // implicitly bytes; no other slices are "primitve"
+		if mach.rv.IsNil() {
+			tok.Type = TNull
+			return true, nil
+		}
 		tok.Type = TBytes
 		tok.Bytes = mach.rv.Bytes()
 		return true, nil
