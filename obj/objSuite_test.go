@@ -12,14 +12,14 @@ import (
 func checkUnmarshalling(t *testing.T, atl atlas.Atlas, slot interface{}, sequence []tok.Token, expect interface{}, expectErr error) {
 	t.Helper()
 	unmarshaller := NewUnmarshaller(atl)
-	unmarshaller.Bind(slot)
+	err := unmarshaller.Bind(slot)
+	Wish(t, err, ShouldEqual, nil)
 
 	// Run steps, advancing through the token sequence.
 	//  If it stops early, just report how many steps in; we Wish on that value.
 	//  If it doesn't stop in time, just report that bool; we Wish on that value.
 	var nStep int
 	var done bool
-	var err error
 	for _, tok := range sequence {
 		nStep++
 		done, err = unmarshaller.Step(&tok)
@@ -38,7 +38,8 @@ func checkUnmarshalling(t *testing.T, atl atlas.Atlas, slot interface{}, sequenc
 func checkMarshalling(t *testing.T, atl atlas.Atlas, value interface{}, expectSequence []tok.Token, expectErr error) {
 	t.Helper()
 	marshaller := NewMarshaller(atl)
-	marshaller.Bind(value)
+	err := marshaller.Bind(value)
+	Wish(t, err, ShouldEqual, nil)
 
 	// Run steps, advancing until the marshaller reports it's done.
 	//  If the marshaller keeps yielding more tokens than we expect, that's fine...
@@ -49,7 +50,6 @@ func checkMarshalling(t *testing.T, atl atlas.Atlas, value interface{}, expectSe
 	var nStep int
 	var done bool
 	var yield = make([]tok.Token, len(expectSequence)+10)
-	var err error
 	for ; nStep <= len(expectSequence)+10; nStep++ {
 		done, err = marshaller.Step(&yield[nStep])
 		if done || err != nil {
