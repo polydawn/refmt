@@ -19,6 +19,7 @@ func Test(t *testing.T) {
 	testArray(t)
 	testComposite(t)
 	testNumber(t)
+	testBytes(t)
 }
 
 func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial []byte, expectErr error) {
@@ -109,32 +110,6 @@ var cborFixtures = []struct {
 	encodeResult error
 	decodeResult error
 }{
-	// Byte strings.
-	{"",
-		fixtures.SequenceMap["short byte array"],
-		bcat(b(0x40+5), []byte(`value`)),
-		nil,
-		nil,
-	},
-	{"indefinite length bytes (single actual hunk)",
-		fixtures.SequenceMap["short byte array"],
-		bcat(b(0x5f), b(0x40+5), []byte(`value`), b(0xff)),
-		inapplicable,
-		nil,
-	},
-	{"indefinite length bytes (multiple hunks)",
-		fixtures.SequenceMap["short byte array"],
-		bcat(b(0x5f), b(0x40+2), []byte(`va`), b(0x40+3), []byte(`lue`), b(0xff)),
-		inapplicable,
-		nil,
-	},
-	{"",
-		fixtures.SequenceMap["long zero byte array"],
-		bcat(b(0x40+0x19), []byte{0x1, 0x90}, bytes.Repeat(b(0x0), 400)),
-		nil,
-		nil,
-	},
-
 	// Tags.
 	{"",
 		fixtures.SequenceMap["tagged object"],
