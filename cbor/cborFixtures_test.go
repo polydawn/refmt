@@ -3,7 +3,6 @@ package cbor
 import (
 	"bytes"
 	"encoding/base64"
-	"fmt"
 	"testing"
 
 	. "github.com/warpfork/go-wish"
@@ -101,13 +100,3 @@ func deB64(s string) []byte {
 	}
 	return bs
 }
-
-var inapplicable = fmt.Errorf("skipme: inapplicable")
-
-var cborFixtures = []struct {
-	title        string
-	sequence     fixtures.Sequence
-	serial       []byte
-	encodeResult error
-	decodeResult error
-}{}
