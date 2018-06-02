@@ -86,6 +86,10 @@ type AtlasEntry struct {
 	// Only valid if `this.Type.Kind() == Map`.
 	MapMorphism *MapMorphism
 
+	// Configuration for how to pick concrete types to fill a union interface.
+	// Only valid if `this.Type.Kind() == Interface`.
+	UnionKeyedMorphism *UnionKeyedMorphism
+
 	// FUTURE: enum-ish primitives, multiplexers for interfaces,
 	//  lots of such things will belong here.
 
@@ -105,7 +109,11 @@ type AtlasEntry struct {
 func BuildEntry(typeHintObj interface{}) *BuilderCore {
 	rt := reflect.TypeOf(typeHintObj)
 	if rt.Kind() == reflect.Ptr {
-		panic("invalid atlas build: use the bare object, not a pointer (refmt will handle pointers automatically)")
+		if rt.Elem().Kind() == reflect.Interface {
+			rt = rt.Elem()
+		} else {
+			panic("invalid atlas build: use the bare object, not a pointer (refmt will handle pointers automatically)")
+		}
 	}
 	return &BuilderCore{
 		&AtlasEntry{Type: rt},
