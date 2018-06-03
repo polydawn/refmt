@@ -28,7 +28,7 @@ func (mach *unmarshalMachineMapStringWildcard) Reset(slab *unmarshalSlab, rv ref
 	if mach.key_rv.Kind() != reflect.String {
 		rtid := reflect.ValueOf(key_rt).Pointer()
 		atlEnt, ok := slab.atlas.Get(rtid)
-		if !ok || atlEnt.UnmarshalTransformTargetType.Kind() != reflect.String {
+		if !ok || atlEnt.UnmarshalTransformTargetType == nil || atlEnt.UnmarshalTransformTargetType.Kind() != reflect.String {
 			return fmt.Errorf("unsupported map key type %q (if you want to use struct keys, your atlas needs a transform from string)", key_rt.Name())
 		}
 		mach.keyDestringer = atlEnt.UnmarshalTransformFunc

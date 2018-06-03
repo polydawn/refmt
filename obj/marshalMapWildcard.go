@@ -46,7 +46,7 @@ func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value
 		//  tokenized form is restricted to being a string, the transform func is enough.
 		rtid := reflect.ValueOf(key_rt).Pointer()
 		atlEnt, ok := slab.atlas.Get(rtid)
-		if !ok || atlEnt.MarshalTransformTargetType.Kind() != reflect.String {
+		if !ok || atlEnt.MarshalTransformTargetType == nil || atlEnt.MarshalTransformTargetType.Kind() != reflect.String {
 			return fmt.Errorf("unsupported map key type %q (if you want to use struct keys, your atlas needs a transform to string)", key_rt.Name())
 		}
 		mach.keyStringer = atlEnt.MarshalTransformFunc
