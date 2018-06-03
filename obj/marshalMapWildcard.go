@@ -12,12 +12,13 @@ import (
 type marshalMachineMapWildcard struct {
 	morphism *atlas.MapMorphism // set on initialization
 
-	target_rv reflect.Value
-	value_rt  reflect.Type
-	valueMach MarshalMachine
-	keys      []wildcardMapStringyKey
-	index     int
-	value     bool
+	target_rv   reflect.Value
+	value_rt    reflect.Type
+	keyStringer atlas.MarshalTransformFunc
+	valueMach   MarshalMachine
+	keys        []wildcardMapStringyKey
+	index       int
+	value       bool
 }
 
 func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value, rt reflect.Type) error {
@@ -38,6 +39,17 @@ func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value
 		//  tostring them.  but this is not supported symmetrically; so we simply... don't.
 		//  we could also consider supporting anything that uses a MarshalTransformFunc
 		//  to become a string kind; that's a fair bit of code, perhaps later.
+		mach.keyStringer = nil
+	case reflect.Struct:
+		// composite keys requires some fancy footwork, but we can do it.
+		// Interestingly enough, we don't need full-on machinery here; because the
+		//  tokenized form is restricted to being a string, the transform func is enough.
+		rtid := reflect.ValueOf(key_rt).Pointer()
+		atlEnt, ok := slab.atlas.Get(rtid)
+		if !ok || atlEnt.MarshalTransformTargetType == nil || atlEnt.MarshalTransformTargetType.Kind() != reflect.String {
+			return fmt.Errorf("unsupported map key type %q (if you want to use struct keys, your atlas needs a transform to string)", key_rt.Name())
+		}
+		mach.keyStringer = atlEnt.MarshalTransformFunc
 	default:
 		return fmt.Errorf("unsupported map key type %q", key_rt.Name())
 	}
@@ -45,7 +57,15 @@ func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value
 	mach.keys = make([]wildcardMapStringyKey, len(keys_rv))
 	for i, v := range keys_rv {
 		mach.keys[i].rv = v
-		mach.keys[i].s = v.String()
+		if mach.keyStringer == nil {
+			mach.keys[i].s = v.String()
+		} else {
+			trans_rv, err := mach.keyStringer(v)
+			if err != nil {
+				return fmt.Errorf("unsupported map key type %q: errors in stringifying: %s", key_rt.Name(), err)
+			}
+			mach.keys[i].s = trans_rv.String()
+		}
 	}
 
 	ksm := atlas.KeySortMode_Default

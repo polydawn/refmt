@@ -4,24 +4,35 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/polydawn/refmt/obj/atlas"
 	. "github.com/polydawn/refmt/tok"
 )
 
 type unmarshalMachineMapStringWildcard struct {
-	target_rv reflect.Value    // Handle to the map.  Can set to zero, or set k=v pairs into, etc.
-	value_rt  reflect.Type     // Type info for map values (cached for convenience in recurse calls).
-	valueMach UnmarshalMachine // Machine for map values.
-	key_rv    reflect.Value    // Addressable handle to a slot for keys to unmarshal into.
-	tmp_rv    reflect.Value    // Addressable handle to a slot for values to unmarshal into.
-	step      unmarshalMachineStep
-	haveValue bool // Piece of attendant state to help know we've been through at least one k=v pair so we can post-v store it.
+	target_rv     reflect.Value                // Handle to the map.  Can set to zero, or set k=v pairs into, etc.
+	value_rt      reflect.Type                 // Type info for map values (cached for convenience in recurse calls).
+	valueMach     UnmarshalMachine             // Machine for map values.
+	key_rv        reflect.Value                // Addressable handle to a slot for keys to unmarshal into.
+	keyDestringer atlas.UnmarshalTransformFunc // Transform str->foo, to be used if keys are not plain strings.
+	tmp_rv        reflect.Value                // Addressable handle to a slot for values to unmarshal into.
+	step          unmarshalMachineStep
+	haveValue     bool // Piece of attendant state to help know we've been through at least one k=v pair so we can post-v store it.
 }
 
 func (mach *unmarshalMachineMapStringWildcard) Reset(slab *unmarshalSlab, rv reflect.Value, rt reflect.Type) error {
 	mach.target_rv = rv
 	mach.value_rt = rt.Elem()
 	mach.valueMach = slab.requisitionMachine(mach.value_rt)
-	mach.key_rv = reflect.New(rt.Key()).Elem()
+	key_rt := rt.Key()
+	mach.key_rv = reflect.New(key_rt).Elem()
+	if mach.key_rv.Kind() != reflect.String {
+		rtid := reflect.ValueOf(key_rt).Pointer()
+		atlEnt, ok := slab.atlas.Get(rtid)
+		if !ok || atlEnt.UnmarshalTransformTargetType == nil || atlEnt.UnmarshalTransformTargetType.Kind() != reflect.String {
+			return fmt.Errorf("unsupported map key type %q (if you want to use struct keys, your atlas needs a transform from string)", key_rt.Name())
+		}
+		mach.keyDestringer = atlEnt.UnmarshalTransformFunc
+	}
 	mach.tmp_rv = reflect.New(mach.value_rt).Elem()
 	mach.step = mach.step_Initial
 	mach.haveValue = false
@@ -79,7 +90,15 @@ func (mach *unmarshalMachineMapStringWildcard) step_AcceptKey(_ *Unmarshaller, s
 	case TArrClose:
 		return true, fmt.Errorf("unexpected arrClose; expected map key")
 	case TString:
-		mach.key_rv.SetString(tok.Str)
+		if mach.keyDestringer != nil {
+			key_rv, err := mach.keyDestringer(reflect.ValueOf(tok.Str))
+			if err != nil {
+				return true, fmt.Errorf("unsupported map key type %q: errors in stringifying: %s", mach.key_rv.Type().Name(), err)
+			}
+			mach.key_rv.Set(key_rv)
+		} else {
+			mach.key_rv.SetString(tok.Str)
+		}
 		if err = mach.mustAcceptKey(mach.key_rv); err != nil {
 			return true, err
 		}
