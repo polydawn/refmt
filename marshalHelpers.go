@@ -13,20 +13,20 @@ type EncodeOptions interface {
 }
 
 func Marshal(opts EncodeOptions, v interface{}) ([]byte, error) {
-	switch opts.(type) {
+	switch o2 := opts.(type) {
 	case json.EncodeOptions:
-		return json.Marshal(v)
+		return json.MarshalAtlased(o2, v, atlas.MustBuild())
 	case cbor.EncodeOptions:
-		return cbor.Marshal(v)
+		return cbor.MarshalAtlased(v, atlas.MustBuild())
 	default:
 		panic("incorrect usage: unknown EncodeOptions type")
 	}
 }
 
 func MarshalAtlased(opts EncodeOptions, v interface{}, atl atlas.Atlas) ([]byte, error) {
-	switch opts.(type) {
+	switch o2 := opts.(type) {
 	case json.EncodeOptions:
-		return json.MarshalAtlased(v, atl)
+		return json.MarshalAtlased(o2, v, atl)
 	case cbor.EncodeOptions:
 		return cbor.MarshalAtlased(v, atl)
 	default:

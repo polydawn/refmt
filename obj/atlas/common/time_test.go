@@ -10,14 +10,14 @@ import (
 
 func ExampleTime() {
 	atl, _ := atlas.Build(Time_AsUnixInt)
-	msg, _ := json.MarshalAtlased(time.Date(2014, 12, 25, 1, 0, 0, 0, time.UTC), atl)
+	msg, _ := json.MarshalAtlased(json.EncodeOptions{}, time.Date(2014, 12, 25, 1, 0, 0, 0, time.UTC), atl)
 	fmt.Printf("%s\n", msg)
 	var t1 time.Time
 	json.UnmarshalAtlased(msg, &t1, atl)
 	fmt.Printf("%s\n", t1)
 
 	atl, _ = atlas.Build(Time_AsRFC3339)
-	msg, _ = json.MarshalAtlased(time.Date(2014, 12, 25, 1, 0, 0, 0, time.UTC), atl)
+	msg, _ = json.MarshalAtlased(json.EncodeOptions{}, time.Date(2014, 12, 25, 1, 0, 0, 0, time.UTC), atl)
 	fmt.Printf("%s\n", msg)
 	var t2 time.Time
 	json.UnmarshalAtlased(msg, &t2, atl)
