@@ -57,3 +57,16 @@ type ErrNoSuchField struct {
 func (e ErrNoSuchField) Error() string {
 	return fmt.Sprintf("unmarshal error: no such field named %s", e.Name)
 }
+
+// ErrNoSuchUnionMember is the error returned when unmarshalling into a union
+// interface and the token stream contains a key which does not name any of the
+// known members of the union.
+type ErrNoSuchUnionMember struct {
+	Name         string       // Key name from the token.
+	Type         reflect.Type // The interface type we're trying to fill.
+	KnownMembers []string     // Members we expected isntead.
+}
+
+func (e ErrNoSuchUnionMember) Error() string {
+	return fmt.Sprintf("unmarshal error: cannot unmarshal into union %s: %q is not one of the known members (expected one of %s)", e.Type, e.Name, e.KnownMembers)
+}

@@ -26,6 +26,7 @@ type marshalSlabRow struct {
 	marshalMachineSliceWildcard
 	marshalMachineStructAtlas
 	marshalMachineTransform
+	marshalMachineUnionKeyed
 
 	errThunkMarshalMachine
 }
@@ -112,31 +113,7 @@ func _yieldBareMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflec
 
 	// Consult atlas second.
 	if entry, ok := atl.Get(rtid); ok {
-		// Switch across which of the union of configurations is applicable.
-		switch {
-		case entry.MarshalTransformFunc != nil:
-			// Return a machine that calls the func(s), then later a real machine.
-			// The entry.MarshalTransformTargetType is used to do a recursive lookup.
-			// We can't just call the func here because we're still working off typeinfo
-			// and don't have a real value to transform until later.
-			row.marshalMachineTransform.trFunc = entry.MarshalTransformFunc
-			// Pick delegate without growing stack.  (This currently means recursive transform won't fly.)
-			row.marshalMachineTransform.delegate = _yieldMarshalMachinePtr(row, atl, entry.MarshalTransformTargetType)
-			// If tags are in play: have the transformer machine glue that on.
-			if entry.Tagged {
-				row.marshalMachineTransform.tagged = true
-				row.marshalMachineTransform.tag = entry.Tag
-			}
-			return &row.marshalMachineTransform
-		case entry.StructMap != nil:
-			row.marshalMachineStructAtlas.cfg = entry
-			return &row.marshalMachineStructAtlas
-		case entry.MapMorphism != nil:
-			row.marshalMachineMapWildcard.morphism = entry.MapMorphism
-			return &row.marshalMachineMapWildcard
-		default:
-			panic("invalid atlas entry")
-		}
+		return _yieldMarshalMachinePtrForAtlasEntry(row, entry, atl)
 	}
 
 	// If no specific behavior found, use default behavior based on kind.
@@ -174,6 +151,48 @@ func _yieldBareMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflec
 	default:
 		panic(fmt.Errorf("excursion %s", rt.Kind()))
 	}
+}
+
+// given that we already have an atlasEntry in mind, yield a configured machine for it.
+// it seems odd that this might still require a whole atlas, but tis so;
+// some things (e.g. transform funcs) need to get additional machinery for delegation.
+func _yieldMarshalMachinePtrForAtlasEntry(row *marshalSlabRow, entry *atlas.AtlasEntry, atl atlas.Atlas) MarshalMachine {
+	// Switch across which of the union of configurations is applicable.
+	switch {
+	case entry.MarshalTransformFunc != nil:
+		// Return a machine that calls the func(s), then later a real machine.
+		// The entry.MarshalTransformTargetType is used to do a recursive lookup.
+		// We can't just call the func here because we're still working off typeinfo
+		// and don't have a real value to transform until later.
+		row.marshalMachineTransform.trFunc = entry.MarshalTransformFunc
+		// Pick delegate without growing stack.  (This currently means recursive transform won't fly.)
+		row.marshalMachineTransform.delegate = _yieldMarshalMachinePtr(row, atl, entry.MarshalTransformTargetType)
+		// If tags are in play: have the transformer machine glue that on.
+		if entry.Tagged {
+			row.marshalMachineTransform.tagged = true
+			row.marshalMachineTransform.tag = entry.Tag
+		}
+		return &row.marshalMachineTransform
+	case entry.StructMap != nil:
+		row.marshalMachineStructAtlas.cfg = entry
+		return &row.marshalMachineStructAtlas
+	case entry.UnionKeyedMorphism != nil:
+		row.marshalMachineUnionKeyed.cfg = entry
+		return &row.marshalMachineUnionKeyed
+	case entry.MapMorphism != nil:
+		row.marshalMachineMapWildcard.morphism = entry.MapMorphism
+		return &row.marshalMachineMapWildcard
+	default:
+		panic("invalid atlas entry")
+	}
+}
+
+// Returns the top row of the slab.  Useful for machines that need to delegate
+// to another type that's definitely not their own.  Be careful with that
+// caveat; if the delegation can be to another system that uses in-row delegation,
+// this is not trivially safe to compose and you should grow the slab instead.
+func (s *marshalSlab) tip() *marshalSlabRow {
+	return &s.rows[len(s.rows)-1]
 }
 
 func (s *marshalSlab) grow() {

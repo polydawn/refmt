@@ -27,6 +27,7 @@ type unmarshalSlabRow struct {
 	unmarshalMachineArrayWildcard
 	unmarshalMachineStructAtlas
 	unmarshalMachineTransform
+	unmarshalMachineUnionKeyed
 
 	errThunkUnmarshalMachine
 }
@@ -88,24 +89,7 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 
 	// Consult atlas second.
 	if entry, ok := atl.Get(rtid); ok {
-		// Switch across which of the union of configurations is applicable.
-		switch {
-		case entry.UnmarshalTransformFunc != nil:
-			// Return a machine that calls the func(s), then later a real machine.
-			// The entry.UnmarshalTransformTargetType is used to do a recursive lookup.
-			// We can't just call the func here because we're still working off typeinfo
-			// and don't have a real value to transform until later.
-			row.unmarshalMachineTransform.trFunc = entry.UnmarshalTransformFunc
-			row.unmarshalMachineTransform.recv_rt = entry.UnmarshalTransformTargetType
-			// Pick delegate without growing stack.  (This currently means recursive transform won't fly.)
-			row.unmarshalMachineTransform.delegate = _yieldUnmarshalMachinePtr(row, atl, entry.UnmarshalTransformTargetType)
-			return &row.unmarshalMachineTransform
-		case entry.StructMap != nil:
-			row.unmarshalMachineStructAtlas.cfg = entry.StructMap
-			return &row.unmarshalMachineStructAtlas
-		default:
-			panic("invalid atlas entry")
-		}
+		return _yieldUnmarshalMachinePtrForAtlasEntry(row, entry, atl)
 	}
 
 	// If no specific behavior found, use default behavior based on kind.
@@ -142,6 +126,33 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 		panic(fmt.Errorf("unreachable: ptrs must already be resolved"))
 	default:
 		panic(fmt.Errorf("excursion %s", rt.Kind()))
+	}
+}
+
+// given that we already have an atlasEntry in mind, yield a configured machine for it.
+// it seems odd that this might still require a whole atlas, but tis so;
+// some things (e.g. transform funcs) need to get additional machinery for delegation.
+func _yieldUnmarshalMachinePtrForAtlasEntry(row *unmarshalSlabRow, entry *atlas.AtlasEntry, atl atlas.Atlas) UnmarshalMachine {
+	// Switch across which of the union of configurations is applicable.
+	switch {
+	case entry.UnmarshalTransformFunc != nil:
+		// Return a machine that calls the func(s), then later a real machine.
+		// The entry.UnmarshalTransformTargetType is used to do a recursive lookup.
+		// We can't just call the func here because we're still working off typeinfo
+		// and don't have a real value to transform until later.
+		row.unmarshalMachineTransform.trFunc = entry.UnmarshalTransformFunc
+		row.unmarshalMachineTransform.recv_rt = entry.UnmarshalTransformTargetType
+		// Pick delegate without growing stack.  (This currently means recursive transform won't fly.)
+		row.unmarshalMachineTransform.delegate = _yieldUnmarshalMachinePtr(row, atl, entry.UnmarshalTransformTargetType)
+		return &row.unmarshalMachineTransform
+	case entry.StructMap != nil:
+		row.unmarshalMachineStructAtlas.cfg = entry.StructMap
+		return &row.unmarshalMachineStructAtlas
+	case entry.UnionKeyedMorphism != nil:
+		row.unmarshalMachineUnionKeyed.cfg = entry.UnionKeyedMorphism
+		return &row.unmarshalMachineUnionKeyed
+	default:
+		panic("invalid atlas entry")
 	}
 }
 
