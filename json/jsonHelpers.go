@@ -34,9 +34,9 @@ func Marshal(v interface{}) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func MarshalAtlased(v interface{}, atl atlas.Atlas) ([]byte, error) {
+func MarshalAtlased(cfg EncodeOptions, v interface{}, atl atlas.Atlas) ([]byte, error) {
 	var buf bytes.Buffer
-	if err := NewMarshallerAtlased(&buf, EncodeOptions{}, atl).Marshal(v); err != nil {
+	if err := NewMarshallerAtlased(&buf, cfg, atl).Marshal(v); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
