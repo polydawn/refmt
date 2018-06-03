@@ -33,10 +33,17 @@ func TestUnionHandling(t *testing.T) {
 			/**/ {Type: TMapClose},
 			{Type: TMapClose},
 		}
+		t.Run("marshal", func(t *testing.T) {
+			var value WowUnion = WowAlpha{"v1", "v2"}
+			checkMarshalling(t, atl, &value, seq, nil)
+		})
 		t.Run("unmarshal", func(t *testing.T) {
 			var slot WowUnion
 			var expect WowUnion = WowAlpha{"v1", "v2"}
 			checkUnmarshalling(t, atl, &slot, seq, &expect, nil)
 		})
+		// TODO marshalling without the pointer grab *doesn't* work, because it doesn't get the interface info.
+		//   this is inevitable.. but the error messages here need work, because it's extremely easy to typo or just not know about this detail of Go.
+		//checkMarshalling(t, atl, value, seq, nil)
 	})
 }

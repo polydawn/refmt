@@ -52,6 +52,8 @@ type MarshalMachine interface {
 	Step(*Marshaller, *marshalSlab, *Token) (done bool, err error)
 }
 
+type marshalMachineStep func(*Marshaller, *marshalSlab, *Token) (done bool, err error)
+
 func (d *Marshaller) Step(tok *Token) (bool, error) {
 	tok.Tagged = false
 	//	fmt.Printf("> next step is %#v\n", d.step)

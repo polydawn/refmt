@@ -59,7 +59,9 @@ func (mach *unmarshalMachineUnionKeyed) acceptKey(driver *Unmarshaller, slab *un
 		mach.tmp_rv = reflect.New(delegateAtlasEnt.Type).Elem()
 		// Get and configure a machine for the delegation.
 		delegate := _yieldUnmarshalMachinePtrForAtlasEntry(slab.tip(), delegateAtlasEnt, slab.atlas)
-		delegate.Reset(slab, mach.tmp_rv, delegateAtlasEnt.Type)
+		if err := delegate.Reset(slab, mach.tmp_rv, delegateAtlasEnt.Type); err != nil {
+			return true, err
+		}
 		mach.delegate = delegate
 		mach.step = mach.doDelegate
 		return false, nil
