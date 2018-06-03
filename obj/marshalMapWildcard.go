@@ -35,7 +35,7 @@ func (mach *marshalMachineMapWildcard) Reset(slab *marshalSlab, rv reflect.Value
 	case reflect.String:
 		// continue.
 		// note: stdlib json.marshal supports all the int types here as well, and will
-		//  tostring themach.  but this is not supported symmetrically; so we simply... don't.
+		//  tostring them.  but this is not supported symmetrically; so we simply... don't.
 		//  we could also consider supporting anything that uses a MarshalTransformFunc
 		//  to become a string kind; that's a fair bit of code, perhaps later.
 	default:
