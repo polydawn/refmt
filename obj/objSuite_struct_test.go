@@ -77,14 +77,34 @@ func TestStructHandling(t *testing.T) {
 			type tObjStr struct {
 				Spare string
 			}
-			atlas := atlas.MustBuild(
-				atlas.BuildEntry(tObjStr{}).StructMap().Autogenerate().Complete(),
-			)
 			t.Run("unmarshal rejected", func(t *testing.T) {
+				atlas := atlas.MustBuild(
+					atlas.BuildEntry(tObjStr{}).StructMap().Autogenerate().Complete(),
+				)
 				slot := &tObjStr{}
 				expect := &tObjStr{}
 				seq := seq[:2]
 				checkUnmarshalling(t, atlas, slot, seq, expect, ErrNoSuchField{"key", reflect.TypeOf(tObjStr{}).String()})
+			})
+			t.Run("with keyignore configured", func(t *testing.T) {
+				atlas := atlas.MustBuild(
+					atlas.BuildEntry(tObjStr{}).StructMap().
+						Autogenerate().
+						IgnoreKey("key").
+						Complete(),
+				)
+				t.Run("unmarshal accepted", func(t *testing.T) {
+					slot := &tObjStr{}
+					expect := &tObjStr{}
+					checkUnmarshalling(t, atlas, slot, seq, expect, nil)
+				})
+				t.Run("marshal not glitchy", func(t *testing.T) {
+					seq := seq.Clone()
+					seq[1].Str = "spare" // this atlas can't map the field as 'key' since we ignored that one.
+					value := tObjStr{"value"}
+					checkMarshalling(t, atlas, value, seq, nil)
+					checkMarshalling(t, atlas, &value, seq, nil)
+				})
 			})
 		})
 	})

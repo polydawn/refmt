@@ -7,7 +7,6 @@ import (
 
 	. "github.com/warpfork/go-wish"
 
-	. "github.com/polydawn/refmt/tok"
 	"github.com/polydawn/refmt/tok/fixtures"
 )
 
@@ -61,7 +60,7 @@ func checkDecoding(t *testing.T, expectSequence fixtures.Sequence, serial []byte
 	//  yields is typically enough info to diagnose with.
 	var nStep int
 	var done bool
-	var yield = make([]Token, len(expectSequence.Tokens)+10)
+	var yield = make(fixtures.Tokens, len(expectSequence.Tokens)+10)
 	var err error
 	for ; nStep <= len(expectSequence.Tokens)+10; nStep++ {
 		done, err = tokenSrc.Step(&yield[nStep])
