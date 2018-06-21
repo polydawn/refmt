@@ -351,7 +351,7 @@ var objFixtures = []struct {
 		unmarshalResults: []unmarshalResults{
 			{title: "into *tObjStr2",
 				slotFn:    func() interface{} { return &tObjStr2{} },
-				expectErr: ErrNoSuchField{"k2"}},
+				expectErr: ErrNoSuchField{"k2", reflect.TypeOf(tObjStr2{}).String()}},
 		},
 	},
 	{title: "object with four string fields, with atlas entry (default key ordering), marshals ordered correctly",
@@ -961,7 +961,7 @@ var objFixtures = []struct {
 	{title: "empty",
 		sequence:       fixtures.SequenceMap["empty"],
 		marshalResults: []marshalResults{
-			// not much marshals to empty!
+		// not much marshals to empty!
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",

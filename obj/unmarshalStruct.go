@@ -9,7 +9,7 @@ import (
 )
 
 type unmarshalMachineStructAtlas struct {
-	cfg *atlas.StructMap // set on initialization
+	cfg *atlas.AtlasEntry // set on initialization
 
 	rv         reflect.Value
 	expectLen  int                  // Length header from mapOpen token.  If it was set, we validate it.
@@ -79,8 +79,8 @@ func (mach *unmarshalMachineStructAtlas) Step(driver *Unmarshaller, slab *unmars
 
 		return true, nil
 	case TString:
-		for n := 0; n < len(mach.cfg.Fields); n++ {
-			fieldEntry := mach.cfg.Fields[n]
+		for n := 0; n < len(mach.cfg.StructMap.Fields); n++ {
+			fieldEntry := mach.cfg.StructMap.Fields[n]
 			if fieldEntry.SerialName != tok.Str {
 				continue
 			}
@@ -91,7 +91,7 @@ func (mach *unmarshalMachineStructAtlas) Step(driver *Unmarshaller, slab *unmars
 		if mach.value == false {
 			// FUTURE: it should be configurable per atlas.StructMap whether this is considered an error or to be tolerated.
 			// Currently we're being extremely strict about it, which is a divergence from the stdlib json behavior.
-			return true, ErrNoSuchField{tok.Str}
+			return true, ErrNoSuchField{tok.Str, mach.cfg.Type.String()}
 		}
 	default:
 		return true, ErrMalformedTokenStream{tok.Type, "map key"}
