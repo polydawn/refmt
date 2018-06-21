@@ -146,7 +146,7 @@ func _yieldUnmarshalMachinePtrForAtlasEntry(row *unmarshalSlabRow, entry *atlas.
 		row.unmarshalMachineTransform.delegate = _yieldUnmarshalMachinePtr(row, atl, entry.UnmarshalTransformTargetType)
 		return &row.unmarshalMachineTransform
 	case entry.StructMap != nil:
-		row.unmarshalMachineStructAtlas.cfg = entry.StructMap
+		row.unmarshalMachineStructAtlas.cfg = entry
 		return &row.unmarshalMachineStructAtlas
 	case entry.UnionKeyedMorphism != nil:
 		row.unmarshalMachineUnionKeyed.cfg = entry.UnionKeyedMorphism

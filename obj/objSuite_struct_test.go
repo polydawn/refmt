@@ -1,6 +1,7 @@
 package obj
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/polydawn/refmt/obj/atlas"
@@ -83,7 +84,7 @@ func TestStructHandling(t *testing.T) {
 				slot := &tObjStr{}
 				expect := &tObjStr{}
 				seq := seq[:2]
-				checkUnmarshalling(t, atlas, slot, seq, expect, ErrNoSuchField{Name: "key"})
+				checkUnmarshalling(t, atlas, slot, seq, expect, ErrNoSuchField{"key", reflect.TypeOf(tObjStr{}).String()})
 			})
 		})
 	})

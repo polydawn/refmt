@@ -7,6 +7,9 @@ import (
 	. "github.com/polydawn/refmt/tok"
 )
 
+// General note: avoid using reflect.Type here.  It doesn't do well with `go-cmp`,
+//  which in turn makes our tests for error paths a lot jankier.
+
 // ErrInvalidUnmarshalTarget describes an invalid argument passed to Unmarshaller.Bind.
 // (Unmarshalling must target a non-nil pointer so that it can address the value.)
 type ErrInvalidUnmarshalTarget struct {
@@ -52,10 +55,11 @@ func (e ErrMalformedTokenStream) Error() string {
 // the token stream for the map contains a key which is not defined for the struct.
 type ErrNoSuchField struct {
 	Name string // Field name from the token.
+	Type string // Type name of the struct we're operating on.
 }
 
 func (e ErrNoSuchField) Error() string {
-	return fmt.Sprintf("unmarshal error: no such field named %s", e.Name)
+	return fmt.Sprintf("unmarshal error: stream contains key %q, but there's no such field in structs of type %s", e.Name, e.Type)
 }
 
 // ErrNoSuchUnionMember is the error returned when unmarshalling into a union
