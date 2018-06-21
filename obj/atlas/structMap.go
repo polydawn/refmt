@@ -14,6 +14,11 @@ type StructMapEntry struct {
 	// lookup during unmarshal.  Required.
 	SerialName string
 
+	// If true, a key token with this SerialName will be ignored during unmarshal.
+	// (By default, if there's no StructMapEntry for a key token, it's an error.)
+	// If true, the ReflectRoute, Type, etc fields are irrelevant and may be nil.
+	Ignore bool
+
 	ReflectRoute ReflectRoute // reflection generates these.
 	Type         reflect.Type // type to expect on the far side of the ReflectRoute.
 	tagged       bool         // used during autogen.

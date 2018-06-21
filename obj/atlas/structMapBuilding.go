@@ -53,6 +53,14 @@ func (x *BuilderStructMap) AddField(fieldName string, mapping StructMapEntry) *B
 	return x
 }
 
+func (x *BuilderStructMap) IgnoreKey(serialKeyName string) *BuilderStructMap {
+	x.entry.StructMap.Fields = append(x.entry.StructMap.Fields, StructMapEntry{
+		SerialName: serialKeyName,
+		Ignore:     true,
+	})
+	return x
+}
+
 func fieldNameToReflectRoute(rt reflect.Type, fieldNameSplit []string) (rr ReflectRoute, _ reflect.Type, _ error) {
 	for _, fn := range fieldNameSplit {
 		rf, ok := rt.FieldByName(fn)

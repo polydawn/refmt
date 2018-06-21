@@ -66,6 +66,16 @@ func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSla
 	// If value was nil, that indicates we're supposed to pick the value and yield a key.
 	//  We have to look ahead to the value because if it's zero and tagged as
 	//  omitEmpty, then we have to skip emitting the key as well.
+	for fieldEntry.Ignore {
+		mach.index++
+		if mach.index == nEntries {
+			tok.Type = TMapClose
+			mach.index++
+			slab.release()
+			return true, nil
+		}
+		fieldEntry = mach.cfg.StructMap.Fields[mach.index]
+	}
 	mach.value_rv = fieldEntry.ReflectRoute.TraverseToValue(mach.target_rv)
 	if fieldEntry.OmitEmpty && isEmptyValue(mach.value_rv) {
 		mach.value_rv = reflect.Value{}
@@ -78,11 +88,15 @@ func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSla
 }
 
 // Count how many fields in a struct should actually be marshalled.
-// Fields that are tagged omitEmpty and are isEmptyValue are not counted, so
+// Fields that are tagged omitEmpty and are isEmptyValue are not counted, and
+// StructMapEntry used to flag ignored fields unmarshalling never count, so
 // this number may be less than the number of fields in the AtlasEntry.StructMap.
 func countEmittableStructFields(cfg *atlas.AtlasEntry, target_rv reflect.Value) int {
 	total := 0
 	for _, fieldEntry := range cfg.StructMap.Fields {
+		if fieldEntry.Ignore {
+			continue
+		}
 		if !fieldEntry.OmitEmpty {
 			total++
 			continue

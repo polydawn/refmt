@@ -51,14 +51,23 @@ func (mach *unmarshalMachineStructAtlas) Step(driver *Unmarshaller, slab *unmars
 
 	// Accept value:
 	if mach.value {
-		child_rv := mach.fieldEntry.ReflectRoute.TraverseToValue(mach.rv)
+		var child_rv reflect.Value
+		var child_rt reflect.Type
+		if mach.fieldEntry.Ignore {
+			// Use a dummy slot to slurp up the value.  This could be more efficient.
+			child_rt = reflect.TypeOf((*interface{})(nil)).Elem()
+			child_rv = reflect.New(child_rt).Elem()
+		} else {
+			child_rt = mach.fieldEntry.Type
+			child_rv = mach.fieldEntry.ReflectRoute.TraverseToValue(mach.rv)
+		}
 		mach.index++
 		mach.value = false
 		return false, driver.Recurse(
 			tok,
 			child_rv,
-			mach.fieldEntry.Type,
-			slab.requisitionMachine(mach.fieldEntry.Type),
+			child_rt,
+			slab.requisitionMachine(child_rt),
 		)
 	}
 
