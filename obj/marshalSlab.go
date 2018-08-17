@@ -133,6 +133,11 @@ func _yieldBareMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflec
 		}
 		return &row.marshalMachineSliceWildcard
 	case reflect.Array:
+		// arrays of bytes have a similar special case to slices for when they're typedefed.
+		if rt.Elem().Kind() == reflect.Uint8 {
+			row.marshalMachinePrimitive.kind = rt.Kind()
+			return &row.marshalMachinePrimitive
+		}
 		return &row.marshalMachineSliceWildcard.marshalMachineArrayWildcard
 	case reflect.Map:
 		row.marshalMachineMapWildcard.morphism = atl.GetDefaultMapMorphism()

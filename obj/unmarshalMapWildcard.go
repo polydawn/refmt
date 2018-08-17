@@ -65,7 +65,7 @@ func (mach *unmarshalMachineMapStringWildcard) step_Initial(_ *Unmarshaller, _ *
 	case TArrOpen:
 		fallthrough
 	default:
-		return true, ErrUnmarshalTypeCantFit{*tok, mach.target_rv}
+		return true, ErrUnmarshalTypeCantFit{*tok, mach.target_rv, 0}
 	}
 }
 

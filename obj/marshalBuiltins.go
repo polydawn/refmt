@@ -64,9 +64,23 @@ func (mach *marshalMachinePrimitive) Step(_ *Marshaller, _ *marshalSlab, tok *To
 		tok.Type = TFloat64
 		tok.Float64 = mach.rv.Float()
 		return true, nil
-	case reflect.Slice: // implicitly bytes; no other slices are "primitve"
+	case reflect.Slice: // implicitly bytes; no other slices are "primitive"
 		tok.Type = TBytes
 		tok.Bytes = mach.rv.Bytes()
+		return true, nil
+	case reflect.Array: // implicitly bytes; no other arrays are "primitive"
+		tok.Type = TBytes
+		// Unfortunately, there does not seem to be any efficient way to extract the contents of a byte array into a slice via reflect.
+		// Since the lengths are part of the type, it is almost understandable that the stdlib reflect package has a hard time expressing this;
+		// however, it drives me somewhat up the wall that they do not provide a case for arrays inside the `Value.Bytes` method, and panic.
+		// Attempting to `Value.Convert(Type)` from a fixed-length array to a slice of the same type is also rejected.
+		// Nor does `reflect.AppendSlice` accept an array kind as the second parameter; no, only slices there too.
+		// So... we iterate.  If anyone knows a better way to do this, PRs extremely welcome.
+		n := mach.rv.Len()
+		tok.Bytes = make([]byte, n)
+		for i := 0; i < n; i++ {
+			tok.Bytes[i] = byte(mach.rv.Index(i).Uint())
+		}
 		return true, nil
 	default:
 		panic("unhandled")
