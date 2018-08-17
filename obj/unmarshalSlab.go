@@ -110,6 +110,11 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 		}
 		return &row.unmarshalMachineSliceWildcard
 	case reflect.Array:
+		// arrays of bytes have a similar special case to slices for when they're typedefed.
+		if rt.Elem().Kind() == reflect.Uint8 {
+			row.unmarshalMachinePrimitive.kind = rt.Kind()
+			return &row.unmarshalMachinePrimitive
+		}
 		return &row.unmarshalMachineArrayWildcard
 	case reflect.Map:
 		return &row.unmarshalMachineMapStringWildcard

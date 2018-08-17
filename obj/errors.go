@@ -31,15 +31,21 @@ func (e ErrInvalidUnmarshalTarget) Error() string {
 // for example if a map open token comes when an int is expected,
 // or an int token comes when a string is expected.
 type ErrUnmarshalTypeCantFit struct {
-	Token Token
-	Value reflect.Value
+	Token  Token
+	Value  reflect.Value
+	LenLim int // Set only if Value.Kind == Array and Token is bytes of a mismatch length.
 }
 
 func (e ErrUnmarshalTypeCantFit) Error() string {
-	return fmt.Sprintf("unmarshal error: cannot assign %s to %s field", e.Token, e.Value.Kind())
+	switch e.LenLim {
+	case 0:
+		return fmt.Sprintf("unmarshal error: cannot assign %s to %s field", e.Token, e.Value.Kind())
+	default:
+		return fmt.Sprintf("unmarshal error: cannot assign %s to fixed length=%d byte array", e.Token, e.Value.Len())
+	}
 }
 
-// ErrMalformedTokenStream is the error returned when unmarshalling recieves a
+// ErrMalformedTokenStream is the error returned when unmarshalling recieves ae
 // completely invalid transition, such as when a map value is expected, but the
 // map suddenly closes, or an array close is recieved with no matching array open.
 type ErrMalformedTokenStream struct {

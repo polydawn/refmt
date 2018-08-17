@@ -31,9 +31,9 @@ func TestBytes(t *testing.T) {
 				checkMarshalling(t, atlas, &value, seq, nil)
 			})
 			t.Run("unmarshal", func(t *testing.T) {
-				//	slot := [5]byte{}
-				//	expect := [5]byte{'v', 'a', 'l', 'u', 'e'}
-				//	checkUnmarshalling(t, atlas, &slot, seq, &expect, nil)
+				slot := [5]byte{}
+				expect := [5]byte{'v', 'a', 'l', 'u', 'e'}
+				checkUnmarshalling(t, atlas, &slot, seq, &expect, nil)
 			})
 		})
 	})
