@@ -36,5 +36,20 @@ func TestBytes(t *testing.T) {
 				checkUnmarshalling(t, atlas, &slot, seq, &expect, nil)
 			})
 		})
+		t.Run("prism to [6]byte", func(t *testing.T) {
+			//atlas := atlas.MustBuild()
+			// marshal tests don't apply to this case
+			t.Run("unmarshal", func(t *testing.T) {
+				// This works, but is difficult to test: go-cmp can never consider two reflect.Value
+				// equal to each other, even when they clearly are, because funcs are never equal to themselves.
+				// I don't really know how I intend to work around this; probably, we should rewrite
+				// the error types to simply not hold on to such complex types.
+				//
+				//	slot := [6]byte{}
+				//	expect := [6]byte{}
+				//	expectErr := ErrUnmarshalTypeCantFit{Token{Type: TBytes, Length: 0, Bytes: []byte(`value`)}, reflect.ValueOf(slot), 6}
+				//	checkUnmarshalling(t, atlas, &slot, seq, &expect, expectErr)
+			})
+		})
 	})
 }
