@@ -108,4 +108,47 @@ func TestStructHandling(t *testing.T) {
 			})
 		})
 	})
+	t.Run("tokens for map with no fields", func(t *testing.T) {
+		seq := fixtures.SequenceMap["empty map"].Tokens
+		t.Run("prism to object with explicitly empty atlas", func(t *testing.T) {
+			// I don't know why you'd want to do this, but it shouldn't crash.
+			type tObjStr struct {
+				X string
+			}
+			atlas := atlas.MustBuild(
+				atlas.BuildEntry(tObjStr{}).StructMap().Complete(),
+			)
+			t.Run("marshal", func(t *testing.T) {
+				value := tObjStr{"value"}
+				checkMarshalling(t, atlas, value, seq, nil)
+				checkMarshalling(t, atlas, &value, seq, nil)
+			})
+			t.Run("unmarshal", func(t *testing.T) {
+				slot := &tObjStr{}
+				expect := &tObjStr{}
+				checkUnmarshalling(t, atlas, slot, seq, expect, nil)
+			})
+			t.Run("unmarshal overwriting", func(t *testing.T) {
+				slot := &tObjStr{"should be overruled"}
+				expect := &tObjStr{"should be overruled"}
+				checkUnmarshalling(t, atlas, slot, seq, expect, nil)
+			})
+		})
+		t.Run("prism to fieldless struct", func(t *testing.T) {
+			type tEmpty struct{}
+			atlas := atlas.MustBuild(
+				atlas.BuildEntry(tEmpty{}).StructMap().Autogenerate().Complete(),
+			)
+			t.Run("marshal", func(t *testing.T) {
+				value := tEmpty{}
+				checkMarshalling(t, atlas, value, seq, nil)
+				checkMarshalling(t, atlas, &value, seq, nil)
+			})
+			t.Run("unmarshal", func(t *testing.T) {
+				slot := &tEmpty{}
+				expect := &tEmpty{}
+				checkUnmarshalling(t, atlas, slot, seq, expect, nil)
+			})
+		})
+	})
 }
