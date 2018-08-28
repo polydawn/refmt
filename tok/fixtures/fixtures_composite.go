@@ -78,6 +78,14 @@ var sequences_Composite = []Sequence{
 			{Type: TMapClose},
 		},
 	},
+	{"nil nested in map",
+		[]Token{
+			{Type: TMapOpen, Length: 1},
+			TokStr("k"),
+			{Type: TNull},
+			{Type: TMapClose},
+		},
+	},
 	{"maps nested in maps with mixed nulls",
 		[]Token{
 			{Type: TMapOpen, Length: 2},

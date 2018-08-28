@@ -173,5 +173,26 @@ func TestStructHandling(t *testing.T) {
 				checkUnmarshalling(t, atlas, slot, seq, expect, nil)
 			})
 		})
+		seq = fixtures.SequenceMap["nil nested in map"].Tokens
+		t.Run("deeper fieldless struct as ptr", func(t *testing.T) {
+			type tEmpty struct{}
+			type tFoo struct {
+				K *tEmpty
+			}
+			atlas := atlas.MustBuild(
+				atlas.BuildEntry(tFoo{}).StructMap().Autogenerate().Complete(),
+				atlas.BuildEntry(tEmpty{}).StructMap().Autogenerate().Complete(),
+			)
+			t.Run("marshal", func(t *testing.T) {
+				value := tFoo{}
+				checkMarshalling(t, atlas, value, seq, nil)
+				checkMarshalling(t, atlas, &value, seq, nil)
+			})
+			t.Run("unmarshal", func(t *testing.T) {
+				slot := &tFoo{}
+				expect := &tFoo{}
+				checkUnmarshalling(t, atlas, slot, seq, expect, nil)
+			})
+		})
 	})
 }
