@@ -151,4 +151,27 @@ func TestStructHandling(t *testing.T) {
 			})
 		})
 	})
+	t.Run("tokens for map containing empty map", func(t *testing.T) {
+		seq := fixtures.SequenceMap["empty map nested in map"].Tokens
+		t.Run("deeper fieldless struct", func(t *testing.T) {
+			type tEmpty struct{}
+			type tFoo struct {
+				K tEmpty
+			}
+			atlas := atlas.MustBuild(
+				atlas.BuildEntry(tFoo{}).StructMap().Autogenerate().Complete(),
+				atlas.BuildEntry(tEmpty{}).StructMap().Autogenerate().Complete(),
+			)
+			t.Run("marshal", func(t *testing.T) {
+				value := tFoo{}
+				checkMarshalling(t, atlas, value, seq, nil)
+				checkMarshalling(t, atlas, &value, seq, nil)
+			})
+			t.Run("unmarshal", func(t *testing.T) {
+				slot := &tFoo{}
+				expect := &tFoo{}
+				checkUnmarshalling(t, atlas, slot, seq, expect, nil)
+			})
+		})
+	})
 }
