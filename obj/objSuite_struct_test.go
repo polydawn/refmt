@@ -195,4 +195,30 @@ func TestStructHandling(t *testing.T) {
 			})
 		})
 	})
+	t.Run("tokens for map containing jumbles of things", func(t *testing.T) {
+		seq := fixtures.SequenceMap["jumbles nested in map"].Tokens
+		t.Run("deeper fieldless struct as ptr", func(t *testing.T) {
+			type tEmpty struct{}
+			type tFoo struct {
+				S string
+				M tEmpty
+				I int
+				K *tEmpty
+			}
+			atlas := atlas.MustBuild(
+				atlas.BuildEntry(tFoo{}).StructMap().Autogenerate().Complete(),
+				atlas.BuildEntry(tEmpty{}).StructMap().Autogenerate().Complete(),
+			)
+			t.Run("marshal", func(t *testing.T) {
+				value := tFoo{"foo", tEmpty{}, 42, nil}
+				checkMarshalling(t, atlas, value, seq, nil)
+				checkMarshalling(t, atlas, &value, seq, nil)
+			})
+			t.Run("unmarshal", func(t *testing.T) {
+				slot := &tFoo{"foo", tEmpty{}, 42, nil}
+				expect := &tFoo{"foo", tEmpty{}, 42, nil}
+				checkUnmarshalling(t, atlas, slot, seq, expect, nil)
+			})
+		})
+	})
 }
