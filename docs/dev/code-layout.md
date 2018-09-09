@@ -69,7 +69,7 @@ makes encoding to bytes a choice rather than a requirement.
   Errors and expected end-of-stream are indicated by the return codes.
 
     - **json.Encoder** -- constructed with an `io.Writer`, to which json-formatted bytes are flushed as each token is received.
-    - **cbor.Decoder** -- constructed with an `io.Writer`, to which cbor-formatted bytes are flushed as each token is received.
+    - **cbor.Encoder** -- constructed with an `io.Writer`, to which cbor-formatted bytes are flushed as each token is received.
     - **obj.Unmarshaller** -- constructed with a reference to any object (or empty `interface{}`), which will be populated based on tokens received.
 
 - **TokenPump** *struct*
