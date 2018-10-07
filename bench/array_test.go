@@ -20,7 +20,6 @@ func Benchmark_ArrayFlatInt_MarshalToCborRefmt(b *testing.B) {
 		fixture_arrayFlatInt, fixture_arrayFlatInt_cbor,
 	)
 }
-
 func Benchmark_ArrayFlatInt_MarshalToJsonRefmt(b *testing.B) {
 	var buf bytes.Buffer
 	exerciseMarshaller(b,
@@ -28,10 +27,29 @@ func Benchmark_ArrayFlatInt_MarshalToJsonRefmt(b *testing.B) {
 		fixture_arrayFlatInt, fixture_arrayFlatInt_json,
 	)
 }
-
 func Benchmark_ArrayFlatInt_MarshalToJsonStdlib(b *testing.B) {
 	exerciseStdlibJsonMarshaller(b,
 		fixture_arrayFlatInt, fixture_arrayFlatInt_json,
+	)
+}
+
+func Benchmark_ArrayFlatInt_UnmarshalFromCborRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshaller(cbor.DecodeOptions{}, &buf), &buf,
+		fixture_arrayFlatInt_cbor, func() interface{} { return &[]int{} }, &fixture_arrayFlatInt,
+	)
+}
+func Benchmark_ArrayFlatInt_UnmarshalFromJsonRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshaller(json.DecodeOptions{}, &buf), &buf,
+		fixture_arrayFlatInt_json, func() interface{} { return &[]int{} }, &fixture_arrayFlatInt,
+	)
+}
+func Benchmark_ArrayFlatInt_UnmarshalFromJsonStdlib(b *testing.B) {
+	exerciseStdlibJsonUnmarshaller(b,
+		fixture_arrayFlatInt_json, func() interface{} { return &[]int{} }, &fixture_arrayFlatInt,
 	)
 }
 
@@ -46,7 +64,6 @@ func Benchmark_ArrayFlatInt20_MarshalToCborRefmt(b *testing.B) {
 		fixture_arrayFlatInt20, fixture_arrayFlatInt20_cbor,
 	)
 }
-
 func Benchmark_ArrayFlatInt20_MarshalToJsonRefmt(b *testing.B) {
 	var buf bytes.Buffer
 	exerciseMarshaller(b,
@@ -54,10 +71,29 @@ func Benchmark_ArrayFlatInt20_MarshalToJsonRefmt(b *testing.B) {
 		fixture_arrayFlatInt20, fixture_arrayFlatInt20_json,
 	)
 }
-
 func Benchmark_ArrayFlatInt20_MarshalToJsonStdlib(b *testing.B) {
 	exerciseStdlibJsonMarshaller(b,
 		fixture_arrayFlatInt20, fixture_arrayFlatInt20_json,
+	)
+}
+
+func Benchmark_ArrayFlatInt20_UnmarshalFromCborRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshaller(cbor.DecodeOptions{}, &buf), &buf,
+		fixture_arrayFlatInt20_cbor, func() interface{} { return &[]int{} }, &fixture_arrayFlatInt20,
+	)
+}
+func Benchmark_ArrayFlatInt20_UnmarshalFromJsonRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshaller(json.DecodeOptions{}, &buf), &buf,
+		fixture_arrayFlatInt20_json, func() interface{} { return &[]int{} }, &fixture_arrayFlatInt20,
+	)
+}
+func Benchmark_ArrayFlatInt20_UnmarshalFromJsonStdlib(b *testing.B) {
+	exerciseStdlibJsonUnmarshaller(b,
+		fixture_arrayFlatInt20_json, func() interface{} { return &[]int{} }, &fixture_arrayFlatInt20,
 	)
 }
 
@@ -72,7 +108,6 @@ func Benchmark_ArrayFlatStr_MarshalToCborRefmt(b *testing.B) {
 		fixture_arrayFlatStr, fixture_arrayFlatStr_cbor,
 	)
 }
-
 func Benchmark_ArrayFlatStr_MarshalToJsonRefmt(b *testing.B) {
 	var buf bytes.Buffer
 	exerciseMarshaller(b,
@@ -80,9 +115,28 @@ func Benchmark_ArrayFlatStr_MarshalToJsonRefmt(b *testing.B) {
 		fixture_arrayFlatStr, fixture_arrayFlatStr_json,
 	)
 }
-
 func Benchmark_ArrayFlatStr_MarshalToJsonStdlib(b *testing.B) {
 	exerciseStdlibJsonMarshaller(b,
 		fixture_arrayFlatStr, fixture_arrayFlatStr_json,
+	)
+}
+
+func Benchmark_ArrayFlatStr_UnmarshalFromCborRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshaller(cbor.DecodeOptions{}, &buf), &buf,
+		fixture_arrayFlatStr_cbor, func() interface{} { return &[]string{} }, &fixture_arrayFlatStr,
+	)
+}
+func Benchmark_ArrayFlatStr_UnmarshalFromJsonRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshaller(json.DecodeOptions{}, &buf), &buf,
+		fixture_arrayFlatStr_json, func() interface{} { return &[]string{} }, &fixture_arrayFlatStr,
+	)
+}
+func Benchmark_ArrayFlatStr_UnmarshalFromJsonStdlib(b *testing.B) {
+	exerciseStdlibJsonUnmarshaller(b,
+		fixture_arrayFlatStr_json, func() interface{} { return &[]string{} }, &fixture_arrayFlatStr,
 	)
 }
