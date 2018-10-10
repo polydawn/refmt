@@ -92,3 +92,19 @@ func grow(s reflect.Value, extra int) (reflect.Value, int, int) {
 	reflect.Copy(t, s)
 	return t, i0, i1
 }
+
+// this did still shave off another perceptible 4ns.  but not the rogue alloc.
+func BenchmarkReflectAppend_wats(b *testing.B) {
+	x := []int{}
+	rv := reflect.ValueOf(&x).Elem()
+	rt_val := reflect.TypeOf(0)
+	rv_valZero := reflect.Zero(rt_val)
+
+	rv_moving := rv
+	for i := 0; i < b.N; i++ {
+		rv_moving, _, _ = grow(rv_moving, 1)
+		rv_moving.Index(i).Set(rv_valZero)
+	}
+	rv.Set(rv_moving)
+	b.Logf("x  len, cap = %d, %d", len(x), cap(x))
+}
