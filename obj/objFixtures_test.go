@@ -440,6 +440,8 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return [0]interface{}{} }},
 			{title: "from iface slice",
 				valueFn: func() interface{} { return []interface{}{} }},
+			{title: "from nil iface slice",
+				valueFn: func() interface{} { return []interface{}(nil) }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
@@ -961,7 +963,7 @@ var objFixtures = []struct {
 	{title: "empty",
 		sequence:       fixtures.SequenceMap["empty"],
 		marshalResults: []marshalResults{
-		// not much marshals to empty!
+			// not much marshals to empty!
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
