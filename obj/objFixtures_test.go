@@ -961,7 +961,7 @@ var objFixtures = []struct {
 	{title: "empty",
 		sequence:       fixtures.SequenceMap["empty"],
 		marshalResults: []marshalResults{
-		// not much marshals to empty!
+			// not much marshals to empty!
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
@@ -1044,6 +1044,8 @@ var objFixtures = []struct {
 			//	valueFn: func() interface{} { return [0]int(nil) }},
 			{title: "from int slice",
 				valueFn: func() interface{} { return []int(nil) }},
+			{title: "from byte slice",
+				valueFn: func() interface{} { return []byte(nil) }},
 			//{title: "from iface array", // Not Possible!  Compiler says: "cannot convert nil to type [0]interface {}"
 			//	valueFn: func() interface{} { return [0]interface{}(nil) }},
 			{title: "from iface slice",
@@ -1099,6 +1101,9 @@ var objFixtures = []struct {
 			{title: "into *[]str",
 				slotFn:  func() interface{} { var v []string; return &v },
 				valueFn: func() interface{} { return []string(nil) }},
+			{title: "into *[]byte",
+				slotFn:  func() interface{} { var v []byte; return &v },
+				valueFn: func() interface{} { return []byte(nil) }},
 			{title: "into [0]str",
 				slotFn:    func() interface{} { var v []string; return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]string{})}},

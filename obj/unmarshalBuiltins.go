@@ -121,6 +121,9 @@ func (mach *unmarshalMachinePrimitive) Step(_ *Unmarshaller, _ *unmarshalSlab, t
 		case TBytes:
 			mach.rv.SetBytes(tok.Bytes)
 			return true, nil
+		case TNull:
+			mach.rv.SetBytes(nil)
+			return true, nil
 		default:
 			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv, 0}
 		}
@@ -137,6 +140,12 @@ func (mach *unmarshalMachinePrimitive) Step(_ *Unmarshaller, _ *unmarshalSlab, t
 			for i := 0; i < n; i++ {
 				mach.rv.Index(i).SetUint(uint64(tok.Bytes[i]))
 			}
+			return true, nil
+		case TNull:
+			if mach.rv.Len() != 0 {
+				return true, ErrUnmarshalTypeCantFit{*tok, mach.rv, 0}
+			}
+			mach.rv.SetBytes(nil)
 			return true, nil
 		default:
 			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv, 0}
