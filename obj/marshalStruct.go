@@ -32,10 +32,8 @@ func (mach *marshalMachineStructAtlas) Step(driver *Marshaller, slab *marshalSla
 	if mach.index < 0 {
 		tok.Type = TMapOpen
 		tok.Length = countEmittableStructFields(mach.cfg, mach.target_rv)
-		if mach.cfg.Tagged {
-			tok.Tagged = true
-			tok.Tag = mach.cfg.Tag
-		}
+		tok.Tagged = mach.cfg.Tagged
+		tok.Tag = mach.cfg.Tag
 		mach.index++
 		return false, nil
 	}
