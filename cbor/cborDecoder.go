@@ -178,7 +178,7 @@ func (d *Decoder) step_acceptMapValue(tokenSlot *Token) (done bool, err error) {
 
 func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done bool, err error) {
 	switch majorByte {
-	case cborSigilNil:
+	case cborSigilNil, cborSigilUndefined:
 		tokenSlot.Type = TNull
 		return true, nil
 	case cborSigilFalse:
