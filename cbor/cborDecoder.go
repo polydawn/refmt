@@ -9,15 +9,17 @@ import (
 )
 
 type Decoder struct {
-	r shared.SlickReader
+	cfg DecodeOptions
+	r   shared.SlickReader
 
 	stack []decoderStep // When empty, and step returns done, all done.
 	step  decoderStep   // Shortcut to end of stack.
 	left  []int         // Statekeeping space for definite-len map and array.
 }
 
-func NewDecoder(r io.Reader) (d *Decoder) {
+func NewDecoder(cfg DecodeOptions, r io.Reader) (d *Decoder) {
 	d = &Decoder{
+		cfg:   cfg,
 		r:     shared.NewReader(r),
 		stack: make([]decoderStep, 0, 10),
 		left:  make([]int, 0, 10),
@@ -181,6 +183,12 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 	case cborSigilNil:
 		tokenSlot.Type = TNull
 		return true, nil
+	case cborSigilUndefined:
+		if d.cfg.CoerceUndefToNull {
+			tokenSlot.Type = TNull
+			return true, nil
+		}
+		return true, fmt.Errorf("encountered cbor 'undefined' byte (%x) during decoding", cborSigilUndefined)
 	case cborSigilFalse:
 		tokenSlot.Type = TBool
 		tokenSlot.Bool = false

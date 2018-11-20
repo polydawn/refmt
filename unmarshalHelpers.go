@@ -13,22 +13,22 @@ type DecodeOptions interface {
 }
 
 func Unmarshal(opts DecodeOptions, data []byte, v interface{}) error {
-	switch opts.(type) {
+	switch o2 := opts.(type) {
 	case json.DecodeOptions:
 		return json.Unmarshal(data, v)
 	case cbor.DecodeOptions:
-		return cbor.Unmarshal(data, v)
+		return cbor.Unmarshal(o2, data, v)
 	default:
 		panic("incorrect usage: unknown DecodeOptions type")
 	}
 }
 
 func UnmarshalAtlased(opts DecodeOptions, data []byte, v interface{}, atl atlas.Atlas) error {
-	switch opts.(type) {
+	switch o2 := opts.(type) {
 	case json.DecodeOptions:
 		return json.UnmarshalAtlased(data, v, atl)
 	case cbor.DecodeOptions:
-		return cbor.UnmarshalAtlased(data, v, atl)
+		return cbor.UnmarshalAtlased(o2, data, v, atl)
 	default:
 		panic("incorrect usage: unknown DecodeOptions type")
 	}
@@ -39,22 +39,22 @@ type Unmarshaller interface {
 }
 
 func NewUnmarshaller(opts DecodeOptions, r io.Reader) Unmarshaller {
-	switch opts.(type) {
+	switch o2 := opts.(type) {
 	case json.DecodeOptions:
 		return json.NewUnmarshaller(r)
 	case cbor.DecodeOptions:
-		return cbor.NewUnmarshaller(r)
+		return cbor.NewUnmarshaller(o2, r)
 	default:
 		panic("incorrect usage: unknown DecodeOptions type")
 	}
 }
 
 func NewUnmarshallerAtlased(opts DecodeOptions, r io.Reader, atl atlas.Atlas) Unmarshaller {
-	switch opts.(type) {
+	switch o2 := opts.(type) {
 	case json.DecodeOptions:
 		return json.NewUnmarshallerAtlased(r, atl)
 	case cbor.DecodeOptions:
-		return cbor.NewUnmarshallerAtlased(r, atl)
+		return cbor.NewUnmarshallerAtlased(o2, r, atl)
 	default:
 		panic("incorrect usage: unknown DecodeOptions type")
 	}

@@ -70,12 +70,12 @@ func NewMarshallerAtlased(wr io.Writer, atl atlas.Atlas) *Marshaller {
 	return x
 }
 
-func Unmarshal(data []byte, v interface{}) error {
-	return NewUnmarshaller(bytes.NewBuffer(data)).Unmarshal(v)
+func Unmarshal(cfg DecodeOptions, data []byte, v interface{}) error {
+	return NewUnmarshaller(cfg, bytes.NewBuffer(data)).Unmarshal(v)
 }
 
-func UnmarshalAtlased(data []byte, v interface{}, atl atlas.Atlas) error {
-	return NewUnmarshallerAtlased(bytes.NewBuffer(data), atl).Unmarshal(v)
+func UnmarshalAtlased(cfg DecodeOptions, data []byte, v interface{}, atl atlas.Atlas) error {
+	return NewUnmarshallerAtlased(cfg, bytes.NewBuffer(data), atl).Unmarshal(v)
 }
 
 type Unmarshaller struct {
@@ -90,13 +90,13 @@ func (x *Unmarshaller) Unmarshal(v interface{}) error {
 	return x.pump.Run()
 }
 
-func NewUnmarshaller(r io.Reader) *Unmarshaller {
-	return NewUnmarshallerAtlased(r, atlas.MustBuild())
+func NewUnmarshaller(cfg DecodeOptions, r io.Reader) *Unmarshaller {
+	return NewUnmarshallerAtlased(cfg, r, atlas.MustBuild())
 }
-func NewUnmarshallerAtlased(r io.Reader, atl atlas.Atlas) *Unmarshaller {
+func NewUnmarshallerAtlased(cfg DecodeOptions, r io.Reader, atl atlas.Atlas) *Unmarshaller {
 	x := &Unmarshaller{
 		unmarshaller: obj.NewUnmarshaller(atl),
-		decoder:      NewDecoder(r),
+		decoder:      NewDecoder(cfg, r),
 	}
 	x.pump = shared.TokenPump{
 		x.decoder,
