@@ -50,7 +50,7 @@ func checkEncoding(t *testing.T, sequence fixtures.Sequence, expectSerial []byte
 func checkDecoding(t *testing.T, expectSequence fixtures.Sequence, serial []byte, expectErr error) {
 	t.Helper()
 	inputBuf := bytes.NewBuffer(serial)
-	tokenSrc := NewDecoder(inputBuf)
+	tokenSrc := NewDecoder(DecodeOptions{}, inputBuf)
 
 	// Run steps, advancing until the decoder reports it's done.
 	//  If the decoder keeps yielding more tokens than we expect, that's fine...

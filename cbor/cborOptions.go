@@ -10,6 +10,8 @@ type EncodeOptions struct {
 func (EncodeOptions) IsEncodeOptions() {}
 
 type DecodeOptions struct {
+	CoerceUndefToNull bool
+
 	// future: options to validate canonical serial order
 }
 

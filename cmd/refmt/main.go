@@ -44,7 +44,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read cbor, then pretty print it",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					cbor.NewDecoder(stdin),
+					cbor.NewDecoder(cbor.DecodeOptions{}, stdin),
 					pretty.NewEncoder(stdout),
 				}.Run()
 			},
@@ -55,7 +55,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read cbor in hex, then pretty print it",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					cbor.NewDecoder(hexReader(stdin)),
+					cbor.NewDecoder(cbor.DecodeOptions{}, hexReader(stdin)),
 					pretty.NewEncoder(stdout),
 				}.Run()
 			},
@@ -102,7 +102,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read cbor, emit equivalent json",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					cbor.NewDecoder(stdin),
+					cbor.NewDecoder(cbor.DecodeOptions{}, stdin),
 					json.NewEncoder(stdout, json.EncodeOptions{}),
 				}.Run()
 			},
@@ -113,7 +113,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read cbor in hex, emit equivalent json",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					cbor.NewDecoder(hexReader(stdin)),
+					cbor.NewDecoder(cbor.DecodeOptions{}, hexReader(stdin)),
 					json.NewEncoder(stdout, json.EncodeOptions{}),
 				}.Run()
 			},
