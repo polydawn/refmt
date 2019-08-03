@@ -79,7 +79,6 @@ func Benchmark_StructAlpha_MarshalToCborRefmt(b *testing.B) {
 		fixture_structAlpha, fixture_structAlpha_cbor,
 	)
 }
-
 func Benchmark_StructAlpha_MarshalToJsonRefmt(b *testing.B) {
 	var buf bytes.Buffer
 	exerciseMarshaller(b,
@@ -87,9 +86,28 @@ func Benchmark_StructAlpha_MarshalToJsonRefmt(b *testing.B) {
 		fixture_structAlpha, fixture_structAlpha_json,
 	)
 }
-
 func Benchmark_StructAlpha_MarshalToJsonStdlib(b *testing.B) {
 	exerciseStdlibJsonMarshaller(b,
 		fixture_structAlpha, fixture_structAlpha_json,
+	)
+}
+
+func Benchmark_StructAlpha_UnmarshalFromCborRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshallerAtlased(cbor.DecodeOptions{}, &buf, fixture_structAlpha_atlas), &buf,
+		fixture_structAlpha_cbor, func() interface{} { return &structAlpha{} }, &fixture_structAlpha,
+	)
+}
+func Benchmark_StructAlpha_UnmarshalFromJsonRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshallerAtlased(json.DecodeOptions{}, &buf, fixture_structAlpha_atlas), &buf,
+		fixture_structAlpha_json, func() interface{} { return &structAlpha{} }, &fixture_structAlpha,
+	)
+}
+func Benchmark_StructAlpha_UnmarshalFromJsonStdlib(b *testing.B) {
+	exerciseStdlibJsonUnmarshaller(b,
+		fixture_structAlpha_json, func() interface{} { return &structAlpha{} }, &fixture_structAlpha,
 	)
 }
