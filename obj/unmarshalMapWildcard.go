@@ -12,6 +12,7 @@ type unmarshalMachineMapStringWildcard struct {
 	target_rv     reflect.Value                // Handle to the map.  Can set to zero, or set k=v pairs into, etc.
 	value_rt      reflect.Type                 // Type info for map values (cached for convenience in recurse calls).
 	valueMach     UnmarshalMachine             // Machine for map values.
+	valueZero_rv  reflect.Value                // Cached instance of the zero value of the value type, for re-zeroing tmp_rv.
 	key_rv        reflect.Value                // Addressable handle to a slot for keys to unmarshal into.
 	keyDestringer atlas.UnmarshalTransformFunc // Transform str->foo, to be used if keys are not plain strings.
 	tmp_rv        reflect.Value                // Addressable handle to a slot for values to unmarshal into.
@@ -31,6 +32,7 @@ func (mach *unmarshalMachineMapStringWildcard) Reset(slab *unmarshalSlab, rv ref
 	mach.target_rv = rv
 	mach.value_rt = rt.Elem()
 	mach.valueMach = slab.requisitionMachine(mach.value_rt)
+	mach.valueZero_rv = reflect.Zero(mach.value_rt)
 	key_rt := rt.Key()
 	mach.key_rv = reflect.New(key_rt).Elem()
 	if mach.key_rv.Kind() != reflect.String {
@@ -129,7 +131,7 @@ func (mach *unmarshalMachineMapStringWildcard) mustAcceptKey(key_rv reflect.Valu
 
 func (mach *unmarshalMachineMapStringWildcard) step_AcceptValue(driver *Unmarshaller, slab *unmarshalSlab, tok *Token) (done bool, err error) {
 	mach.phase = unmarshalMachineMapStringWildcardPhase_acceptAnotherKeyOrClose
-	mach.tmp_rv.Set(reflect.Zero(mach.value_rt))
+	mach.tmp_rv.Set(mach.valueZero_rv)
 	return false, driver.Recurse(
 		tok,
 		mach.tmp_rv,
