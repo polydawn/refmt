@@ -45,7 +45,6 @@ func Benchmark_MapAlpha_MarshalToCborRefmt(b *testing.B) {
 		fixture_mapAlpha, fixture_mapAlpha_cbor,
 	)
 }
-
 func Benchmark_MapAlpha_MarshalToJsonRefmt(b *testing.B) {
 	var buf bytes.Buffer
 	exerciseMarshaller(b,
@@ -53,9 +52,28 @@ func Benchmark_MapAlpha_MarshalToJsonRefmt(b *testing.B) {
 		fixture_mapAlpha, fixture_mapAlpha_json,
 	)
 }
-
 func Benchmark_MapAlpha_MarshalToJsonStdlib(b *testing.B) {
 	exerciseStdlibJsonMarshaller(b,
 		fixture_mapAlpha, fixture_mapAlpha_json,
+	)
+}
+
+func Benchmark_MapAlpha_UnmarshalFromCborRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshaller(cbor.DecodeOptions{}, &buf), &buf,
+		fixture_mapAlpha_cbor, func() interface{} { return &map[string]interface{}{} }, &fixture_mapAlpha,
+	)
+}
+func Benchmark_MapAlpha_UnmarshalFromJsonRefmt(b *testing.B) {
+	var buf bytes.Buffer
+	exerciseUnmarshaller(b,
+		refmt.NewUnmarshaller(json.DecodeOptions{}, &buf), &buf,
+		fixture_mapAlpha_json, func() interface{} { return &map[string]interface{}{} }, &fixture_mapAlpha,
+	)
+}
+func Benchmark_MapAlpha_UnmarshalFromJsonStdlib(b *testing.B) {
+	exerciseStdlibJsonUnmarshaller(b,
+		fixture_mapAlpha_json, func() interface{} { return &map[string]interface{}{} }, &fixture_mapAlpha,
 	)
 }
