@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	wish "github.com/warpfork/go-wish"
-	"github.com/warpfork/go-wish/cmp"
 
 	"github.com/polydawn/refmt"
 )
@@ -93,8 +92,8 @@ func exerciseStdlibJsonUnmarshaller(
 	if err != nil {
 		panic(err)
 	}
-	if diff := cmp.Diff(fixFloatsToInts(targ), fixFloatsToInts(expect), cmpOpt_flattenFloats); diff != "" {
-		panic(fmt.Errorf("difference:\n%s", diff))
+	if detail, pass := wish.ShouldEqual(fixFloatsToInts(targ), fixFloatsToInts(expect)); !pass {
+		panic(fmt.Errorf("difference:\n%s", detail))
 	}
 }
 
@@ -125,13 +124,3 @@ func fixFloatsToInts(in interface{}) interface{} {
 		return in
 	}
 }
-
-// This feature...... doesn't seem to... work.  I'm sure I'm holding it wrong,
-// but I don't know how.
-// I'll remove this in a moment, I just wanted a commit saying "I tried it".
-// (Strip the 'fixFloatsToInts' uses, and flip targ and expect either way you
-// like; I cannot seem to trigger the 'hello' panic. :( )
-var cmpOpt_flattenFloats = cmp.Transformer(
-	"flattenFloats",
-	func(in float64) int { panic("hello?"); return int(in) },
-)
