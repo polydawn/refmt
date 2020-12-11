@@ -1,6 +1,7 @@
 package json
 
 import (
+	"strconv"
 	"testing"
 
 	. "github.com/polydawn/refmt/tok"
@@ -30,9 +31,12 @@ func testNumber(t *testing.T) {
 	})
 	t.Run("float 1 e+100", func(t *testing.T) {
 		seq := fixtures.Sequence{Tokens: fixtures.Tokens{{Type: TFloat64, Float64: 1.0e+300}}}
-		// TODO this should probably be canonical.  pending finish encoding support for float.
+		checkCanonical(t, seq, `1e+300`)
+	})
+	t.Run("integer too big to parse", func(t *testing.T) {
+		seq := fixtures.Sequence{Tokens: fixtures.Tokens{{Type: TInt, Int: 2<<62 - 1}}}
 		t.Run("decode", func(t *testing.T) {
-			checkDecoding(t, seq, `1e+300`, nil)
+			checkDecoding(t, seq, `18446744073709551617`, &strconv.NumError{"ParseInt", "18446744073709551617", strconv.ErrRange})
 		})
 	})
 }
