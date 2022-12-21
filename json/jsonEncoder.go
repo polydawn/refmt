@@ -3,6 +3,7 @@ package json
 import (
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 
 	. "github.com/polydawn/refmt/tok"
@@ -203,6 +204,13 @@ func (d *Encoder) flushValue(tok *Token) error {
 		}
 	case TInt:
 		b := strconv.AppendInt(d.scratch[:0], tok.Int, 10)
+		d.wr.Write(b)
+		return nil
+	case TUint:
+		if tok.Uint > math.MaxInt64 {
+			return fmt.Errorf("out of supported int range (greater than signed 64 bit)")
+		}
+		b := strconv.AppendInt(d.scratch[:0], int64(tok.Uint), 10)
 		d.wr.Write(b)
 		return nil
 	case TFloat64:
