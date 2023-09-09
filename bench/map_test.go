@@ -24,14 +24,14 @@ var fixture_mapAlpha = map[string]interface{}{
 	},
 	"C": map[string]interface{}{
 		"N": "n",
-		"M": 13,
+		"M": int64(13),
 	},
 	"C2": map[string]interface{}{
 		"N": "n2",
-		"M": 14,
+		"M": int64(14),
 	},
-	"X": 1,
-	"Y": 2,
+	"X": int64(1),
+	"Y": int64(2),
 	"Z": "3",
 	"W": "4",
 }

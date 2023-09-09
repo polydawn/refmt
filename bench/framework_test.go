@@ -119,7 +119,7 @@ func fixFloatsToInts(in interface{}) interface{} {
 		}
 		return out
 	case float64:
-		return int(in2)
+		return int64(in2)
 	default:
 		return in
 	}
