@@ -64,7 +64,7 @@ func checkDecoding(t *testing.T, expectSequence fixtures.Sequence, serial string
 	//  so we'll strip that here rather than forcing all our fixtures to say it.
 	expectSequence = expectSequence.SansLengthInfo()
 
-	t.Helper()
+	// t.Helper()
 	inputBuf := bytes.NewBufferString(serial)
 	tokenSrc := NewDecoder(inputBuf)
 

@@ -38,21 +38,36 @@ func TestUnmarshal(t *testing.T) {
 				j    string
 				err  string
 			}{
-				// fails with: "expected colon after map key; got 0x2c"
-				{"trailing commas", `{"x":"1","y":"2",,,}`, "expected key after comma, got comma"},
-				// fails with: "expected colon after map key; got 0x2c"
-				{"just commas", `{,,,}`, "expected key after comma, got comma"},
-				// fails with: "expected colon after map key; got 0x2c"
-				{"leading commas", `{,,,"x":"1","y":"2",,,}`, "expected key after map open, got comma"},
-				// doesn't error
-				{"no commas", `{"x":"1""y":"2"}`, "expected comma after value, got quote"},
-				// doesn't error
-				{"no commas, just spaces", `{    "x":"1"    "y":"2"   }`, "expected comma after value, got quote"},
-				// doesn't error
-				{"no commas, just tabs", `{	"x":"1"	"y":"2"	}`, "expected comma after value, got quote"},
+				{"trailing commas", `{"x":"1","y":"2",,,}`, "invalid char while expecting start of key: comma"},
+				{"just commas", `{,,,}`, "invalid char while expecting start of key: comma"},
+				{"leading commas", `{,,,"x":"1","y":"2",,,}`, "invalid char while expecting start of key: comma"},
+				{"no commas", `{"x":"1""y":"2"}`, "expected comma or map close after map value; got quote"},
+				{"no commas, just spaces", `{    "x":"1"    "y":"2"   }`, "expected comma or map close after map value; got quote"},
+				{"no commas, just tabs", `{	"x":"1"	"y":"2"	}`, "expected comma or map close after map value; got quote"},
 			} {
 				Convey(tc.name, func() {
 					var slot map[string]string
+					err := Unmarshal(json.DecodeOptions{}, []byte(tc.j), &slot)
+					So(err, ShouldNotBeNil)
+					So(err.Error(), ShouldEqual, tc.err)
+				})
+			}
+		})
+		Convey("array comma handling errors", func() {
+			for _, tc := range []struct {
+				name string
+				j    string
+				err  string
+			}{
+				{"trailing commas", `["1","2",,,]`, "invalid char while expecting start of value: comma"},
+				{"just commas", `[,,,]`, "invalid char while expecting start of value: comma"},
+				{"leading commas", `[,,,"1","2",,,]`, "invalid char while expecting start of value: comma"},
+				{"no commas", `["1""2"]`, "expected comma or array close after array value; got quote"},
+				{"no commas, just spaces", `[    "1"    "2"   ]`, "expected comma or array close after array value; got quote"},
+				{"no commas, just tabs", `[	"1"	"2"	]`, "expected comma or array close after array value; got quote"},
+			} {
+				Convey(tc.name, func() {
+					var slot []string
 					err := Unmarshal(json.DecodeOptions{}, []byte(tc.j), &slot)
 					So(err, ShouldNotBeNil)
 					So(err.Error(), ShouldEqual, tc.err)
