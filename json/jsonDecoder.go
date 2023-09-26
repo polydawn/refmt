@@ -222,23 +222,19 @@ func (d *Decoder) stepHelper_acceptKV(t string, majorByte byte, tokenSlot *Token
 	}
 }
 
+var byteToStringMap = map[byte]string{
+	',': "comma",
+	':': "colon",
+	'{': "map open",
+	'}': "map close",
+	'[': "array open",
+	']': "array close",
+	'"': "quote",
+}
+
 func byteToString(b byte) string {
-	switch b {
-	case ',':
-		return "comma"
-	case ':':
-		return "colon"
-	case '{':
-		return "map open"
-	case '}':
-		return "map close"
-	case '[':
-		return "array open"
-	case ']':
-		return "array close"
-	case '"':
-		return "quote"
-	default:
-		return fmt.Sprintf("0x%x", b)
+	if s, ok := byteToStringMap[b]; ok {
+		return s
 	}
+	return fmt.Sprintf("0x%x", b)
 }
