@@ -2,7 +2,7 @@ package bench
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"reflect"
 	"testing"
 )
@@ -203,7 +203,7 @@ func Benchmark_WalkStructReadViaRacked(b *testing.B) {
 // GC off: 1046 ns/op
 // Membench: 72 B/op  2 allocs/op -- Passing by value ends up with *more* allocs than using ref
 func Benchmark_WalkStructJson(b *testing.B) {
-	var dump = ioutil.Discard
+	var dump = io.Discard
 	var val = typeA{
 		"str1",
 		"str2",
@@ -220,7 +220,7 @@ func Benchmark_WalkStructJson(b *testing.B) {
 // GC off: 1084 ns/op
 // Membench: 8 B/op  1 allocs/op -- Does result in substantially different number of alloc
 func Benchmark_WalkStructRefJson(b *testing.B) {
-	var dump = ioutil.Discard
+	var dump = io.Discard
 	var val = typeA{
 		"str1",
 		"str2",

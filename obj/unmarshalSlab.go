@@ -126,7 +126,7 @@ func _yieldUnmarshalMachinePtr(row *unmarshalSlabRow, atl atlas.Atlas, rt reflec
 	case reflect.Interface:
 		return &row.unmarshalMachineWildcard
 	case reflect.Func:
-		panic(fmt.Errorf("functions cannot be unmarshalled!"))
+		panic(fmt.Errorf("functions cannot be unmarshalled"))
 	case reflect.Ptr:
 		panic(fmt.Errorf("unreachable: ptrs must already be resolved"))
 	default:

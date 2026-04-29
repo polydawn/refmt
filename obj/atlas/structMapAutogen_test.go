@@ -105,7 +105,7 @@ func TestStructMapAutogen(t *testing.T) {
 				So(len(entry.StructMap.Fields), ShouldEqual, 2)
 				So(entry.StructMap.Fields[0].SerialName, ShouldEqual, "a")
 				So(entry.StructMap.Fields[0].ReflectRoute, ShouldResemble, ReflectRoute{0})
-				So(entry.StructMap.Fields[0].Type, ShouldEqual, reflect.PtrTo(reflect.TypeOf(&AA{})))
+				So(entry.StructMap.Fields[0].Type, ShouldEqual, reflect.PointerTo(reflect.TypeOf(&AA{})))
 				So(entry.StructMap.Fields[0].OmitEmpty, ShouldEqual, false)
 				So(entry.StructMap.Fields[1].SerialName, ShouldEqual, "z") // dives straight through embed!
 				So(entry.StructMap.Fields[1].ReflectRoute, ShouldResemble, ReflectRoute{1, 0})

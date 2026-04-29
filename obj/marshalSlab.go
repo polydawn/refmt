@@ -34,7 +34,7 @@ type marshalSlabRow struct {
 // A thunk value that can be used to trigger `isNil` paths.
 // (Substituting an 'invalid' kind reflect.Value with this is an easy way
 // to emit a null without needing any additional special cases or error handling.)
-var nil_rv reflect.Value = reflect.Zero(reflect.PtrTo(reflect.TypeOf(0)))
+var nil_rv reflect.Value = reflect.Zero(reflect.PointerTo(reflect.TypeOf(0)))
 
 /*
 	Return a reference to a machine from the slab.
@@ -150,7 +150,7 @@ func _yieldBareMarshalMachinePtr(row *marshalSlabRow, atl atlas.Atlas, rt reflec
 	case reflect.Interface:
 		return &row.marshalMachineWildcard
 	case reflect.Func:
-		panic(fmt.Errorf("functions cannot be marshalled!"))
+		panic(fmt.Errorf("functions cannot be marshalled"))
 	case reflect.Ptr:
 		panic(fmt.Errorf("unreachable: ptrs must already be resolved"))
 	default:

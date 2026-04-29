@@ -12,7 +12,7 @@ import (
 	"github.com/polydawn/refmt/tok/fixtures"
 )
 
-var skipMe = fmt.Errorf("skipme")
+var errSkipMe = fmt.Errorf("skipme")
 
 type marshalResults struct {
 	title string
@@ -21,7 +21,6 @@ type marshalResults struct {
 	valueFn func() interface{}
 
 	expectErr error
-	errString string
 }
 type unmarshalResults struct {
 	title string
@@ -33,7 +32,6 @@ type unmarshalResults struct {
 	// A func returning a wildcard is used rather than just an `interface{}`, because `&target` conveys very different type information.
 	valueFn   func() interface{}
 	expectErr error
-	errString string
 }
 
 type tObjStr struct {
@@ -132,13 +130,13 @@ var objFixtures = []struct {
 			{title: "from **string",
 				valueFn: func() interface{} { str := "value"; strp := &str; return &strp }},
 			{title: "from string in iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = "value"; return iface }},
+				valueFn: func() interface{} { var iface interface{} = "value"; return iface }},
 			{title: "from string in *iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = "value"; return &iface }},
+				valueFn: func() interface{} { var iface interface{} = "value"; return &iface }},
 			{title: "from *string in iface slot",
-				valueFn: func() interface{} { str := "value"; var iface interface{}; iface = &str; return iface }},
+				valueFn: func() interface{} { str := "value"; var iface interface{} = &str; return iface }},
 			{title: "from *string in *iface slot",
-				valueFn: func() interface{} { str := "value"; var iface interface{}; iface = &str; return &iface }},
+				valueFn: func() interface{} { str := "value"; var iface interface{} = &str; return &iface }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into string",
@@ -167,10 +165,10 @@ var objFixtures = []struct {
 				expectErr: ErrUnmarshalTypeCantFit{Token{Type: TString, Str: "value"}, reflect.ValueOf(map[string]interface{}(nil)), 0}},
 			{title: "into []iface",
 				slotFn:    func() interface{} { var v []interface{}; return v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into *[]iface",
 				slotFn:    func() interface{} { var v []interface{}; return &v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 		},
 	},
 	{title: "empty maps",
@@ -210,10 +208,10 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return map[string]string{} }},
 			{title: "into []iface",
 				slotFn:    func() interface{} { var v []interface{}; return v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into *[]iface",
 				slotFn:    func() interface{} { var v []interface{}; return &v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 		},
 	},
 	{title: "object with one string field, with atlas entry",
@@ -260,10 +258,10 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return map[string]string{"key": "value"} }},
 			{title: "into []iface",
 				slotFn:    func() interface{} { var v []interface{}; return v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into *[]iface",
 				slotFn:    func() interface{} { var v []interface{}; return &v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 		},
 	},
 	{title: "object with two string fields, with atlas entry",
@@ -305,10 +303,10 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return map[string]string{"key": "value", "k2": "v2"} }},
 			{title: "into []iface",
 				slotFn:    func() interface{} { var v []interface{}; return v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into *[]iface",
 				slotFn:    func() interface{} { var v []interface{}; return &v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into tObjStr2",
 				slotFn:    func() interface{} { return tObjStr2{} },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(tObjStr2{})}},
@@ -456,16 +454,16 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return []interface{}{} }},
 			{title: "into map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into made map[str]iface",
 				slotFn:    func() interface{} { v := make(map[string]interface{}); return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(map[string]interface{}{})}},
 			{title: "into *map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return &v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into *map[str]str",
 				slotFn:    func() interface{} { var v map[string]string; return &v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into []iface",
 				slotFn: func() interface{} { var v []interface{}; return v },
 				// array/slice direct: theoretically possible, as long as it's short enough.  but not supported right now.
@@ -526,16 +524,16 @@ var objFixtures = []struct {
 				valueFn: func() interface{} { return []interface{}{"value", "v2"} }},
 			{title: "into map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into made map[str]iface",
 				slotFn:    func() interface{} { v := make(map[string]interface{}); return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf(map[string]interface{}{})}},
 			{title: "into *map[str]iface",
 				slotFn:    func() interface{} { var v map[string]interface{}; return &v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into *map[str]str",
 				slotFn:    func() interface{} { var v map[string]string; return &v },
-				expectErr: skipMe},
+				expectErr: errSkipMe},
 			{title: "into []iface",
 				slotFn:    func() interface{} { var v []interface{}; return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]interface{}{})}},
@@ -702,25 +700,25 @@ var objFixtures = []struct {
 			{title: "into *map[str]str",
 				slotFn: func() interface{} { var v map[string]string; return &v },
 				//expectErr: ErrUnmarshalTypeCantFit{Token{Type: TArrOpen, Length: 3}, reflect.ValueOf("")}},
-				expectErr: skipMe}, // big tricky todo: currently falls in the cracks where reflect core panics.
+				expectErr: errSkipMe}, // big tricky todo: currently falls in the cracks where reflect core panics.
 			{title: "into []iface",
 				slotFn:    func() interface{} { var v []interface{}; return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]interface{}{})}},
 			{title: "into *[]iface",
 				slotFn:    func() interface{} { var v []interface{}; return &v },
-				expectErr: skipMe}, // should certainly error, but not well spec'd yet
+				expectErr: errSkipMe}, // should certainly error, but not well spec'd yet
 			{title: "into []str",
 				slotFn:    func() interface{} { var v []string; return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]string{})}},
 			{title: "into *[]str",
 				slotFn:    func() interface{} { var v []string; return &v },
-				expectErr: skipMe}, // should certainly error, but not well spec'd yet
+				expectErr: errSkipMe}, // should certainly error, but not well spec'd yet
 			{title: "into []int",
 				slotFn:    func() interface{} { var v []int; return v },
 				expectErr: ErrInvalidUnmarshalTarget{reflect.TypeOf([]int{})}},
 			{title: "into *[]int",
 				slotFn:    func() interface{} { var v []int; return &v },
-				expectErr: skipMe}, // should certainly error, but not well spec'd yet
+				expectErr: errSkipMe}, // should certainly error, but not well spec'd yet
 		},
 	},
 	{title: "nested maps and arrays with no wildcards",
@@ -868,13 +866,13 @@ var objFixtures = []struct {
 			{title: "from *tDefStr",
 				valueFn: func() interface{} { str := tDefStr("value"); return &str }},
 			{title: "from tDefStr in iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = tDefStr("value"); return iface }},
+				valueFn: func() interface{} { var iface interface{} = tDefStr("value"); return iface }},
 			{title: "from tDefStr in *iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = tDefStr("value"); return &iface }},
+				valueFn: func() interface{} { var iface interface{} = tDefStr("value"); return &iface }},
 			{title: "from *tDefStr in iface slot",
-				valueFn: func() interface{} { str := tDefStr("value"); var iface interface{}; iface = &str; return iface }},
+				valueFn: func() interface{} { str := tDefStr("value"); var iface interface{} = &str; return iface }},
 			{title: "from *tDefStr in *iface slot",
-				valueFn: func() interface{} { str := tDefStr("value"); var iface interface{}; iface = &str; return &iface }},
+				valueFn: func() interface{} { str := tDefStr("value"); var iface interface{} = &str; return &iface }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into tDefStr",
@@ -895,13 +893,13 @@ var objFixtures = []struct {
 			{title: "from *tDefInt",
 				valueFn: func() interface{} { v := tDefInt(1); return &v }},
 			{title: "from tDefInt in iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = tDefInt(1); return iface }},
+				valueFn: func() interface{} { var iface interface{} = tDefInt(1); return iface }},
 			{title: "from tDefInt in *iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = tDefInt(1); return &iface }},
+				valueFn: func() interface{} { var iface interface{} = tDefInt(1); return &iface }},
 			{title: "from *tDefInt in iface slot",
-				valueFn: func() interface{} { v := tDefInt(1); var iface interface{}; iface = &v; return iface }},
+				valueFn: func() interface{} { v := tDefInt(1); var iface interface{} = &v; return iface }},
 			{title: "from *tDefInt in *iface slot",
-				valueFn: func() interface{} { v := tDefInt(1); var iface interface{}; iface = &v; return &iface }},
+				valueFn: func() interface{} { v := tDefInt(1); var iface interface{} = &v; return &iface }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into tDefInt",
@@ -922,13 +920,13 @@ var objFixtures = []struct {
 			{title: "from *tDefBytes",
 				valueFn: func() interface{} { v := tDefBytes(`value`); return &v }},
 			{title: "from tDefBytes in iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = tDefBytes(`value`); return iface }},
+				valueFn: func() interface{} { var iface interface{} = tDefBytes(`value`); return iface }},
 			{title: "from tDefBytes in *iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = tDefBytes(`value`); return &iface }},
+				valueFn: func() interface{} { var iface interface{} = tDefBytes(`value`); return &iface }},
 			{title: "from *tDefBytes in iface slot",
-				valueFn: func() interface{} { v := tDefBytes(`value`); var iface interface{}; iface = &v; return iface }},
+				valueFn: func() interface{} { v := tDefBytes(`value`); var iface interface{} = &v; return iface }},
 			{title: "from *tDefBytes in *iface slot",
-				valueFn: func() interface{} { v := tDefBytes(`value`); var iface interface{}; iface = &v; return &iface }},
+				valueFn: func() interface{} { v := tDefBytes(`value`); var iface interface{} = &v; return &iface }},
 		},
 		unmarshalResults: []unmarshalResults{
 			{title: "into tDefBytes",
@@ -1019,19 +1017,19 @@ var objFixtures = []struct {
 			{title: "from *string",
 				valueFn: func() interface{} { var strp *string; return strp }},
 			{title: "from *string in iface slot",
-				valueFn: func() interface{} { var strp *string; var iface interface{}; iface = strp; return iface }},
+				valueFn: func() interface{} { var strp *string; var iface interface{} = strp; return iface }},
 			{title: "from *string in *iface slot",
-				valueFn: func() interface{} { var strp *string; var iface interface{}; iface = strp; return &iface }},
+				valueFn: func() interface{} { var strp *string; var iface interface{} = strp; return &iface }},
 			{title: "from **string",
 				valueFn: func() interface{} { var strp *string; return &strp }},
 			{title: "from **string in iface slot",
-				valueFn: func() interface{} { var strp *string; var iface interface{}; iface = &strp; return iface }},
+				valueFn: func() interface{} { var strp *string; var iface interface{} = &strp; return iface }},
 			{title: "from nil return",
 				valueFn: func() interface{} { return nil }}, // this is the illusive "invalid" kind!  even `reflect.ValueOf(nil).Type()` will panic!
 			{title: "from nil in iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = nil; return iface }}, // same as previous test row.
+				valueFn: func() interface{} { var iface interface{} = nil; return iface }}, // same as previous test row.
 			{title: "from nil in *iface slot",
-				valueFn: func() interface{} { var iface interface{}; iface = nil; return &iface }},
+				valueFn: func() interface{} { var iface interface{} = nil; return &iface }},
 			{title: "from map[str]iface",
 				valueFn: func() interface{} { return map[string]interface{}(nil) }},
 			{title: "from map[str]str",
@@ -1411,7 +1409,7 @@ func TestMarshaller(t *testing.T) {
 			Convey(fmt.Sprintf("%q fixture sequence:", tr.title), func() {
 				for _, trr := range tr.marshalResults {
 					maybe := Convey
-					if trr.expectErr == skipMe {
+					if trr.expectErr == errSkipMe {
 						maybe = SkipConvey
 					}
 					// Conjure value.  Also format title for test, using its type info.
@@ -1485,7 +1483,7 @@ func TestUnmarshaller(t *testing.T) {
 			Convey(fmt.Sprintf("%q fixture sequence:", tr.title), func() {
 				for _, trr := range tr.unmarshalResults {
 					maybe := Convey
-					if trr.expectErr == skipMe {
+					if trr.expectErr == errSkipMe {
 						maybe = SkipConvey
 					}
 					// Conjure slot.  Also format title for test, using its type info.

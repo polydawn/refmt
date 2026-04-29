@@ -107,9 +107,8 @@ func Benchmark_ReflectTypeMapLookup(b *testing.B) {
 // mem:  26.7 ns/op             0 B/op          0 allocs/op
 func Benchmark_ReflectTypeMapLookupMessier(b *testing.B) {
 	var dump interface{}
-	var switcher interface{}
 	//switcher = "aasdf" // same
-	switcher = struct{ x int }{}
+	var switcher interface{} = struct{ x int }{}
 	leMap := map[reflect.Type]interface{}{
 		reflect.TypeOf(""):         "",
 		reflect.TypeOf(1):          "",

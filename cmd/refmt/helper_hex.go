@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"io/ioutil"
 )
 
 const hextable = "0123456789abcdef"
@@ -16,7 +15,7 @@ const hextable = "0123456789abcdef"
 	It's *not* streaming, though.  (PRs welcome...)
 */
 func hexReader(hr io.Reader) io.Reader {
-	in, err := ioutil.ReadAll(hr)
+	in, err := io.ReadAll(hr)
 	if err != nil {
 		return errthunkReader{err}
 	}

@@ -2,7 +2,7 @@ package bench
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"reflect"
 	"strconv"
 	"testing"
@@ -38,7 +38,7 @@ func Benchmark_MapIterDirectByKeys(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		ks := make([]string, len(slot))
 		var j int
-		for k, _ := range slot {
+		for k := range slot {
 			ks[j] = k
 			j++
 		}
@@ -80,10 +80,9 @@ func Benchmark_MapIterReflective(b *testing.B) {
 // About 2.3x slower than reflective iteration.  (Yup, that means about 37x slower than direct ranging.)
 // About 3 allocs per map entry.
 func Benchmark_MapIterContextJson(b *testing.B) {
-	var slot map[string]interface{}
-	slot = mapItrFixture()
+	slot := mapItrFixture()
 	for i := 0; i < b.N; i++ {
-		json.NewEncoder(ioutil.Discard).Encode(slot)
+		json.NewEncoder(io.Discard).Encode(slot)
 	}
 }
 
