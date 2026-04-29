@@ -139,6 +139,9 @@ func (d *Decoder) decodeBytesOrStringIndefinite(bs []byte, majorWanted byte) (bs
 		if n > 33554432 {
 			return nil, fmt.Errorf("cbor: decoding rejected oversized indefinite string/bytes field: %d is too large", n)
 		}
+		if newLen > d.cfg.maxIndefiniteSize() {
+			return nil, ErrIndefiniteSizeExceeded
+		}
 		if newLen > cap(bs) {
 			bs2 := make([]byte, newLen, 2*cap(bs)+n)
 			copy(bs2, bs)
