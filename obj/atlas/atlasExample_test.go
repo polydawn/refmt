@@ -16,7 +16,7 @@ import (
 //   given that keeping a reflect.Type instance on hand appears to be common,
 //   let's start building any builder with that.  Then, diversify.
 
-func ExampleAtlasBuilding() {
+func ExampleBuild() {
 	type typeExample1 struct {
 		FieldName string
 		Nested    struct {
