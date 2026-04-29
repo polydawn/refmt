@@ -46,8 +46,6 @@ func (d *Decoder) Reset() {
 	d.left = d.left[0:0]
 }
 
-type decoderStep func(tokenSlot *Token) (done bool, err error)
-
 func (d *Decoder) Step(tokenSlot *Token) (done bool, err error) {
 	switch d.phase {
 	case decoderPhase_acceptValue:
@@ -315,7 +313,7 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 			}
 			return d.stepHelper_acceptValue(majorByte, tokenSlot)
 		default:
-			return true, fmt.Errorf("Invalid majorByte: 0x%x", majorByte)
+			return true, fmt.Errorf("invalid majorByte: 0x%x", majorByte)
 		}
 	}
 }

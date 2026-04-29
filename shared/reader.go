@@ -167,13 +167,6 @@ type SlickReaderSlice struct {
 	t int    // track start
 }
 
-func (z *SlickReaderSlice) reset(in []byte) {
-	z.b = in
-	z.a = len(in)
-	z.c = 0
-	z.t = 0
-}
-
 func (z *SlickReaderSlice) NumRead() int {
 	return z.c
 }
@@ -184,7 +177,6 @@ func (z *SlickReaderSlice) Unreadn1() {
 	}
 	z.c--
 	z.a++
-	return
 }
 
 func (z *SlickReaderSlice) Readnzc(n int) (bs []byte, err error) {

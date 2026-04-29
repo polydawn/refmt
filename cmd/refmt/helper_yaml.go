@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
-
+	
 	"github.com/go-yaml/yaml"
 	"github.com/polydawn/refmt/obj"
 	"github.com/polydawn/refmt/obj/atlas"
@@ -23,7 +22,7 @@ import (
 	itself does not operate streamingly on the bytes, either.)
 */
 func newYamlTokenSource(in io.Reader) shared.TokenSource {
-	byts, err := ioutil.ReadAll(in)
+	byts, err := io.ReadAll(in)
 	if err != nil {
 		return errthunkTokenSource{fmt.Errorf("refmt: error reading: %s", err)}
 	}
