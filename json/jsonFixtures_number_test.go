@@ -36,7 +36,7 @@ func testNumber(t *testing.T) {
 	t.Run("integer too big to parse", func(t *testing.T) {
 		seq := fixtures.Sequence{Tokens: fixtures.Tokens{{Type: TInt, Int: 2<<62 - 1}}}
 		t.Run("decode", func(t *testing.T) {
-			checkDecoding(t, seq, `18446744073709551617`, &strconv.NumError{"ParseInt", "18446744073709551617", strconv.ErrRange})
+			checkDecoding(t, seq, `18446744073709551617`, &strconv.NumError{Func: "ParseInt", Num: "18446744073709551617", Err: strconv.ErrRange})
 		})
 	})
 }

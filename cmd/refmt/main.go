@@ -33,8 +33,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read json, then pretty print it",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					json.NewDecoder(stdin),
-					pretty.NewEncoder(stdout),
+					TokenSource: json.NewDecoder(stdin),
+					TokenSink:   pretty.NewEncoder(stdout),
 				}.Run()
 			},
 		},
@@ -44,8 +44,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read cbor, then pretty print it",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					cbor.NewDecoder(cbor.DecodeOptions{}, stdin),
-					pretty.NewEncoder(stdout),
+					TokenSource: cbor.NewDecoder(cbor.DecodeOptions{}, stdin),
+					TokenSink:   pretty.NewEncoder(stdout),
 				}.Run()
 			},
 		},
@@ -55,8 +55,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read cbor in hex, then pretty print it",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					cbor.NewDecoder(cbor.DecodeOptions{}, hexReader(stdin)),
-					pretty.NewEncoder(stdout),
+					TokenSource: cbor.NewDecoder(cbor.DecodeOptions{}, hexReader(stdin)),
+					TokenSink:   pretty.NewEncoder(stdout),
 				}.Run()
 			},
 		},
@@ -66,8 +66,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read yaml, then pretty print it",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					newYamlTokenSource(stdin),
-					pretty.NewEncoder(stdout),
+					TokenSource: newYamlTokenSource(stdin),
+					TokenSink:   pretty.NewEncoder(stdout),
 				}.Run()
 			},
 		},
@@ -80,8 +80,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read json, emit equivalent cbor",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					json.NewDecoder(stdin),
-					cbor.NewEncoder(stdout),
+					TokenSource: json.NewDecoder(stdin),
+					TokenSink:   cbor.NewEncoder(stdout),
 				}.Run()
 			},
 		},
@@ -91,8 +91,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read json, emit equivalent cbor in hex",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					json.NewDecoder(stdin),
-					cbor.NewEncoder(hexWriter{stdout}),
+					TokenSource: json.NewDecoder(stdin),
+					TokenSink:   cbor.NewEncoder(hexWriter{stdout}),
 				}.Run()
 			},
 		},
@@ -102,8 +102,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read cbor, emit equivalent json",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					cbor.NewDecoder(cbor.DecodeOptions{}, stdin),
-					json.NewEncoder(stdout, json.EncodeOptions{}),
+					TokenSource: cbor.NewDecoder(cbor.DecodeOptions{}, stdin),
+					TokenSink:   json.NewEncoder(stdout, json.EncodeOptions{}),
 				}.Run()
 			},
 		},
@@ -113,8 +113,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read cbor in hex, emit equivalent json",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					cbor.NewDecoder(cbor.DecodeOptions{}, hexReader(stdin)),
-					json.NewEncoder(stdout, json.EncodeOptions{}),
+					TokenSource: cbor.NewDecoder(cbor.DecodeOptions{}, hexReader(stdin)),
+					TokenSink:   json.NewEncoder(stdout, json.EncodeOptions{}),
 				}.Run()
 			},
 		},
@@ -124,8 +124,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read yaml, emit equivalent json",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					newYamlTokenSource(stdin),
-					json.NewEncoder(stdout, json.EncodeOptions{}),
+					TokenSource: newYamlTokenSource(stdin),
+					TokenSink:   json.NewEncoder(stdout, json.EncodeOptions{}),
 				}.Run()
 			},
 		},
@@ -135,8 +135,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read yaml, emit equivalent cbor",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					newYamlTokenSource(stdin),
-					cbor.NewEncoder(stdout),
+					TokenSource: newYamlTokenSource(stdin),
+					TokenSink:   cbor.NewEncoder(stdout),
 				}.Run()
 			},
 		},
@@ -146,8 +146,8 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Usage:    "read yaml, emit equivalent cbor in hex",
 			Action: func(c *cli.Context) error {
 				return shared.TokenPump{
-					newYamlTokenSource(stdin),
-					cbor.NewEncoder(hexWriter{stdout}),
+					TokenSource: newYamlTokenSource(stdin),
+					TokenSink:   cbor.NewEncoder(hexWriter{stdout}),
 				}.Run()
 			},
 		},
