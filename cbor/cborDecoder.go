@@ -229,19 +229,31 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 		tokenSlot.Float64, err = d.decodeFloat(majorByte)
 		return true, err
 	case cborSigilIndefiniteBytes:
+		if d.cfg.RejectIndefinite {
+			return true, ErrIndefiniteLength
+		}
 		tokenSlot.Type = TBytes
 		tokenSlot.Bytes, err = d.decodeBytesIndefinite(nil)
 		return true, err
 	case cborSigilIndefiniteString:
+		if d.cfg.RejectIndefinite {
+			return true, ErrIndefiniteLength
+		}
 		tokenSlot.Type = TString
 		tokenSlot.Str, err = d.decodeStringIndefinite()
 		return true, err
 	case cborSigilIndefiniteArray:
+		if d.cfg.RejectIndefinite {
+			return true, ErrIndefiniteLength
+		}
 		tokenSlot.Type = TArrOpen
 		tokenSlot.Length = -1
 		d.pushPhase(decoderPhase_acceptArrValueOrBreak)
 		return false, nil
 	case cborSigilIndefiniteMap:
+		if d.cfg.RejectIndefinite {
+			return true, ErrIndefiniteLength
+		}
 		tokenSlot.Type = TMapOpen
 		tokenSlot.Length = -1
 		d.pushPhase(decoderPhase_acceptMapIndefKey)

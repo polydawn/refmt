@@ -12,7 +12,36 @@ func (EncodeOptions) IsEncodeOptions() {}
 type DecodeOptions struct {
 	CoerceUndefToNull bool
 
+	// RejectIndefinite causes the decoder to error when it encounters an
+	// indefinite-length encoding (major types 2, 3, 4 or 5 with the
+	// 0x1f indefinite indicator). The error is returned as soon as the
+	// indefinite-length sigil byte is seen, before any chunks are read or
+	// allocated. Useful for codecs that forbid indefinite-length values
+	// (notably DAG-CBOR).
+	RejectIndefinite bool
+
+	// MaxIndefiniteSize caps the cumulative size, in bytes, of an
+	// indefinite-length bytes or string value during chunk aggregation.
+	// Decoding errors when the running total would exceed this. When zero,
+	// a default of 32 MiB is used (matching the per-chunk maximum, so
+	// indefinite values can't grow larger in total than a single
+	// definite-length value).
+	MaxIndefiniteSize int
+
 	// future: options to validate canonical serial order
+}
+
+// defaultMaxIndefiniteSize matches the existing per-chunk size cap in
+// decodeBytesOrStringIndefinite (33554432 bytes / 32 MiB). It bounds the
+// total accumulator so an indefinite-length value cannot grow larger than
+// what a single definite-length value would have been allowed to.
+const defaultMaxIndefiniteSize = 33554432
+
+func (cfg DecodeOptions) maxIndefiniteSize() int {
+	if cfg.MaxIndefiniteSize > 0 {
+		return cfg.MaxIndefiniteSize
+	}
+	return defaultMaxIndefiniteSize
 }
 
 // marker method -- you may use this type to instruct `refmt.Marshal`

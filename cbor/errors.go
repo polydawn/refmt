@@ -1,10 +1,20 @@
 package cbor
 
 import (
+	"errors"
 	"fmt"
 
 	. "github.com/polydawn/refmt/tok"
 )
+
+// ErrIndefiniteLength is returned by the decoder when an indefinite-length
+// encoding is encountered and DecodeOptions.RejectIndefinite is set.
+var ErrIndefiniteLength = errors.New("cbor: indefinite-length encoding rejected")
+
+// ErrIndefiniteSizeExceeded is returned by the decoder when the cumulative
+// size of an indefinite-length bytes or string value would exceed
+// DecodeOptions.MaxIndefiniteSize.
+var ErrIndefiniteSizeExceeded = errors.New("cbor: indefinite-length string/bytes total size exceeds limit")
 
 // Error raised by Encoder when invalid tokens or invalid ordering, e.g. a MapClose with no matching open.
 // Should never be seen by the user in practice unless generating their own token streams.
