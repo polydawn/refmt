@@ -17,12 +17,21 @@ func (d *Decoder) decodeFloat(majorByte byte) (f float64, err error) {
 	switch majorByte {
 	case cborSigilFloat16:
 		bs, err = d.r.Readnzc(2)
+		if err != nil {
+			return 0, err
+		}
 		f = float64(math.Float32frombits(halfFloatToFloatBits(binary.BigEndian.Uint16(bs))))
 	case cborSigilFloat32:
 		bs, err = d.r.Readnzc(4)
+		if err != nil {
+			return 0, err
+		}
 		f = float64(math.Float32frombits(binary.BigEndian.Uint32(bs)))
 	case cborSigilFloat64:
 		bs, err = d.r.Readnzc(8)
+		if err != nil {
+			return 0, err
+		}
 		f = math.Float64frombits(binary.BigEndian.Uint64(bs))
 	}
 	return
@@ -43,14 +52,23 @@ func (d *Decoder) decodeUint(majorByte byte) (ui uint64, err error) {
 		} else if v == 0x19 {
 			var bs []byte
 			bs, err = d.r.Readnzc(2)
+			if err != nil {
+				return 0, err
+			}
 			ui = uint64(binary.BigEndian.Uint16(bs))
 		} else if v == 0x1a {
 			var bs []byte
 			bs, err = d.r.Readnzc(4)
+			if err != nil {
+				return 0, err
+			}
 			ui = uint64(binary.BigEndian.Uint32(bs))
 		} else if v == 0x1b {
 			var bs []byte
 			bs, err = d.r.Readnzc(8)
+			if err != nil {
+				return 0, err
+			}
 			ui = uint64(binary.BigEndian.Uint64(bs))
 		} else {
 			err = fmt.Errorf("decodeUint: Invalid descriptor: %v", majorByte)
@@ -142,6 +160,10 @@ func (d *Decoder) decodeBytesOrStringIndefinite(bs []byte, majorWanted byte) (bs
 		if newLen > d.cfg.maxIndefiniteSize() {
 			return nil, ErrIndefiniteSizeExceeded
 		}
+		chunk, err := d.r.Readn(n)
+		if err != nil {
+			return append(bs, chunk...), err
+		}
 		if newLen > cap(bs) {
 			bs2 := make([]byte, newLen, 2*cap(bs)+n)
 			copy(bs2, bs)
@@ -149,8 +171,7 @@ func (d *Decoder) decodeBytesOrStringIndefinite(bs []byte, majorWanted byte) (bs
 		} else {
 			bs = bs[:newLen]
 		}
-		// Read that hunk.
-		d.r.Readb(bs[oldLen:newLen])
+		copy(bs[oldLen:newLen], chunk)
 	}
 }
 
