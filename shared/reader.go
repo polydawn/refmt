@@ -88,25 +88,24 @@ func (z *SlickReaderStream) NumRead() int {
 }
 
 func (z *SlickReaderStream) Readnzc(n int) (bs []byte, err error) {
-	if n == 0 {
-		return zeroByteSlice, nil
-	}
-	if n < len(z.scratch) {
-		bs = z.scratch[:n]
-	} else {
-		bs = make([]byte, n)
-	}
-	err = z.Readb(bs)
-	return
+	return z.readnPartial(n)
 }
 
 func (z *SlickReaderStream) Readn(n int) (bs []byte, err error) {
-	if n == 0 {
-		return zeroByteSlice, nil
+	bs, err = z.readnPartial(n)
+	if err != nil {
+		if len(bs) == 0 {
+			return zeroByteSlice, err
+		}
+		if n < len(z.scratch) {
+			return append([]byte(nil), bs...), err
+		}
+		return bs, err
 	}
-	bs = make([]byte, n)
-	err = z.Readb(bs)
-	return
+	if n < len(z.scratch) {
+		return append([]byte(nil), bs...), nil
+	}
+	return bs, nil
 }
 
 func (z *SlickReaderStream) Readb(bs []byte) error {
@@ -119,6 +118,60 @@ func (z *SlickReaderStream) Readb(bs []byte) error {
 		z.tracking = append(z.tracking, bs...)
 	}
 	return err
+}
+
+func (z *SlickReaderStream) readnPartial(n int) (bs []byte, err error) {
+	if n == 0 {
+		return zeroByteSlice, nil
+	}
+	if n < len(z.scratch) {
+		bs = z.scratch[:n]
+		m, err := io.ReadAtLeast(z.br, bs, n)
+		z.n += m
+		if z.isTracking && m > 0 {
+			z.tracking = append(z.tracking, bs[:m]...)
+		}
+		if err != nil {
+			return bs[:m], err
+		}
+		return bs, nil
+	}
+
+	// Read in fixed-size chunks so the allocation pattern matches
+	// actual read progress rather than the requested length up front.
+	// 4 KiB matches a typical OS page and keeps the per-grow cost small.
+	const chunkSize = 4096
+	capHint := n
+	if capHint > chunkSize {
+		capHint = chunkSize
+	}
+	bs = make([]byte, 0, capHint)
+	for len(bs) < n {
+		chunk := n - len(bs)
+		if chunk > chunkSize {
+			chunk = chunkSize
+		}
+		oldLen := len(bs)
+		if cap(bs)-oldLen < chunk {
+			newCap := cap(bs) * 2
+			if newCap < oldLen+chunk {
+				newCap = oldLen + chunk
+			}
+			bs2 := make([]byte, oldLen, newCap)
+			copy(bs2, bs)
+			bs = bs2
+		}
+		bs = bs[:oldLen+chunk]
+		m, err := io.ReadAtLeast(z.br, bs[oldLen:], chunk)
+		z.n += m
+		if z.isTracking && m > 0 {
+			z.tracking = append(z.tracking, bs[oldLen:oldLen+m]...)
+		}
+		if err != nil {
+			return bs[:oldLen+m], err
+		}
+	}
+	return bs, nil
 }
 
 func (z *SlickReaderStream) Readn1() (b uint8, err error) {
@@ -196,12 +249,14 @@ func (z *SlickReaderSlice) Readnzc(n int) (bs []byte, err error) {
 }
 
 func (z *SlickReaderSlice) Readn(n int) (bs []byte, err error) {
-	if n == 0 {
-		return zeroByteSlice, nil
+	bs, err = z.Readnzc(n)
+	if err != nil {
+		if len(bs) == 0 {
+			return zeroByteSlice, err
+		}
+		return append([]byte(nil), bs...), err
 	}
-	bs = make([]byte, n)
-	err = z.Readb(bs)
-	return
+	return append([]byte(nil), bs...), nil
 }
 
 func (z *SlickReaderSlice) Readn1() (v uint8, err error) {
