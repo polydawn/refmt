@@ -63,8 +63,11 @@ func (d *Decoder) decodeUint(majorByte byte) (ui uint64, err error) {
 		if v == 0x18 {
 			var b byte
 			b, err = d.r.Readn1()
+			if err != nil {
+				return 0, err
+			}
 			ui = uint64(b)
-			if err == nil && d.cfg.RejectNonMinimalInteger && ui < uintMinimalBoundary1 {
+			if d.cfg.RejectNonMinimalInteger && ui < uintMinimalBoundary1 {
 				return 0, ErrNonMinimalInteger
 			}
 		} else if v == 0x19 {

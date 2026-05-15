@@ -47,3 +47,23 @@ func TestRejectNarrowFloat(t *testing.T) {
 		})
 	}
 }
+
+// Sigil byte alone, no payload: option must reject before any read so a
+// truncated stream surfaces ErrNarrowFloat, not io.EOF.
+func TestRejectNarrowFloat_RejectsBeforeRead(t *testing.T) {
+	cases := []struct {
+		name    string
+		payload []byte
+	}{
+		{"f16 sigil only", []byte{0xf9}},
+		{"f32 sigil only", []byte{0xfa}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, _, err := nextToken(t, DecodeOptions{RejectNarrowFloat: true}, tc.payload)
+			if !errors.Is(err, ErrNarrowFloat) {
+				t.Fatalf("expected ErrNarrowFloat, got %v", err)
+			}
+		})
+	}
+}

@@ -9,15 +9,18 @@ type EncodeOptions struct {
 // what kind of encoder to use.
 func (EncodeOptions) IsEncodeOptions() {}
 
+// DecodeOptions controls decoder behaviour. Several fields select stricter
+// dialects of CBOR by rejecting forms the base spec permits: indefinite-
+// length values, non-minimal integer headers, NaN and infinite floats, and
+// floats encoded narrower than 64 bits. A codec layered on top of refmt
+// that mandates one of these constraints sets the matching flag; all flags
+// are independent and off by default to preserve permissive behaviour for
+// existing callers.
 type DecodeOptions struct {
 	CoerceUndefToNull bool
 
-	// RejectIndefinite causes the decoder to error when it encounters an
-	// indefinite-length encoding (major types 2, 3, 4 or 5 with the
-	// 0x1f indefinite indicator). The error is returned as soon as the
-	// indefinite-length sigil byte is seen, before any chunks are read or
-	// allocated. Useful for codecs that forbid indefinite-length values
-	// (notably DAG-CBOR).
+	// RejectIndefinite errors at the indefinite-length sigil byte (0x5f,
+	// 0x7f, 0x9f, 0xbf) before any chunks are read or allocated.
 	RejectIndefinite bool
 
 	// MaxIndefiniteSize caps the cumulative size, in bytes, of an
@@ -31,25 +34,18 @@ type DecodeOptions struct {
 	// RejectNonMinimalInteger rejects CBOR heads whose integer argument is
 	// encoded in more bytes than necessary. Applies to uints, negative
 	// ints, length headers (bytes/strings/arrays/maps) and tag headers.
-	// Required by codecs that mandate minimal encoding (e.g. DAG-CBOR).
 	RejectNonMinimalInteger bool
 
-	// RejectNaN causes the decoder to error when a float value decodes to
-	// NaN (any of its many bit representations). Required by codecs that
-	// forbid NaN, including DAG-CBOR.
+	// RejectNaN errors when a float value decodes to NaN, regardless of
+	// which bit pattern was used to encode it.
 	RejectNaN bool
 
-	// RejectInfinity causes the decoder to error when a float value
-	// decodes to +Inf or -Inf. Required by codecs that forbid infinities,
-	// including DAG-CBOR.
+	// RejectInfinity errors when a float value decodes to +Inf or -Inf.
 	RejectInfinity bool
 
-	// RejectNarrowFloat rejects float values encoded as 16-bit (0xf9) or 32-bit
-	// (0xfa) at the sigil byte, before any payload is read. Required by
-	// codecs that mandate float64-only encoding (DAG-CBOR).
+	// RejectNarrowFloat rejects 16-bit (0xf9) and 32-bit (0xfa) float
+	// encodings at the sigil byte, before any payload is read.
 	RejectNarrowFloat bool
-
-	// future: options to validate canonical serial order
 }
 
 // defaultMaxIndefiniteSize matches the existing per-chunk size cap in
