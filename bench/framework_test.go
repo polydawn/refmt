@@ -6,9 +6,8 @@ import (
 	"fmt"
 	"testing"
 
-	wish "github.com/warpfork/go-wish"
-
 	"github.com/polydawn/refmt"
+	wish "github.com/polydawn/refmt/testutil"
 )
 
 func exerciseMarshaller(

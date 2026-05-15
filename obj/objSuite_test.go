@@ -3,9 +3,8 @@ package obj
 import (
 	"testing"
 
-	. "github.com/warpfork/go-wish"
-
 	"github.com/polydawn/refmt/obj/atlas"
+	. "github.com/polydawn/refmt/testutil"
 	"github.com/polydawn/refmt/tok"
 )
 
