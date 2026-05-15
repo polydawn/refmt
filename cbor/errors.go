@@ -29,6 +29,10 @@ var ErrFloatNaN = errors.New("cbor: NaN float value rejected")
 // is encountered and DecodeOptions.RejectInfinity is set.
 var ErrFloatInfinity = errors.New("cbor: infinite float value rejected")
 
+// ErrNarrowFloat is returned by the decoder when a 16-bit or 32-bit float
+// encoding is encountered and DecodeOptions.RejectNarrowFloat is set.
+var ErrNarrowFloat = errors.New("cbor: float narrower than 64 bits rejected")
+
 // Error raised by Encoder when invalid tokens or invalid ordering, e.g. a MapClose with no matching open.
 // Should never be seen by the user in practice unless generating their own token streams.
 type ErrInvalidTokenStream struct {
