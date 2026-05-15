@@ -10,9 +10,9 @@ import (
 const hextable = "0123456789abcdef"
 
 /*
-	Convert hex into bytes, returning another reader.
+Convert hex into bytes, returning another reader.
 
-	It's *not* streaming, though.  (PRs welcome...)
+It's *not* streaming, though.  (PRs welcome...)
 */
 func hexReader(hr io.Reader) io.Reader {
 	in, err := io.ReadAll(hr)

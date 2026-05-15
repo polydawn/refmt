@@ -170,12 +170,12 @@ func Benchmark_WalkStructReadViaGlommed(b *testing.B) {
 // GC off: 217 ns/op
 // Mem:    176 B/op   4 allocs/op
 // Commentary:
-//  - Somewhat surprisingly, still slower than funcy.
-//  - One more alloc than funcy; one less than glommed.  Also, same as fieldroutes.  Shows in time.
-//  - Does score well for clarity.
-//  - Those four allocs -- know where they come from?  The addr grabbing.
-//    (I don't entirely understand how the AddrFunc approach is immune to this, but
-//    evidentally that escape analysis there is key to that technique's efficiency.)
+//   - Somewhat surprisingly, still slower than funcy.
+//   - One more alloc than funcy; one less than glommed.  Also, same as fieldroutes.  Shows in time.
+//   - Does score well for clarity.
+//   - Those four allocs -- know where they come from?  The addr grabbing.
+//     (I don't entirely understand how the AddrFunc approach is immune to this, but
+//     evidentally that escape analysis there is key to that technique's efficiency.)
 func Benchmark_WalkStructReadViaRacked(b *testing.B) {
 	var dump interface{}
 	var dumpRef = &dump

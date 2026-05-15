@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	
+
 	"github.com/go-yaml/yaml"
 	"github.com/polydawn/refmt/obj"
 	"github.com/polydawn/refmt/obj/atlas"
@@ -13,13 +13,13 @@ import (
 )
 
 /*
-	Turn yaml into a TokenSource... by running it through a third-party
-	parser which emits objects, then applying our obj.NewMarshaller to get
-	tokens again.
+Turn yaml into a TokenSource... by running it through a third-party
+parser which emits objects, then applying our obj.NewMarshaller to get
+tokens again.
 
-	Obviously, this does not function streamingly.  (Not only does the full
-	object in the middle make a blocking point, the third-party library
-	itself does not operate streamingly on the bytes, either.)
+Obviously, this does not function streamingly.  (Not only does the full
+object in the middle make a blocking point, the third-party library
+itself does not operate streamingly on the bytes, either.)
 */
 func newYamlTokenSource(in io.Reader) shared.TokenSource {
 	byts, err := io.ReadAll(in)
@@ -48,9 +48,9 @@ func (x errthunkTokenSource) Step(*tok.Token) (done bool, err error) {
 }
 
 /*
-	Yaml things anything can be a map key.
-	Most things think only strings can be a map key.
-	This func makes yaml outputs into what everyone else expects.
+Yaml things anything can be a map key.
+Most things think only strings can be a map key.
+This func makes yaml outputs into what everyone else expects.
 */
 func stringifyMapKeys(value interface{}) interface{} {
 	switch value := value.(type) {
@@ -71,12 +71,12 @@ func stringifyMapKeys(value interface{}) interface{} {
 }
 
 /*
-	Okay so *I* think tabs are cool and really not that hard to deal with
-	and so our yaml handling will accept tabs.
+Okay so *I* think tabs are cool and really not that hard to deal with
+and so our yaml handling will accept tabs.
 
-	... By converting them shamelessly to two-space pairs, because that's
-	what the 3rd-party yaml parser library we're leaning on is hung up on.
-	(No, I'm not writing a yaml parser.  Yaml is insane.  Nope.)
+... By converting them shamelessly to two-space pairs, because that's
+what the 3rd-party yaml parser library we're leaning on is hung up on.
+(No, I'm not writing a yaml parser.  Yaml is insane.  Nope.)
 */
 func tab2space(x []byte) []byte {
 	// flip into lines, replace leading tabs with spaces, flip back to bytes, cry at the loss of spilt cycles

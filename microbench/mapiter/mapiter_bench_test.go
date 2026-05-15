@@ -25,8 +25,9 @@ func Benchmark_MapIterDirectRange(b *testing.B) {
 
 // Iterate a map by indexing in for each key.
 // This is not using reflect, but does involve additional time probing into the map;
-//  this emulates the work necessary if accessing the map in key-sorted order (but does
-//  not include costs of such a sort).
+//
+//	this emulates the work necessary if accessing the map in key-sorted order (but does
+//	not include costs of such a sort).
 //
 // About 3~4x slower than direct range.
 // Almost no allocs (one! just that big slice for the keys).
@@ -52,8 +53,9 @@ func Benchmark_MapIterDirectByKeys(b *testing.B) {
 
 // Iterate a map by reflection.
 // This is (necessarily) comparable to IterDirectByKeys, since there is no such thing
-//  as `reflect.Value.Range()` (and if there was, it would probably have to take a callback),
-//  so we're getting keys first, and indexing in per key.
+//
+//	as `reflect.Value.Range()` (and if there was, it would probably have to take a callback),
+//	so we're getting keys first, and indexing in per key.
 //
 // About 16x slower than direct range.  About 4~5x slower than direct keys.
 // About 2 allocs per map entry.
@@ -75,7 +77,8 @@ func Benchmark_MapIterReflective(b *testing.B) {
 
 // Exercise the stdlib json encoding traversing the same map fixture.
 // This can be expected to be crazy slow compared to the other tests, because
-//  it has to do tons of work shifting bytes around.
+//
+//	it has to do tons of work shifting bytes around.
 //
 // About 2.3x slower than reflective iteration.  (Yup, that means about 37x slower than direct ranging.)
 // About 3 allocs per map entry.
