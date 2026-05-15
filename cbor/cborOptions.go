@@ -28,6 +28,12 @@ type DecodeOptions struct {
 	// definite-length value).
 	MaxIndefiniteSize int
 
+	// RejectNonMinimalInteger rejects CBOR heads whose integer argument is
+	// encoded in more bytes than necessary. Applies to uints, negative
+	// ints, length headers (bytes/strings/arrays/maps) and tag headers.
+	// Required by codecs that mandate minimal encoding (e.g. DAG-CBOR).
+	RejectNonMinimalInteger bool
+
 	// future: options to validate canonical serial order
 }
 
