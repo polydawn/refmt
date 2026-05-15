@@ -44,6 +44,11 @@ type DecodeOptions struct {
 	// including DAG-CBOR.
 	RejectInfinity bool
 
+	// RejectNarrowFloat rejects float values encoded as 16-bit (0xf9) or 32-bit
+	// (0xfa) at the sigil byte, before any payload is read. Required by
+	// codecs that mandate float64-only encoding (DAG-CBOR).
+	RejectNarrowFloat bool
+
 	// future: options to validate canonical serial order
 }
 

@@ -223,6 +223,9 @@ func (d *Decoder) stepHelper_acceptValue(majorByte byte, tokenSlot *Token) (done
 		tokenSlot.Bool = true
 		return true, nil
 	case cborSigilFloat16, cborSigilFloat32, cborSigilFloat64:
+		if d.cfg.RejectNarrowFloat && majorByte != cborSigilFloat64 {
+			return true, ErrNarrowFloat
+		}
 		tokenSlot.Type = TFloat64
 		tokenSlot.Float64, err = d.decodeFloat(majorByte)
 		return true, err
