@@ -1,0 +1,44 @@
+on: [ push, pull_request ]
+name: Go Fuzz
+
+jobs:
+  cbor:
+    strategy:
+      fail-fast: true
+      matrix:
+        target: [ "CborDecode", "CborUnmarshalInterface", "CborRoundtrip" ]
+    runs-on: ubuntu-latest
+    name: Fuzz cbor ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.x
+      - name: Go information
+        run: |
+          go version
+          go env
+      - name: Run Fuzzing for 1m
+        run: go test -v -fuzz=Fuzz${{ matrix.target }} -fuzztime=1m ./cbor/
+  json:
+    strategy:
+      fail-fast: true
+      matrix:
+        target: [ "JSONDecode", "JSONUnmarshalInterface" ]
+    runs-on: ubuntu-latest
+    name: Fuzz json ${{ matrix.target }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v6
+        with:
+          go-version: 1.25.x
+      - name: Go information
+        run: |
+          go version
+          go env
+      - name: Run Fuzzing for 1m
+        run: go test -v -fuzz=Fuzz${{ matrix.target }} -fuzztime=1m ./json/
