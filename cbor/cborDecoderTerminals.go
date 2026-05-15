@@ -43,6 +43,12 @@ func (d *Decoder) decodeFloat(majorByte byte) (f float64, err error) {
 		}
 		f = math.Float64frombits(binary.BigEndian.Uint64(bs))
 	}
+	if d.cfg.RejectNaN && math.IsNaN(f) {
+		return 0, ErrFloatNaN
+	}
+	if d.cfg.RejectInfinity && math.IsInf(f, 0) {
+		return 0, ErrFloatInfinity
+	}
 	return
 }
 

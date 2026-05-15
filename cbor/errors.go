@@ -21,6 +21,14 @@ var ErrIndefiniteSizeExceeded = errors.New("cbor: indefinite-length string/bytes
 // DecodeOptions.RejectNonMinimalInteger is set.
 var ErrNonMinimalInteger = errors.New("cbor: integer not minimally encoded")
 
+// ErrFloatNaN is returned by the decoder when a NaN float value is
+// encountered and DecodeOptions.RejectNaN is set.
+var ErrFloatNaN = errors.New("cbor: NaN float value rejected")
+
+// ErrFloatInfinity is returned by the decoder when an infinite float value
+// is encountered and DecodeOptions.RejectInfinity is set.
+var ErrFloatInfinity = errors.New("cbor: infinite float value rejected")
+
 // Error raised by Encoder when invalid tokens or invalid ordering, e.g. a MapClose with no matching open.
 // Should never be seen by the user in practice unless generating their own token streams.
 type ErrInvalidTokenStream struct {

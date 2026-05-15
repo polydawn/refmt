@@ -34,6 +34,16 @@ type DecodeOptions struct {
 	// Required by codecs that mandate minimal encoding (e.g. DAG-CBOR).
 	RejectNonMinimalInteger bool
 
+	// RejectNaN causes the decoder to error when a float value decodes to
+	// NaN (any of its many bit representations). Required by codecs that
+	// forbid NaN, including DAG-CBOR.
+	RejectNaN bool
+
+	// RejectInfinity causes the decoder to error when a float value
+	// decodes to +Inf or -Inf. Required by codecs that forbid infinities,
+	// including DAG-CBOR.
+	RejectInfinity bool
+
 	// future: options to validate canonical serial order
 }
 
