@@ -79,6 +79,16 @@ func FuzzCborDecode(f *testing.F) {
 		// Tight indefinite cap exercises the accumulator-bound path.
 		stats, _ = drainDecoder(NewDecoder(DecodeOptions{MaxIndefiniteSize: 4096}, bytes.NewReader(payload)))
 		assertDecodeBounds(t, payload, stats)
+
+		// All strict-mode flags together exercise the per-head and per-value
+		// rejection paths in decodeUint and decodeFloat.
+		stats, _ = drainDecoder(NewDecoder(DecodeOptions{
+			RejectNonMinimalInteger: true,
+			RejectNaN:               true,
+			RejectInfinity:          true,
+			RejectNarrowFloat:       true,
+		}, bytes.NewReader(payload)))
+		assertDecodeBounds(t, payload, stats)
 	})
 }
 
@@ -124,6 +134,14 @@ func FuzzCborUnmarshalInterface(f *testing.F) {
 
 		out = nil
 		_ = Unmarshal(DecodeOptions{RejectIndefinite: true}, payload, &out)
+
+		out = nil
+		_ = Unmarshal(DecodeOptions{
+			RejectNonMinimalInteger: true,
+			RejectNaN:               true,
+			RejectInfinity:          true,
+			RejectNarrowFloat:       true,
+		}, payload, &out)
 	})
 }
 
