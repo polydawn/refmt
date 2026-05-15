@@ -16,6 +16,11 @@ var ErrIndefiniteLength = errors.New("cbor: indefinite-length encoding rejected"
 // DecodeOptions.MaxIndefiniteSize.
 var ErrIndefiniteSizeExceeded = errors.New("cbor: indefinite-length string/bytes total size exceeds limit")
 
+// ErrNonMinimalInteger is returned by the decoder when a CBOR head's integer
+// argument is encoded in more bytes than necessary and
+// DecodeOptions.RejectNonMinimalInteger is set.
+var ErrNonMinimalInteger = errors.New("cbor: integer not minimally encoded")
+
 // Error raised by Encoder when invalid tokens or invalid ordering, e.g. a MapClose with no matching open.
 // Should never be seen by the user in practice unless generating their own token streams.
 type ErrInvalidTokenStream struct {

@@ -7,6 +7,15 @@ import (
 	"math"
 )
 
+// Lower bound a CBOR head argument value must reach for its encoded width to
+// be minimal; values below the matching bound could have used a shorter form.
+const (
+	uintMinimalBoundary1 = 0x18
+	uintMinimalBoundary2 = 0x100
+	uintMinimalBoundary3 = 0x10000
+	uintMinimalBoundary4 = 0x1_0000_0000
+)
+
 const (
 	maxUint = ^uint(0)
 	maxInt  = int(maxUint >> 1)
@@ -49,6 +58,9 @@ func (d *Decoder) decodeUint(majorByte byte) (ui uint64, err error) {
 			var b byte
 			b, err = d.r.Readn1()
 			ui = uint64(b)
+			if err == nil && d.cfg.RejectNonMinimalInteger && ui < uintMinimalBoundary1 {
+				return 0, ErrNonMinimalInteger
+			}
 		} else if v == 0x19 {
 			var bs []byte
 			bs, err = d.r.Readnzc(2)
@@ -56,6 +68,9 @@ func (d *Decoder) decodeUint(majorByte byte) (ui uint64, err error) {
 				return 0, err
 			}
 			ui = uint64(binary.BigEndian.Uint16(bs))
+			if d.cfg.RejectNonMinimalInteger && ui < uintMinimalBoundary2 {
+				return 0, ErrNonMinimalInteger
+			}
 		} else if v == 0x1a {
 			var bs []byte
 			bs, err = d.r.Readnzc(4)
@@ -63,6 +78,9 @@ func (d *Decoder) decodeUint(majorByte byte) (ui uint64, err error) {
 				return 0, err
 			}
 			ui = uint64(binary.BigEndian.Uint32(bs))
+			if d.cfg.RejectNonMinimalInteger && ui < uintMinimalBoundary3 {
+				return 0, ErrNonMinimalInteger
+			}
 		} else if v == 0x1b {
 			var bs []byte
 			bs, err = d.r.Readnzc(8)
@@ -70,6 +88,9 @@ func (d *Decoder) decodeUint(majorByte byte) (ui uint64, err error) {
 				return 0, err
 			}
 			ui = uint64(binary.BigEndian.Uint64(bs))
+			if d.cfg.RejectNonMinimalInteger && ui < uintMinimalBoundary4 {
+				return 0, ErrNonMinimalInteger
+			}
 		} else {
 			err = fmt.Errorf("decodeUint: Invalid descriptor: %v", majorByte)
 			return
