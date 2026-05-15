@@ -5,8 +5,7 @@ import (
 	"encoding/base64"
 	"testing"
 
-	. "github.com/warpfork/go-wish"
-
+	. "github.com/polydawn/refmt/testutil"
 	"github.com/polydawn/refmt/tok/fixtures"
 )
 
