@@ -726,9 +726,9 @@ var objFixtures = []struct {
 		marshalResults: []marshalResults{
 			{title: "from oh-so-much type info",
 				valueFn: func() interface{} {
-					return map[string][]map[string]int{"k": []map[string]int{
-						map[string]int{"k2": 1},
-						map[string]int{"k2": 2},
+					return map[string][]map[string]int{"k": {
+						{"k2": 1},
+						{"k2": 2},
 					}}
 				}},
 		},
@@ -736,9 +736,9 @@ var objFixtures = []struct {
 			{title: "into oh-so-much type info",
 				slotFn: func() interface{} { var v map[string][]map[string]int; return &v },
 				valueFn: func() interface{} {
-					return map[string][]map[string]int{"k": []map[string]int{
-						map[string]int{"k2": 1},
-						map[string]int{"k2": 2},
+					return map[string][]map[string]int{"k": {
+						{"k2": 1},
+						{"k2": 2},
 					}}
 				}},
 		},

@@ -1,13 +1,13 @@
 /*
-	Guides the design of `tok.Token`:
-	test whether it's important to yield pointers to the values of interest,
-	versus simply putting the values in an `interface{}` slot.
+Guides the design of `tok.Token`:
+test whether it's important to yield pointers to the values of interest,
+versus simply putting the values in an `interface{}` slot.
 
-	(It is.)
+(It is.)
 
-	Though syntactically irritating to use of pointers to primitives for all tokens,
-	this bench demonstrates that doing so avoids a source of allocs,
-	and thus has significant performance implications.
+Though syntactically irritating to use of pointers to primitives for all tokens,
+this bench demonstrates that doing so avoids a source of allocs,
+and thus has significant performance implications.
 */
 package bench
 
@@ -79,7 +79,6 @@ func Benchmark_CopyByBoxedRef(b *testing.B) {
 //
 // Interestingly, whether or not there's a cast doesn't seem to produce any
 // difference in performance between the direct use of string and the boxed ref.
-//
 func Benchmark_CopyByBoxedValue_String(b *testing.B) {
 	type Alias interface{}
 	var slot Alias

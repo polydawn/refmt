@@ -21,13 +21,13 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	app := cli.NewApp()
 	app.Name = "refmt"
 	app.Authors = []cli.Author{
-		cli.Author{Name: "Eric Myhre", Email: "hash@exultant.us"},
+		{Name: "Eric Myhre", Email: "hash@exultant.us"},
 	}
 	app.Commands = []cli.Command{
 		//
 		// Prettyprinters
 		//
-		cli.Command{
+		{
 			Category: "prettyprint",
 			Name:     "json=pretty",
 			Usage:    "read json, then pretty print it",
@@ -38,7 +38,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
-		cli.Command{
+		{
 			Category: "prettyprint",
 			Name:     "cbor=pretty",
 			Usage:    "read cbor, then pretty print it",
@@ -49,7 +49,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
-		cli.Command{
+		{
 			Category: "prettyprint",
 			Name:     "cbor.hex=pretty",
 			Usage:    "read cbor in hex, then pretty print it",
@@ -60,7 +60,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
-		cli.Command{
+		{
 			Category: "prettyprint",
 			Name:     "yaml=pretty",
 			Usage:    "read yaml, then pretty print it",
@@ -74,7 +74,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		//
 		// Converters
 		//
-		cli.Command{
+		{
 			Category: "convert",
 			Name:     "json=cbor",
 			Usage:    "read json, emit equivalent cbor",
@@ -85,7 +85,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
-		cli.Command{
+		{
 			Category: "convert",
 			Name:     "json=cbor.hex",
 			Usage:    "read json, emit equivalent cbor in hex",
@@ -96,7 +96,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
-		cli.Command{
+		{
 			Category: "convert",
 			Name:     "cbor=json",
 			Usage:    "read cbor, emit equivalent json",
@@ -107,7 +107,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
-		cli.Command{
+		{
 			Category: "convert",
 			Name:     "cbor.hex=json",
 			Usage:    "read cbor in hex, emit equivalent json",
@@ -118,7 +118,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
-		cli.Command{
+		{
 			Category: "convert",
 			Name:     "yaml=json",
 			Usage:    "read yaml, emit equivalent json",
@@ -129,7 +129,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
-		cli.Command{
+		{
 			Category: "convert",
 			Name:     "yaml=cbor",
 			Usage:    "read yaml, emit equivalent cbor",
@@ -140,7 +140,7 @@ func Main(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 				}.Run()
 			},
 		},
-		cli.Command{
+		{
 			Category: "convert",
 			Name:     "yaml=cbor.hex",
 			Usage:    "read yaml, emit equivalent cbor in hex",
