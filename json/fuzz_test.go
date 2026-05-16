@@ -166,6 +166,11 @@ func handcraftedJSONSeeds() [][]byte {
 		[]byte(`{"foo":01}`),
 		[]byte(`{"foo":`),
 		[]byte(`["`),
+		[]byte("n"),
+		[]byte("nu"),
+		[]byte("nall"),
+		[]byte("tre"),
+		[]byte("folse"),
 		[]byte("\xff"),
 	}
 }
