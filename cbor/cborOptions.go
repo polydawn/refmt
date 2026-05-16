@@ -9,13 +9,10 @@ type EncodeOptions struct {
 // what kind of encoder to use.
 func (EncodeOptions) IsEncodeOptions() {}
 
-// DecodeOptions controls decoder behaviour. Several fields select stricter
-// dialects of CBOR by rejecting forms the base spec permits: indefinite-
-// length values, non-minimal integer headers, NaN and infinite floats, and
-// floats encoded narrower than 64 bits. A codec layered on top of refmt
-// that mandates one of these constraints sets the matching flag; all flags
-// are independent and off by default to preserve permissive behaviour for
-// existing callers.
+// DecodeOptions controls decoder behaviour. Rejection flags select stricter
+// CBOR dialects; all are independent and off by default. Indefinite-length
+// bytes and strings remain accepted by default, but their aggregate size is
+// capped by MaxIndefiniteSize.
 type DecodeOptions struct {
 	CoerceUndefToNull bool
 
