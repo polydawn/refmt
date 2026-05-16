@@ -28,7 +28,7 @@ func NewBytesReader(buf *bytes.Buffer) SlickReader {
 }
 
 func NewSliceReader(b []byte) SlickReader {
-	return &SlickReaderSlice{b: b}
+	return &SlickReaderSlice{b: b, a: len(b)}
 }
 
 // SlickReader is a hybrid of reader and buffer interfaces with methods giving
@@ -114,8 +114,8 @@ func (z *SlickReaderStream) Readb(bs []byte) error {
 	}
 	n, err := io.ReadAtLeast(z.br, bs, len(bs))
 	z.n += n
-	if z.isTracking {
-		z.tracking = append(z.tracking, bs...)
+	if z.isTracking && n > 0 {
+		z.tracking = append(z.tracking, bs[:n]...)
 	}
 	return err
 }
