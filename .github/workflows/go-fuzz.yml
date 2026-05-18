@@ -21,7 +21,7 @@ jobs:
           go version
           go env
       - name: Run Fuzzing for 1m
-        run: go test -v -fuzz=Fuzz${{ matrix.target }} -fuzztime=1m ./cbor/
+        run: go test -v -run=^$ -fuzz=Fuzz${{ matrix.target }} -fuzztime=1m -timeout=2m ./cbor/
   json:
     strategy:
       fail-fast: true
@@ -41,4 +41,4 @@ jobs:
           go version
           go env
       - name: Run Fuzzing for 1m
-        run: go test -v -fuzz=Fuzz${{ matrix.target }} -fuzztime=1m ./json/
+        run: go test -v -run=^$ -fuzz=Fuzz${{ matrix.target }} -fuzztime=1m -timeout=2m ./json/
