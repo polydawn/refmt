@@ -159,9 +159,9 @@ func (mach *unmarshalMachinePrimitive) Step(_ *Unmarshaller, _ *unmarshalSlab, t
 		case TBool:
 			mach.rv.Set(reflect.ValueOf(tok.Bool))
 		case TInt:
-			mach.rv.Set(reflect.ValueOf(int(tok.Int))) // Unmarshalling with no particular type info should default to using plain 'int' whenever viable.
+			mach.rv.Set(reflect.ValueOf(int64(tok.Int))) // Unmarshalling with no particular target type info should consistently map into 'int64' to avoid passing on vagueries of codecs around numeric types.
 		case TUint:
-			mach.rv.Set(reflect.ValueOf(int(tok.Uint))) // Unmarshalling with no particular type info should default to using plain 'int' whenever viable.
+			mach.rv.Set(reflect.ValueOf(int64(tok.Uint))) // Unmarshalling with no particular target type info should consistently map into 'int64' to avoid passing on vagueries of codecs around numeric types.
 		case TFloat64:
 			mach.rv.Set(reflect.ValueOf(tok.Float64))
 		case TNull:
