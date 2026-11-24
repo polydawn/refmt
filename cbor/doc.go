@@ -22,6 +22,8 @@ and custom object mapping powertools.
 
 The `cbor.Encoder` and `cbor.Decoder` types implement the low-level functionality
 of converting serial CBOR byte streams into refmt Token streams.
+The decoder accepts negative integers down to -2^63 and returns an error
+for smaller values.
 Users don't usually need to use these directly.
 */
 package cbor

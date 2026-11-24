@@ -2,6 +2,7 @@ package obj
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 
 	. "github.com/polydawn/refmt/tok"
@@ -78,30 +79,35 @@ func (mach *unmarshalMachinePrimitive) Step(_ *Unmarshaller, _ *unmarshalSlab, t
 			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv, 0}
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		switch tok.Type {
-		case TInt:
-			mach.rv.SetInt(tok.Int)
-			return true, nil
-		case TUint:
-			mach.rv.SetInt(int64(tok.Uint)) // todo: overflow check
-			return true, nil
+		var n int64
+		switch {
+		case tok.Type == TInt:
+			n = tok.Int
+		case tok.Type == TUint && tok.Uint <= math.MaxInt64:
+			n = int64(tok.Uint)
 		default:
 			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv, 0}
 		}
+		if mach.rv.OverflowInt(n) {
+			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv, 0}
+		}
+		mach.rv.SetInt(n)
+		return true, nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		switch tok.Type {
-		case TInt:
-			if tok.Int >= 0 {
-				mach.rv.SetUint(uint64(tok.Int))
-				return true, nil
-			}
-			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv, 0}
-		case TUint:
-			mach.rv.SetUint(tok.Uint)
-			return true, nil
+		var n uint64
+		switch {
+		case tok.Type == TUint:
+			n = tok.Uint
+		case tok.Type == TInt && tok.Int >= 0:
+			n = uint64(tok.Int)
 		default:
 			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv, 0}
 		}
+		if mach.rv.OverflowUint(n) {
+			return true, ErrUnmarshalTypeCantFit{*tok, mach.rv, 0}
+		}
+		mach.rv.SetUint(n)
+		return true, nil
 	case reflect.Float32, reflect.Float64:
 		switch tok.Type {
 		case TFloat64:

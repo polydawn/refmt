@@ -1,6 +1,9 @@
 package cbor
 
 import (
+	"bytes"
+	"encoding/binary"
+	"math"
 	"testing"
 
 	. "github.com/polydawn/refmt/tok"
@@ -97,4 +100,19 @@ func testNumber(t *testing.T) {
 			checkDecoding(t, seq, canon, nil)
 		})
 	})
+}
+
+func TestDecodeNegativeIntegerRange(t *testing.T) {
+	for _, arg := range []uint64{math.MaxInt64, math.MaxInt64 + 1, math.MaxUint64} {
+		data := binary.BigEndian.AppendUint64([]byte{0x3b}, arg)
+		var tok Token
+		_, err := NewDecoder(DecodeOptions{}, bytes.NewReader(data)).Step(&tok)
+		if arg == math.MaxInt64 {
+			if err != nil || tok.Type != TInt || tok.Int != math.MinInt64 {
+				t.Errorf("argument %#x: got %v, %v; want MinInt64", arg, tok, err)
+			}
+		} else if err == nil {
+			t.Errorf("argument %#x: got %v; want range error", arg, tok)
+		}
+	}
 }
