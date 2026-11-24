@@ -120,12 +120,10 @@ func (d *Decoder) decodeNegInt(majorByte byte) (i int64, err error) {
 	if err != nil {
 		return 0, err
 	}
-	pos := ui + 1
-	if pos > uint64(-math.MinInt64) {
-		return -1, errors.New("cbor: negative integer out of rage of int64 type")
+	if ui > math.MaxInt64 {
+		return 0, errors.New("cbor: negative integer out of range of int64 type")
 	}
-
-	return -int64(pos), nil
+	return -1 - int64(ui), nil
 }
 
 // Decode expecting a positive integer.
