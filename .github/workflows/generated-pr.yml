@@ -11,4 +11,4 @@ permissions:
 
 jobs:
   stale:
-    uses: ipdxco/unified-github-workflows/.github/workflows/reusable-generated-pr.yml@v1
+    uses: ipdxco/unified-github-workflows/.github/workflows/reusable-generated-pr.yml@d9b156f4be9fae6843707f5e5cda2fb079f821ac # v1.0.45
